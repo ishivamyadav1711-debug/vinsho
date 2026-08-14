@@ -1,0 +1,580 @@
+---
+export const prerender = true;
+
+import Base from '../../layouts/Base.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+import TextReveal from '../../components/motion/TextReveal.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import Modal from '../../components/Modal.astro';
+import VariantSelector from '../../components/VariantSelector.astro';
+import LegalMetrology from '../../components/LegalMetrology.astro';
+import content from '../../../vinsho-content.json';
+import { getAllProducts, getProductBySlug, getCollectionByKey, getSubcategoryByKey } from '../../utils/taxonomy';
+import { getCommerceProductBySlug, evaluateProductPurchasability, COMMERCE_MODE } from '../../lib/commerce';
+
+import { isProductPurchasable } from '../../lib/purchasability';
+
+export function getStaticPaths() {
+  const products = getAllProducts();
+  return products.map((product) => ({
+    params: { slug: product.slug }
+  }));
+}
+
+const { slug } = Astro.params;
+const baseProduct = getProductBySlug(slug);
+
+if (!baseProduct) {
+  throw new Error(`Product not found: ${slug}`);
+}
+
+const commerceProduct = getCommerceProductBySlug(slug) || {
+  ...baseProduct,
+  collectionKey: baseProduct.collectionKey || 'decor',
+  subcategoryKey: baseProduct.subcategoryKey || 'general',
+  shippingClass: 'standard' as const,
+  launchPhase: 1,
+  sellableOnline: true,
+  returnable: true,
+  sku: null,
+  mrp: null,
+  sellingPrice: null,
+  currency: 'INR',
+  hsnCode: null,
+  gstRate: null,
+  netQuantity: null,
+  packedWeightKg: null,
+  packedDimensionsCm: { l: null, b: null, h: null },
+  stock: null,
+  variants: [],
+  countryOfOrigin: 'India',
+  manufacturerOrPacker: null,
+  consumerCareContact: null,
+  leadTimeDays: null,
+  careInstructions: null
+};
+
+const evalResult = evaluateProductPurchasability(commerceProduct);
+const isPurchasable = isProductPurchasable(baseProduct);
+
+const collection = getCollectionByKey(baseProduct.collectionKey);
+const subcategory = getSubcategoryByKey(baseProduct.collectionKey, baseProduct.subcategoryKey);
+
+const breadcrumbItems = [
+  { label: 'Home', url: '/' },
+  { label: collection?.name || baseProduct.collection || baseProduct.mainCategory || 'Products', url: `/collections/${baseProduct.collectionKey}` },
+  { label: subcategory?.name || baseProduct.subcategory || baseProduct.subCategory || '', url: `/collections/${baseProduct.collectionKey}/${baseProduct.subcategoryKey}` },
+  { label: baseProduct.name }
+];
+
+const whatsappText = encodeURIComponent(`Hi VINSHO, I would like to enquire about "${baseProduct.name}" (${baseProduct.subcategory || baseProduct.subCategory || baseProduct.collection}).`);
+const whatsappUrl = `https://wa.me/${content.brand.whatsapp}?text=${whatsappText}`;
+
+const priceVal = baseProduct.price || commerceProduct.sellingPrice;
+const formattedSellingPrice = isPurchasable && priceVal 
+  ? `₹${priceVal.toLocaleString('en-IN')}`
+  : 'Price on request';
+
+const formattedMrp = isPurchasable && commerceProduct.mrp 
+  ? `MRP: ₹${commerceProduct.mrp.toLocaleString('en-IN')}`
+  : null;
+---
+
+<Base title={`${baseProduct.name} — ${baseProduct.subcategory || baseProduct.subCategory} — VINSHO`} description={baseProduct.description}>
+  <Nav />
+  <main id="main-content" class="wrap product-detail-page">
+    <Breadcrumbs items={breadcrumbItems} />
+
+    <article class="product-detail-grid">
+      <div class="p-gallery">
+        <div class="p-main-img-frame">
+          <img src={baseProduct.image} alt={baseProduct.name} class="p-main-img" id="pdp-main-image" />
+          <span class="shipping-class-badge" data-class={commerceProduct.shippingClass}>
+            {commerceProduct.shippingClass.toUpperCase()}
+          </span>
+        </div>
+      </div>
+
+      <div class="p-info-col">
+        <span class="p-eyebrow-tag">{baseProduct.subcategory || baseProduct.subCategory} &middot; {baseProduct.collection || baseProduct.mainCategory}</span>
+        <TextReveal as="h1" class="p-title">{baseProduct.name}</TextReveal>
+        
+        <div class="p-price-row">
+          <span class="p-price-tag" id="pdp-selling-price">{formattedSellingPrice}</span>
+          {formattedMrp && (
+            <span class="p-mrp-tag" id="pdp-mrp-price">{formattedMrp}</span>
+          )}
+          {isPurchasable && (
+            <span class="p-vat-note">Inclusive of all taxes &amp; GST</span>
+          )}
+        </div>
+
+        {/* Stock badge if purchasable */}
+        {isPurchasable && (
+          <div class="stock-badge-row">
+            <span class="stock-badge in-stock" id="pdp-stock-badge">In Stock (Ready to Dispatch)</span>
+          </div>
+        )}
+
+        <p class="p-description">{baseProduct.description}</p>
+
+        <!-- Multi-Variant Selector Component if purchasable -->
+        {isPurchasable && commerceProduct.variants && commerceProduct.variants.length > 0 && (
+          <VariantSelector 
+            variants={commerceProduct.variants}
+            defaultPrice={commerceProduct.sellingPrice}
+            defaultMrp={commerceProduct.mrp}
+          />
+        )}
+
+        <div class="p-spec-box">
+          <div class="spec-item">
+            <span class="spec-label">Material &amp; Finish</span>
+            <span class="spec-val">{baseProduct.material}</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Shipping Class</span>
+            <span class="spec-val" style="text-transform: capitalize;">{commerceProduct.shippingClass}</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Returnable</span>
+            <span class="spec-val">{commerceProduct.returnable ? 'Yes (14-Day Policy)' : 'No (Custom/Bulky item)'}</span>
+          </div>
+          <div class="spec-item">
+            <span class="spec-label">Location Origin</span>
+            <span class="spec-val">Greater Noida, Delhi NCR (Est. 1997)</span>
+          </div>
+        </div>
+
+        <div class="p-actions-row">
+          {isPurchasable ? (
+            <div class="pdp-purchasable-wrapper">
+              <div class="pdp-qty-row">
+                <label for="pdp-qty-select" class="qty-label">Quantity:</label>
+                <select id="pdp-qty-select" class="qty-select">
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                </select>
+              </div>
+              <div class="pdp-btn-group">
+                <button class="add-to-cart-btn" id="pdp-add-cart-btn" data-slug={baseProduct.slug} data-add={baseProduct.slug}>
+                  Add to Cart
+                </button>
+                <button class="buy-now-btn" id="pdp-buy-now-btn" data-slug={baseProduct.slug}>
+                  Buy Now
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <a class="whatsapp-btn" href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                </svg>
+                Enquire on WhatsApp
+              </a>
+              <button class="quick-quote-btn" data-open={baseProduct.slug}>
+                Get Quote
+              </button>
+            </>
+          )}
+        </div>
+
+        <!-- Mandatory Legal Metrology Section (§5) -->
+        <LegalMetrology product={commerceProduct} />
+      </div>
+    </article>
+  </main>
+  <Footer />
+  <Modal />
+</Base>
+
+<script>
+  import { trackViewItem, trackAddToCart } from '../../lib/analytics';
+  import { addLocalCartItem, openCartDrawer } from '../../scripts/cart-store';
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const slug = window.location.pathname.split('/').pop() || '';
+    const nameEl = document.querySelector('.p-title');
+    const name = nameEl?.textContent || 'Product';
+    const img = (document.getElementById('pdp-main-image') as HTMLImageElement)?.src || '';
+    const priceText = document.getElementById('pdp-selling-price')?.textContent || '0';
+    const price = parseInt(priceText.replace(/[^\d]/g, ''), 10) || 499;
+
+    trackViewItem({ slug, name });
+
+    const addCartBtn = document.getElementById('pdp-add-cart-btn');
+    const qtySelect = document.getElementById('pdp-qty-select') as HTMLSelectElement | null;
+
+    addCartBtn?.addEventListener('click', () => {
+      const qty = parseInt(qtySelect?.value || '1', 10);
+      trackAddToCart({ slug, name, quantity: qty });
+      addLocalCartItem({
+        slug,
+        name,
+        image: img,
+        price,
+        quantity: qty
+      });
+      openCartDrawer();
+    });
+
+    const buyNowBtn = document.getElementById('pdp-buy-now-btn');
+    buyNowBtn?.addEventListener('click', () => {
+      const qty = parseInt(qtySelect?.value || '1', 10);
+      addLocalCartItem({
+        slug,
+        name,
+        image: img,
+        price,
+        quantity: qty
+      });
+      openCartDrawer();
+    });
+  });
+</script>
+
+<style>
+  .product-detail-page {
+    padding-block: clamp(1.25rem, 2.5vw, 2.5rem);
+  }
+
+  .enquiry-fallback-banner {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    color: var(--maroon-2);
+    padding: 0.6rem 0.85rem;
+    border-radius: 4px;
+    font-size: 0.813rem;
+    margin-bottom: 1rem;
+  }
+
+  .product-detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(1.5rem, 3.5vw, 3rem);
+    align-items: start;
+    margin-top: 0.5rem;
+  }
+
+  .p-main-img-frame {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    max-height: clamp(300px, 55vh, 560px);
+    overflow: hidden;
+    border-radius: 4px;
+    background: var(--paper-3);
+    width: 100%;
+  }
+
+  @media (min-width: 992px) {
+    .p-gallery {
+      position: sticky;
+      top: calc(var(--nav) + 1rem);
+    }
+  }
+
+  .p-main-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .shipping-class-badge {
+    position: absolute;
+    top: 0.75rem;
+    left: 0.75rem;
+    background: var(--maroon);
+    color: #fff;
+    font-size: 0.625rem;
+    letter-spacing: 0.14em;
+    padding: 0.25rem 0.65rem;
+    border-radius: 2px;
+  }
+
+  .p-eyebrow-tag {
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--pink);
+    font-weight: 600;
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+
+  .p-title {
+    font-family: var(--display);
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+    color: var(--maroon-2);
+    margin: 0 0 0.5rem;
+    line-height: 1.1;
+  }
+
+  .p-price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.85rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .p-price-tag {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--maroon);
+  }
+
+  .p-mrp-tag {
+    font-size: 0.9rem;
+    text-decoration: line-through;
+    color: var(--ink-soft);
+  }
+
+  .p-vat-note {
+    font-size: 0.781rem;
+    color: var(--ink-soft);
+  }
+
+  .stock-badge-row {
+    margin-bottom: 0.5rem;
+  }
+
+  .stock-badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+  }
+
+  .in-stock { background: #D4EDDA; color: #155724; }
+  .low-stock { background: #FFF3CD; color: #856404; }
+  .out-of-stock { background: #F8D7DA; color: #721C24; }
+
+  .p-description {
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    margin-bottom: 0.75rem;
+  }
+
+  .placeholder-copy-notice {
+    font-size: 0.75rem;
+    color: var(--pink);
+    margin-bottom: 0.75rem;
+  }
+
+  /* Pincode Estimator */
+  .pincode-estimator-box {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    padding: 0.6rem 0.85rem;
+    border-radius: 4px;
+    margin-block: 0.65rem;
+  }
+
+  .pincode-label {
+    display: block;
+    font-size: 0.781rem;
+    font-weight: 600;
+    color: var(--maroon-2);
+    margin-bottom: 0.3rem;
+  }
+
+  .pincode-input-row {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .pincode-input {
+    flex: 1;
+    background: #fff;
+    border: 1px solid var(--line);
+    padding: 0.35rem 0.65rem;
+    border-radius: 4px;
+    font-size: 0.813rem;
+    outline: none;
+  }
+
+  .pincode-btn {
+    background: var(--maroon);
+    color: #fff;
+    padding: 0.35rem 0.85rem;
+    border-radius: 4px;
+    font-size: 0.813rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .pincode-result {
+    font-size: 0.781rem;
+    margin: 0.35rem 0 0 0;
+  }
+
+  .p-spec-box {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 0.85rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-block: 0.75rem;
+  }
+
+  .spec-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.813rem;
+  }
+
+  .spec-label {
+    color: var(--ink-soft);
+  }
+
+  .spec-val {
+    color: var(--maroon-2);
+    font-weight: 500;
+  }
+
+  .p-actions-row {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.85rem;
+  }
+
+  .add-to-cart-btn, .buy-now-btn, .whatsapp-btn, .quick-quote-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.55rem 1.25rem;
+    min-height: 40px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    flex: 1;
+    min-width: 160px;
+  }
+
+  .add-to-cart-btn {
+    background: var(--paper-2);
+    border: 1.5px solid var(--maroon);
+    color: var(--maroon);
+  }
+
+  .add-to-cart-btn:hover {
+    background: var(--maroon);
+    color: #fff;
+  }
+
+  .legal-metrology-declarations-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 0.65rem 0.85rem;
+    margin-block: 0.65rem;
+    font-size: 0.781rem;
+  }
+  .metrology-head {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: #0f172a;
+    margin-bottom: 0.4rem;
+    font-size: 0.813rem;
+  }
+  .metrology-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .metrology-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    border-bottom: 1px dashed #e2e8f0;
+    padding-bottom: 0.2rem;
+  }
+  .m-lbl { color: #64748b; font-weight: 500; }
+  .pdp-purchasable-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    width: 100%;
+  }
+
+  .pdp-qty-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .qty-select {
+    padding: 0.35rem 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--paper);
+    font-family: inherit;
+    font-size: 0.88rem;
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  .pdp-btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    width: 100%;
+  }
+
+  .pdp-btn-group button {
+    flex: 1;
+    min-width: 140px;
+  }
+
+  .buy-now-btn {
+    background: var(--maroon);
+    color: #fff;
+    border: 1.5px solid var(--maroon);
+    padding: 0.75rem 1.25rem;
+    border-radius: 4px;
+    font-weight: 600;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .buy-now-btn:hover {
+    background: var(--maroon-2);
+  }
+
+  .whatsapp-btn {
+    background: #25D366;
+    color: #fff;
+  }
+
+  .whatsapp-btn:hover {
+    background: #1DA851;
+  }
+
+  .quick-quote-btn {
+    background: var(--maroon);
+    color: var(--paper);
+  }
+
+  @media (max-width: 800px) {
+    .product-detail-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

@@ -1,0 +1,414 @@
+---
+import content from '../../vinsho-content.json';
+---
+
+<footer id="contact" data-footer-reveal class="vinsho-footer">
+  <div class="footer-inner wrap">
+    <!-- Brand Wordmark Top -->
+    <div class="f-mark" id="footer-wordmark-frame">
+      <a href="/" aria-label="VINSHO Home">
+        <img src="/vinsho-logo-white.png" alt="VINSHO - Where Every Corner Tells a Story" class="footer-logo-img" />
+      </a>
+    </div>
+
+    <!-- Home Furnishings 5-Column Section -->
+    <div class="f-section-block">
+      <h3 class="f-block-heading">Home Furnishings</h3>
+      <div class="f-furnishings-grid">
+        <ul class="f-link-list">
+          <li><a href="/product/blanket">Blanket</a></li>
+          <li><a href="/product/bedsheet">Bedsheet</a></li>
+          <li><a href="/product/bedcover">Bed Cover</a></li>
+          <li><a href="/product/comforter-set">Comforter Set</a></li>
+        </ul>
+        <ul class="f-link-list">
+          <li><a href="/product/pillows">Pillows</a></li>
+          <li><a href="/product/cushions">Cushions</a></li>
+          <li><a href="/product/curtains">Curtains</a></li>
+          <li><a href="/product/shower-curtains">Shower Curtains</a></li>
+        </ul>
+        <ul class="f-link-list">
+          <li><a href="/product/runners">Runners</a></li>
+          <li><a href="/collections/table-living/placemats-napkins">Placemats</a></li>
+          <li><a href="/product/napkin-set">Napkins</a></li>
+          <li><a href="/product/table-cover">Table Covers</a></li>
+        </ul>
+        <ul class="f-link-list">
+          <li><a href="/product/carpets">Carpets</a></li>
+          <li><a href="/product/bathmats">Bathmats</a></li>
+          <li><a href="/product/fridge-covers">Fridge Covers</a></li>
+          <li><a href="/product/throws">Throws</a></li>
+        </ul>
+        <ul class="f-link-list">
+          <li><a href="/product/turbie-towel">Towels</a></li>
+          <li><a href="/product/aprons">Aprons</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="f-divider"></div>
+
+    <!-- Main Footer 4 Columns Grid -->
+    <div class="f-main-grid">
+      <!-- Column 1: Gifting Collection -->
+      <div class="f-col">
+        <h3 class="f-col-title">Gifting Collection</h3>
+        <ul class="f-link-list">
+          <li><a href="/product/photo-frames">Photo Frames</a></li>
+          <li><a href="/product/wall-clock">Wall Clock</a></li>
+          <li><a href="/product/wall-art">Wall Art</a></li>
+          <li><a href="/product/candles">Candles</a></li>
+          <li><a href="/product/diaries">Diaries</a></li>
+          <li><a href="/product/pen">Pen</a></li>
+          <li><a href="/product/show-pieces">Show Pieces</a></li>
+        </ul>
+      </div>
+
+      <!-- Column 2: Home Décor -->
+      <div class="f-col">
+        <h3 class="f-col-title">Home Décor</h3>
+        <ul class="f-link-list">
+          <li><a href="/product/show-pieces">Show Pieces</a></li>
+          <li><a href="/product/decorative-candles">Decorative Candles</a></li>
+          <li><a href="/product/artificial-flowers">Artificial Flowers</a></li>
+          <li><a href="/product/flower-vases">Flower Vases</a></li>
+          <li><a href="/product/wall-painting">Wall Paintings</a></li>
+          <li><a href="/product/customised-wall-paper">Wall Paper</a></li>
+          <li><a href="/product/blinds">Blinds</a></li>
+        </ul>
+      </div>
+
+      <!-- Column 3: Policy's -->
+      <div class="f-col">
+        <h3 class="f-col-title">Policy's &amp; Legal</h3>
+        <ul class="f-link-list">
+          <li><a href="/policies/privacy">Privacy Policy</a></li>
+          <li><a href="/policies/terms">Terms &amp; Conditions</a></li>
+          <li><a href="/policies/returns">Return &amp; Refund Policy</a></li>
+          <li><a href="/policies/shipping">Shipping Policy</a></li>
+          <li><a href="/policies/cancellation">Cancellation Policy</a></li>
+          <li><a href="/grievance-officer">Grievance Officer</a></li>
+          <li><a href="/about">About Us</a></li>
+        </ul>
+      </div>
+
+      <!-- Column 4: Get in touch & Newsletter -->
+      <div class="f-col f-contact-col">
+        <h3 class="f-col-title">Get in touch</h3>
+        <div class="contact-info-list">
+          <p><a href={`mailto:${content.brand.email}`} class="contact-link">Info@vinsho.com</a></p>
+          <p><a href={`https://wa.me/${content.brand.whatsapp}?text=Hi%20VINSHO!`} target="_blank" rel="noopener noreferrer" class="contact-link">+91 8527406482</a></p>
+          <p class="address-text">
+            📍 INDIA EXPO PLAZA First Floor Plot No. C-03 &amp; 04 Knowledge Park-II Greater Noida (U.P.) 201310
+          </p>
+        </div>
+
+        <div class="sub-form-block">
+          <label for="footer-email" class="sub-label">Email Address</label>
+          <form class="sub-input-row" id="footer-newsletter-form">
+            <div class="input-box-wrapper">
+              <svg class="mail-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+              </svg>
+              <input type="email" id="footer-email" placeholder="Email Address" required aria-label="Email Address" />
+            </div>
+            <button type="submit" class="sub-btn" id="footer-sub-btn">SUBSCRIBE</button>
+          </form>
+          <p class="sub-msg" id="footer-sub-msg" hidden></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Base Footer Bar -->
+    <div class="f-base">
+      <span>&copy; Copyright {new Date().getFullYear()} by Vinsho</span>
+      <span>Greater Noida, Delhi NCR Est. 1997</span>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .vinsho-footer {
+    background: var(--maroon, #670832);
+    color: var(--paper-2, #F9F4F0);
+    padding-top: clamp(2.75rem, 5vw, 4.5rem);
+    padding-bottom: 1.75rem;
+    border-top: 1px solid rgba(251, 243, 240, 0.12);
+  }
+
+  .footer-inner {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .f-mark {
+    text-align: center;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid rgba(251, 243, 240, 0.15);
+    margin-bottom: 2.25rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .footer-logo-img {
+    height: 72px;
+    width: auto;
+    object-fit: contain;
+    filter: brightness(1.1);
+    transition: transform 0.3s ease;
+  }
+
+  .footer-logo-img:hover {
+    transform: scale(1.05);
+  }
+
+  /* Home Furnishings Block */
+  .f-section-block {
+    margin-bottom: 2.25rem;
+  }
+
+  .f-block-heading {
+    font-family: var(--sans, sans-serif);
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--paper, #FBF3F0);
+    margin: 0 0 1.25rem 0;
+  }
+
+  .f-furnishings-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1.5rem;
+  }
+
+  .f-link-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .f-link-list li a {
+    color: rgba(251, 243, 240, 0.88);
+    font-size: 0.844rem;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .f-link-list li a:hover {
+    color: var(--paper, #ffffff);
+    transform: translateX(2px);
+    display: inline-block;
+  }
+
+  .f-divider {
+    height: 1px;
+    background: rgba(251, 243, 240, 0.15);
+    margin-block: 1rem 2.25rem;
+  }
+
+  /* Main 4-Column Grid */
+  .f-main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1.4fr;
+    gap: 2.5rem;
+  }
+
+  .f-col-title {
+    font-family: var(--sans, sans-serif);
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--paper, #FBF3F0);
+    margin: 0 0 1.25rem 0;
+  }
+
+  .contact-info-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.844rem;
+  }
+
+  .contact-info-list p {
+    margin: 0;
+    color: rgba(251, 243, 240, 0.9);
+  }
+
+  .contact-link {
+    color: var(--paper, #FBF3F0);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .contact-link:hover {
+    color: var(--pink, #CD788F);
+  }
+
+  .address-text {
+    line-height: 1.45;
+    font-size: 0.8rem;
+    color: rgba(251, 243, 240, 0.82) !important;
+    margin-top: 0.25rem;
+  }
+
+  /* Subscription Box */
+  .sub-form-block {
+    margin-top: 1rem;
+  }
+
+  .sub-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--paper, #FBF3F0);
+    margin-bottom: 0.5rem;
+  }
+
+  .sub-input-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+
+  .input-box-wrapper {
+    position: relative;
+    flex: 1;
+    min-width: 180px;
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border-radius: 2px;
+    padding-left: 0.75rem;
+  }
+
+  .mail-icon {
+    color: #670832;
+    flex-shrink: 0;
+  }
+
+  .input-box-wrapper input {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: transparent;
+    padding: 0.7rem 0.75rem;
+    font-size: 0.813rem;
+    color: #333333;
+    font-family: var(--sans);
+  }
+
+  .input-box-wrapper input::placeholder {
+    color: #888888;
+  }
+
+  .sub-btn {
+    background: var(--maroon-3, #4A0523);
+    color: var(--paper, #FBF3F0);
+    border: 1px solid rgba(251, 243, 240, 0.3);
+    font-size: 0.781rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    padding: 0.72rem 1.25rem;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.25 ease;
+  }
+
+  .sub-btn:hover {
+    background: #ffffff;
+    color: var(--maroon, #670832);
+    border-color: #ffffff;
+  }
+
+  /* Base Bar */
+  .f-base {
+    margin-top: 3rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgba(251, 243, 240, 0.15);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    font-size: 0.75rem;
+    color: rgba(251, 243, 240, 0.65);
+  }
+
+  .sub-msg {
+    margin-top: 0.5rem;
+    font-size: 0.813rem;
+    color: var(--pink, #CD788F);
+  }
+
+  @media (max-width: 900px) {
+    .f-furnishings-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+
+    .f-main-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .f-furnishings-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .f-main-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+  const subForm = document.getElementById('footer-newsletter-form') as HTMLFormElement | null;
+  const subInput = document.getElementById('footer-email') as HTMLInputElement | null;
+  const subBtn = document.getElementById('footer-sub-btn') as HTMLButtonElement | null;
+  const subMsg = document.getElementById('footer-sub-msg');
+
+  subForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!subInput || !subInput.value) return;
+
+    if (subBtn) subBtn.disabled = true;
+    if (subMsg) subMsg.hidden = true;
+
+    try {
+      const res = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: subInput.value, source: 'Website Footer' })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.success) {
+        if (subMsg) {
+          subMsg.textContent = data.message;
+          subMsg.hidden = false;
+        }
+        subForm.reset();
+      } else {
+        if (subMsg) {
+          subMsg.textContent = data.error || 'Failed to subscribe.';
+          subMsg.hidden = false;
+        }
+      }
+    } catch (err) {
+      if (subMsg) {
+        subMsg.textContent = 'Server connection failed.';
+        subMsg.hidden = false;
+      }
+    } finally {
+      if (subBtn) subBtn.disabled = false;
+    }
+  });
+</script>

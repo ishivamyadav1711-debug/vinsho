@@ -1,0 +1,90 @@
+---
+import Base from '../layouts/Base.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+import content from '../../vinsho-content.json';
+
+const pageTitle = "Grievance Officer — VINSHO Legal & Redressal";
+---
+
+<Base title={pageTitle}>
+  <Nav />
+  <main class="wrap policy-page-container">
+    <header class="policy-header">
+      <h1>Grievance Redressal Officer</h1>
+      <p class="policy-meta">VINSHO &middot; India Expo Plaza, Greater Noida, Delhi NCR </p>
+    </header>
+
+    <article class="policy-content">
+      <p>In accordance with the Information Technology Act 2000, Consumer Protection (E-Commerce) Rules 2020, and Digital Personal Data Protection Act 2023, the details of the designated Grievance Redressal Officer for VINSHO are published below:</p>
+
+      <div class="grievance-card">
+        <h3>Grievance Officer Details</h3>
+        <div class="g-row">
+          <span class="g-label">Name of Officer:</span>
+          <span class="g-val">Designated Grievance Desk</span>
+        </div>
+        <div class="g-row">
+          <span class="g-label">Designation:</span>
+          <span class="g-val">Nodal Officer &amp; Legal Compliance Manager</span>
+        </div>
+        <div class="g-row">
+          <span class="g-label">Company Address:</span>
+          <span class="g-val">{content.brand.address}</span>
+        </div>
+        <div class="g-row">
+          <span class="g-label">Email:</span>
+          <span class="g-val"><a href={`mailto:${content.brand.email}`}>{content.brand.email}</a></span>
+        </div>
+        <div class="g-row">
+          <span class="g-label">Phone &amp; WhatsApp:</span>
+          <span class="g-val">+91 8527406482</span>
+        </div>
+        <div class="g-row">
+          <span class="g-label">Working Hours:</span>
+          <span class="g-val">Monday to Saturday: 10:00 AM – 6:00 PM IST</span>
+        </div>
+      </div>
+
+      <section class="policy-section" style="margin-top: 2rem;">
+        <h2>Redressal Mechanism &amp; Timeline</h2>
+        <p>The Grievance Officer will acknowledge receipt of any consumer or data privacy complaint within 48 hours of filing, and resolve the grievance within 15 business days from the date of receipt.</p>
+      </section>
+    </article>
+  </main>
+  <Footer />
+</Base>
+
+<style>
+  .policy-page-container { padding-block: clamp(2.5rem, 5vw, 5rem); max-width: 52rem; }
+  .policy-header h1 { font-family: var(--display); font-size: clamp(2rem, 4vw, 3rem); color: var(--maroon-2); margin: 0 0 0.5rem 0; }
+  .policy-meta { font-size: 0.813rem; color: var(--ink-soft); margin-bottom: 2.5rem; }
+  .policy-content { font-size: 0.95rem; line-height: 1.7; color: var(--ink); }
+
+  .grievance-card {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 1.5rem;
+    margin-block: 1.5rem;
+  }
+  .grievance-card h3 {
+    font-family: var(--display);
+    font-size: 1.25rem;
+    color: var(--maroon-2);
+    margin: 0 0 1rem 0;
+  }
+  .g-row {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 0.75rem;
+    margin-bottom: 0.6rem;
+    font-size: 0.88rem;
+  }
+  .g-label { font-weight: 600; color: var(--maroon); }
+  .g-val { color: var(--ink); }
+
+  @media (max-width: 600px) {
+    .g-row { grid-template-columns: 1fr; gap: 0.15rem; }
+  }
+</style>

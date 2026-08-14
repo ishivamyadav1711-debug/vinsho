@@ -1,0 +1,23 @@
+---
+const tkBits = [
+  'Trusted seller since 1997',
+  'Greater Noida, Delhi NCR',
+  'Shipping across India',
+  'Curated artisanal crafts',
+  'Free consultations & quotes',
+  'Where every corner tells a story'
+];
+
+const repeated = [...tkBits, ...tkBits];
+---
+
+<div class="ticker">
+  <div class="tk" id="tk">
+    {repeated.map((text) => (
+      <>
+        <span>{text}</span>
+        <span><i>✦</i></span>
+      </>
+    ))}
+  </div>
+</div>

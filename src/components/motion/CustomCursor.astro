@@ -1,0 +1,62 @@
+---
+---
+
+<div id="custom-cursor" class="custom-cursor" aria-hidden="true">
+  <span class="cursor-label" id="cursor-label">VIEW</span>
+</div>
+
+<style>
+  .custom-cursor {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 12px;
+    height: 12px;
+    background: var(--maroon);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s var(--ease), height 0.3s var(--ease), background 0.3s var(--ease), opacity 0.3s var(--ease);
+    opacity: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    mix-blend-mode: difference;
+  }
+
+  .cursor-label {
+    font-size: 0.55rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: #fff;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+
+  .custom-cursor.active {
+    opacity: 1;
+  }
+
+  .custom-cursor.hover {
+    width: 40px;
+    height: 40px;
+    background: var(--maroon-3);
+  }
+
+  .custom-cursor.has-label {
+    width: 52px;
+    height: 52px;
+    background: var(--maroon);
+  }
+
+  .custom-cursor.has-label .cursor-label {
+    opacity: 1;
+  }
+
+  @media (pointer: coarse), (prefers-reduced-motion: reduce) {
+    .custom-cursor {
+      display: none !important;
+    }
+  }
+</style>

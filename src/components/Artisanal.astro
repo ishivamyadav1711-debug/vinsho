@@ -1,0 +1,194 @@
+---
+import content from '../../vinsho-content.json';
+import TextReveal from './motion/TextReveal.astro';
+
+const artisanalImages = content.lookbook.map(item => ({
+  src: item.image,
+  tag: item.tag,
+  title: item.title
+}));
+---
+
+<section class="wrap artisanal-sticky-section" id="about">
+  <div class="split" id="artisanal-split">
+    <!-- Left panel (pinned on desktop) -->
+    <div class="panel" id="artisanal-pink-panel">
+      <span class="artisanal-tag-eyebrow" id="artisanal-eyebrow">Artisanal Craftsmanship &middot; Est. 1997</span>
+      <TextReveal as="h2" class="artisanal-heading">Artisanal in Every Detail</TextReveal>
+      <p class="artisanal-lead-p">Artisanal home décor you can trust — crafted with purpose to bring warmth, character and authenticity to your space. VINSHO has worked out of Greater Noida since 1997, and our pieces now reach homes across India, the USA, Europe and Australia.</p>
+      
+      <div class="p-foot">
+        <div class="inset-frame">
+          <img src={content.siteImages.artisanalInset} alt="VINSHO studio craft detail" loading="lazy" />
+        </div>
+        <a class="explore-link-btn" href={`https://wa.me/${content.brand.whatsapp}?text=Hi%20VINSHO,%20I%20would%20like%20to%20discuss%20a%20bulk%20or%20corporate%20order.`} target="_blank" rel="noopener noreferrer">
+          <span>Explore Craftsmanship</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- Right column (clean image frame with subtle bottom bar) -->
+    <div class="artisanal-right-col" id="artisanal-images-col">
+      <div class="artisanal-sticky-img-frame" id="artisanal-img-frame">
+        {artisanalImages.map((item, idx) => (
+          <img 
+            src={item.src} 
+            alt={item.title} 
+            class={`artisanal-crossfade-img ${idx === 0 ? 'active' : ''}`}
+            data-artisanal-img-index={idx}
+            data-tag={item.tag}
+            loading={idx === 0 ? 'eager' : 'lazy'}
+          />
+        ))}
+        <!-- Minimalist bottom corner badge instead of center blocking circle -->
+        <div class="artisanal-photo-caption">
+          <span class="caption-dot"></span>
+          <span class="caption-title" id="artisanal-caption-text">Wall Clock &middot; Living</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .artisanal-sticky-section {
+    padding-block: clamp(3.5rem, 6vw, 6.5rem);
+  }
+
+  .artisanal-tag-eyebrow {
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--pink);
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    display: block;
+  }
+
+  .artisanal-heading {
+    font-family: var(--display);
+    font-size: clamp(2rem, 3.5vw, 3rem);
+    color: var(--maroon-2);
+    line-height: 1.12;
+    margin: 0 0 1.25rem 0;
+  }
+
+  .artisanal-lead-p {
+    font-size: 0.95rem;
+    line-height: 1.65;
+    color: var(--ink-soft);
+    margin-bottom: 2rem;
+    max-width: 32rem;
+  }
+
+  .p-foot {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: auto;
+  }
+
+  .inset-frame {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: 999px;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 2px solid var(--paper-3);
+  }
+
+  .inset-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .explore-link-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--maroon-2);
+    text-decoration: none;
+    padding: 0.65rem 1.4rem;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    transition: all 0.25s ease;
+    background: var(--paper-2);
+  }
+
+  .explore-link-btn:hover {
+    background: var(--maroon);
+    color: #ffffff;
+    border-color: var(--maroon);
+    transform: translateY(-2px);
+  }
+
+  .artisanal-right-col {
+    position: relative;
+    width: 100%;
+    min-height: 100%;
+  }
+
+  .artisanal-sticky-img-frame {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 24rem;
+    overflow: hidden;
+    border-radius: 4px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.06);
+  }
+
+  .artisanal-crossfade-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .artisanal-crossfade-img.active {
+    opacity: 1;
+  }
+
+  /* Minimalist bottom corner badge */
+  .artisanal-photo-caption {
+    position: absolute;
+    bottom: 1rem;
+    left: 1rem;
+    background: rgba(30, 20, 24, 0.65);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: #ffffff;
+    padding: 0.45rem 1rem;
+    border-radius: 999px;
+    font-size: 0.781rem;
+    letter-spacing: 0.08em;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    z-index: 3;
+    pointer-events: none;
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+
+  .caption-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--pink);
+    border-radius: 50%;
+  }
+
+  @media (max-width: 900px) {
+    .artisanal-right-col {
+      min-height: 20rem;
+    }
+  }
+</style>

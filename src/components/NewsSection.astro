@@ -1,0 +1,42 @@
+---
+import TextReveal from './motion/TextReveal.astro';
+
+// Published posts dataset (currently 1 post exists)
+const articles = [
+  {
+    title: 'Artisanal Furnishings for Modern Homes',
+    date: 'October 2025',
+    category: 'Design Philosophy',
+    summary: 'Exploring how natural cottons, hand-finished metals, and architectural lighting ground contemporary interiors.',
+    image: 'https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-21-at-10.23.07.jpeg'
+  }
+];
+
+const showSection = articles.length >= 3;
+---
+
+{showSection && (
+  <section class="wrap news-section" id="news">
+    <div class="sh">
+      <div>
+        <TextReveal as="h2">Latest Articles</TextReveal>
+        <p>Design notes, material explorations and stories from Greater Noida.</p>
+      </div>
+    </div>
+
+    <div class="news-grid">
+      {articles.map((post) => (
+        <article class="news-card">
+          <div class="news-img-frame">
+            <img src={post.image} alt={post.title} loading="lazy" />
+          </div>
+          <div class="news-body">
+            <p class="news-meta">{post.category} &middot; {post.date}</p>
+            <h3>{post.title}</h3>
+            <p class="news-summary">{post.summary}</p>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+)}

@@ -1,0 +1,856 @@
+{
+  "collections": [
+    {
+      "key": "home-furnishing",
+      "name": "Home Furnishing",
+      "order": 1,
+      "blurb": "Bedding, soft furnishings, window treatments, bath accents and living textiles.",
+      "subcategories": [
+        {
+          "key": "bedsheet",
+          "name": "Bedsheet",
+          "blurb": "Bedsheets, covers, comforters, pillows and mattresses.",
+          "products": [
+            "bedsheet",
+            "bedcover",
+            "comforter-set",
+            "pillows",
+            "mattresses"
+          ],
+          "count": 5
+        },
+        {
+          "key": "blanket",
+          "name": "Blanket",
+          "blurb": "Warm blankets and cozy winter layers.",
+          "products": [
+            "blanket"
+          ],
+          "count": 1
+        },
+        {
+          "key": "curtains",
+          "name": "Curtains",
+          "blurb": "Curtains, blinds and window dressings.",
+          "products": [
+            "curtains",
+            "blinds",
+            "blinds-with-decor"
+          ],
+          "count": 3
+        },
+        {
+          "key": "bathmat",
+          "name": "Bathmat",
+          "blurb": "Bathmats, towels and bathroom accessories.",
+          "products": [
+            "bathmats",
+            "shower-curtains",
+            "turbie-towel",
+            "washroom-solution-or-soap-dispenser-set"
+          ],
+          "count": 4
+        },
+        {
+          "key": "cushion",
+          "name": "Cushion",
+          "blurb": "Cushions, throws, rugs, table linens and kitchen textiles.",
+          "products": [
+            "cushions",
+            "throws",
+            "carpets",
+            "aprons",
+            "fridge-covers",
+            "table-cover",
+            "runners",
+            "placemats-napkins",
+            "round-placemat",
+            "jute-placemat",
+            "napkin-set",
+            "kitchen-ware"
+          ],
+          "count": 12
+        }
+      ],
+      "count": 25
+    },
+    {
+      "key": "home-decor",
+      "name": "Home Decor",
+      "order": 2,
+      "blurb": "Wall art, wall clocks, artificial flowers, showpieces and candles.",
+      "subcategories": [
+        {
+          "key": "wall-art",
+          "name": "Wall Art",
+          "blurb": "Wall art, paintings, wall paper, mirrors and panels.",
+          "products": [
+            "wall-art",
+            "wall-art-2",
+            "wall-painting",
+            "customised-wall-paper",
+            "mirror",
+            "floral-panels",
+            "leafy-hangings"
+          ],
+          "count": 7
+        },
+        {
+          "key": "wall-clock",
+          "name": "Wall Clock",
+          "blurb": "Architectural and decorative wall clocks.",
+          "products": [
+            "wall-clock"
+          ],
+          "count": 1
+        },
+        {
+          "key": "artificial-flowers",
+          "name": "Artificial Flowers",
+          "blurb": "Botanicals, flower bouquets, vases and jade plants.",
+          "products": [
+            "artificial-flowers",
+            "flowers-bouquet",
+            "flower-vases",
+            "bonsai-jade-plant"
+          ],
+          "count": 4
+        },
+        {
+          "key": "showpiece",
+          "name": "Showpiece",
+          "blurb": "Sculptures, metal accents, showpieces and entryway accents.",
+          "products": [
+            "buddha",
+            "laughing-buddha",
+            "jaguar",
+            "metal-tree",
+            "show-piece",
+            "show-pieces",
+            "doormat",
+            "anti-skid-rubber-mat"
+          ],
+          "count": 8
+        },
+        {
+          "key": "candles",
+          "name": "Candles",
+          "blurb": "Decorative candles and scented wax creations.",
+          "products": [
+            "candles",
+            "decorative-candles"
+          ],
+          "count": 2
+        }
+      ],
+      "count": 22
+    },
+    {
+      "key": "gifting-collection",
+      "name": "Gifting Collection",
+      "order": 3,
+      "blurb": "Photo frames, diaries, pens and curated gift items.",
+      "subcategories": [
+        {
+          "key": "photo-frame",
+          "name": "Photo Frame",
+          "blurb": "Handcrafted photo frames.",
+          "products": [
+            "photo-frames"
+          ],
+          "count": 1
+        },
+        {
+          "key": "diary",
+          "name": "Diary",
+          "blurb": "Journal and luxury diaries.",
+          "products": [
+            "diaries"
+          ],
+          "count": 1
+        },
+        {
+          "key": "pen",
+          "name": "Pen",
+          "blurb": "Handcrafted writing pens.",
+          "products": [
+            "pen"
+          ],
+          "count": 1
+        },
+        {
+          "key": "gift-items",
+          "name": "Gift Items",
+          "blurb": "Curated gift items and gift baskets.",
+          "products": [],
+          "count": 0
+        }
+      ],
+      "count": 3
+    }
+  ],
+  "products": [
+    {
+      "slug": "diaries",
+      "name": "Diaries",
+      "collection": "Gifting Collection",
+      "collectionKey": "gifting",
+      "subcategory": "Corporate Gifting",
+      "subcategoryKey": "corporate-gifting",
+      "previousCollection": "Gifting Collection",
+      "moved": false,
+      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2026-01-08-at-18.11.50.jpeg",
+      "material": "Bound paper · Gifting"
+    },
+    {
+      "slug": "pen",
+      "name": "Pen",
+      "collection": "Gifting Collection",
+      "collectionKey": "gifting",
+      "subcategory": "Corporate Gifting",
+      "subcategoryKey": "corporate-gifting",
+      "previousCollection": "Gifting Collection",
+      "moved": false,
+      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2026-01-08-at-18.11.49.jpeg",
+      "material": "Metal · Gifting"
+    },
+    {
+      "slug": "photo-frames",
+      "name": "Photo Frames",
+      "collection": "Gifting Collection",
+      "collectionKey": "gifting",
+      "subcategory": "Corporate Gifting",
+      "subcategoryKey": "corporate-gifting",
+      "previousCollection": "Gifting Collection",
+      "moved": false,
+      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2026-01-05-at-15.50.38.jpeg",
+      "material": "Wood · Gifting"
+    },
+    {
+      "slug": "candles",
+      "name": "Candles",
+      "collection": "Gifting Collection",
+      "collectionKey": "gifting",
+      "subcategory": "Festive & Personal",
+      "subcategoryKey": "festive-personal",
+      "previousCollection": "Gifting Collection",
+      "moved": false,
+      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2025-12-30-at-13.52.37-1.jpeg",
+      "material": "Wax · Gifting"
+    },
+    {
+      "slug": "decorative-candles",
+      "name": "Decorative Candles",
+      "collection": "Home Décor",
+      "collectionKey": "home-decor",
+      "subcategory": "Candles & Fragrance",
+      "subcategoryKey": "candles-fragrance",
+      "previousCollection": "Home Décor",
+      "moved": false,
+      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2025-12-30-at-13.52.37-2.jpeg",
+      "material": "Poured wax · Cotton wick"
+    },
+    {
+      "slug": "anti-skid-rubber-mat",
+      "name": "Anti skid rubber mat",
+      "collection": "Home Décor",
+      "collectionKey": "home-decor",
+      "subcategory": "Entryway & Floor",
+      "subcategoryKey": "entryway-floor",
+      "previousCollection": "Home Décor",
+      "moved": false,
+      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-21-at-12.21.55.jpeg",
+      "material": "Rubber · Entryway"
+    },
+    {
+      "slug": "doormat",
+      "name": "Doormat",
+      "collection": "Home Décor",
+      "collectionKey": "home-decor",
+      "subcategory": "Entryway & Floor",
+      "subcategoryKey": "entryway-floor",
+      "previousCollection": "Home Décor",
+      "moved": false,
+      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-20-at-22.58.47.jpeg",
+      "material": "Coir · Entryway"
+    },
+    {
+      "slug": "artificial-flowers",
+      "name": "Artificial Flowers",
+      "collection": "Home Décor",
+      "collectionKey": "home-decor",
+      "subcategory": "Greenery & Botanicals",
+      "subcategoryKey": "greenery",
+      "previousCollection": "Home Décor",
+      "moved": false,
+      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2025-12-30-at-13.52.38-1.jpeg",
+      "material": "Silk · Accent"
+    },
+    {
+      "slug": "bonsai-jade-plant",
+      "name": "Bonsai - Jade Plant",
+      "collection": "Home Décor",
+      "collectionKey": "home-decor",
+      "subcategory": "Greenery & Botanicals",
+      "subcategoryKey": "greenery",
+      "previousCollection": "Table & Living",
+      "moved": true,
+      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-07-at-18.43.14.jpeg",
+      "material": "Live plant · Tabletop"
+    },
+    {
+      "slug": "flower-vases",
+      "name": "Flower vases",
+      "collection": "Home Décor",
+      "collectionKey": "home-decor",
+      "subcategory": "Greenery & Botanicals",
+      "subcategoryKey": "greenery",
+      "previousCollection": "Home Décor",
+      "moved": false,
+      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2025-12-30-at-13.52.37.jpeg",
+      "material": "Ceramic · Tabletop"
+    },
+    {
+      "slug": "flowers-bouquet",
+      "name": "Flowers bouquet",
+      "collection": "Home Décor",
+      "collectionKey": "home-decor",
+      "subcategory": "Greenery & Botanicals",
+      "subcategoryKey": "greenery",
+      "previousCollection": "Table & Living",
+      "moved": true,
+      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-07-at-18.51.20.jpeg",
+      "material": "Silk & wire stems"
+    },
+    {
+      "slug": "buddha",
+      "name": "Buddha",
+      "collection": "Home Décor",
+      "collectionKey": "home-decor",
+      "subcategory": "Showpieces & Sculpture",
+      "subcategoryKey": "showpieces",
+      "previousCollection": "Home Décor",
+      "moved": false,
+      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-20-at-22.59.56-1.jpeg",
+      "material": "Cast resin · Hand-finished"
+    },
+    {
+      "slug": "jaguar",
+      "name": "Jaguar",
+      "collection": "Home Décor",
+      "collectionKey": "home-decor",
+      "subcategory": "Showpieces & Sculpture",
+      "subcategoryKey": "showpieces",
+      "previousCollection": "Home Décor",
+      "moved": false,
+      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-20-at-23.00.58.jpeg",
+      "material": "Cast resin · Shelf"
+    },
+    {
+      "slug": "laughing-buddha",
+      "name": "Laughing Buddha",
+      "collection": "Home Décor",
+      "collectionKey": "home-decor",
+      "subcategory": "Showpieces & Sculpture",
+      "subcategoryKey": "showpieces",
+      "previousCollection": "Home Décor",
+      "moved": false,
+      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-20-at-22.59.56-2.jpeg",
+      "material": "Cast resin · Shelf"
+    },
+    {
+      "slug": "metal-tree",
+      "name": "Metal Tree",
+      "collection": "Home Décor",
+      "collectionKey": "home-decor",
+      "subcategory": "Showpieces & Sculpture",
+      "subcategoryKey": "showpieces",
+      "previousCollection": "Home Décor",
+      "moved": false,
+      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-20-at-23.02.42.jpeg",
+      "material": "Powder-coated metal"
+    },
+    {
+      "slug": "show-piece",
+      "name": "Show Piece",
+      "collection": "Home Décor",
+      "collectionKey": "home-decor",
+      "subcategory": "Showpieces & Sculpture",
+      "subcategoryKey": "showpieces",
+      "previousCollection": "Table & Living",
+      "moved": true,
+      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2025-12-30-at-13.52.38-2.jpeg",
+      "material": "Mixed · Shelf"
+    },
+    {
+      "slug": "show-pieces",
+      "name": "Show Pieces",
+      "collection": "Home Décor",
+      "collectionKey": "home-decor",
+      "subcategory": "Showpieces & Sculpture",
+      "subcategoryKey": "showpieces",
+      "previousCollection": "Home Décor",
+      "moved": false,
+      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2025-12-30-at-13.52.41-3.jpeg",
+      "material": "Mixed · Shelf"
+    },
+    {
+      "slug": "customised-wall-paper",
+      "name": "Customised Wall Paper",
+      "collection": "Home Décor",
+      "collectionKey": "home-decor",
+      "subcategory": "Wall Décor",
+      "subcategoryKey": "wall-decor",
+      "previousCollection": "Home Décor",
+      "moved": false,
+      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-05-at-16.38.16.jpeg",
+      "material": "Made to order · Walls"
+    },
+    {
+      "slug": "floral-panels",
+      "name": "Floral panels",
+      "collection": "Home Décor",
+      "collectionKey": "home-decor",
+      "subcategory": "Wall Décor",
+      "subcategoryKey": "wall-decor",
+      "previousCollection": "Table & Living",
+      "moved": true,
+      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-07-at-18.48.12.jpeg",
+      "material": "Fabric · Walls"
+    },
+    {
+      "slug": "leafy-hangings",
+      "name": "Leafy hangings",
+      "collection": "Home Décor",
+      "collectionKey": "home-decor",
+      "subcategory": "Wall Décor",
+      "subcategoryKey": "wall-decor",
+      "previousCollection": "Table & Living",
+      "moved": true,
+      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-07-at-18.49.24.jpeg",
+      "material": "Silk · Walls"
+    },
+    {
+      "slug": "mirror",
+      "name": "Mirror",
+      "collection": "Home Décor",
+      "collectionKey": "home-decor",
+      "subcategory": "Wall Décor",
+      "subcategoryKey": "wall-decor",
+      "previousCollection": "Table & Living",
+      "moved": true,
+      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-14-at-14.42.48.jpeg",
+      "material": "Framed glass · Wall mount"
+    },
+    {
+      "slug": "wall-painting",
+      "name": "Wall Painting",
+      "collection": "Home Décor",
+      "collectionKey": "home-decor",
+      "subcategory": "Wall Décor",
+      "subcategoryKey": "wall-decor",
+      "previousCollection": "Home Décor",
+      "moved": false,
+      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2025-12-30-at-13.52.39-1.jpeg",
+      "material": "Canvas · Walls"
+    },
+    {
+      "slug": "wall-art",
+      "name": "Wall art",
+      "collection": "Home Décor",
+      "collectionKey": "home-decor",
+      "subcategory": "Wall Décor",
+      "subcategoryKey": "wall-decor",
+      "previousCollection": "Gifting Collection",
+      "moved": true,
+      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2025-12-30-at-16.57.17.jpeg",
+      "material": "Framed · Walls"
+    },
+    {
+      "slug": "wall-art-2",
+      "name": "Wall art",
+      "collection": "Home Décor",
+      "collectionKey": "home-decor",
+      "subcategory": "Wall Décor",
+      "subcategoryKey": "wall-decor",
+      "previousCollection": "Table & Living",
+      "moved": true,
+      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-14-at-14.42.47.jpeg",
+      "material": "Framed print · Glass front"
+    },
+    {
+      "slug": "wall-clock",
+      "name": "Wall clock",
+      "collection": "Home Décor",
+      "collectionKey": "home-decor",
+      "subcategory": "Wall Décor",
+      "subcategoryKey": "wall-decor",
+      "previousCollection": "Home Décor",
+      "moved": false,
+      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-20-at-22.59.56.jpeg",
+      "material": "Metal · Walls"
+    },
+    {
+      "slug": "bathmats",
+      "name": "Bathmats",
+      "collection": "Home Furnishings",
+      "collectionKey": "home-furnishings",
+      "subcategory": "Bath",
+      "subcategoryKey": "bath",
+      "previousCollection": "Home Furnishings",
+      "moved": false,
+      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2026-01-21-at-12.21.44.jpeg",
+      "material": "Cotton tufted · Bath"
+    },
+    {
+      "slug": "shower-curtains",
+      "name": "Shower curtains",
+      "collection": "Home Furnishings",
+      "collectionKey": "home-furnishings",
+      "subcategory": "Bath",
+      "subcategoryKey": "bath",
+      "previousCollection": "Home Furnishings",
+      "moved": false,
+      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2026-01-08-at-17.00.10.jpeg",
+      "material": "Water-resistant · Bath"
+    },
+    {
+      "slug": "washroom-solution-or-soap-dispenser-set",
+      "name": "Soap dispenser set",
+      "collection": "Home Furnishings",
+      "collectionKey": "home-furnishings",
+      "subcategory": "Bath",
+      "subcategoryKey": "bath",
+      "previousCollection": "Table & Living",
+      "moved": true,
+      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp_Image_2026-01-14_at_14.42.50__1_-removebg-preview.png",
+      "material": "Ceramic · Bath"
+    },
+    {
+      "slug": "turbie-towel",
+      "name": "Turbie towel",
+      "collection": "Home Furnishings",
+      "collectionKey": "home-furnishings",
+      "subcategory": "Bath",
+      "subcategoryKey": "bath",
+      "previousCollection": "Home Furnishings",
+      "moved": false,
+      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-20-at-23.00.28.jpeg",
+      "material": "Terry · Bath"
+    },
+    {
+      "slug": "bedcover",
+      "name": "Bedcover",
+      "collection": "Home Furnishings",
+      "collectionKey": "home-furnishings",
+      "subcategory": "Bedding & Sleep",
+      "subcategoryKey": "bedding-sleep",
+      "previousCollection": "Home Furnishings",
+      "moved": false,
+      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-03-at-16.13.11.jpeg",
+      "material": "Cotton · Bedroom"
+    },
+    {
+      "slug": "bedsheet",
+      "name": "Bedsheet",
+      "collection": "Home Furnishings",
+      "collectionKey": "home-furnishings",
+      "subcategory": "Bedding & Sleep",
+      "subcategoryKey": "bedding-sleep",
+      "previousCollection": "Home Furnishings",
+      "moved": false,
+      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-03-at-16.13.12.jpeg",
+      "material": "100% cotton · 200 TC"
+    },
+    {
+      "slug": "blanket",
+      "name": "Blanket",
+      "collection": "Home Furnishings",
+      "collectionKey": "home-furnishings",
+      "subcategory": "Bedding & Sleep",
+      "subcategoryKey": "bedding-sleep",
+      "previousCollection": "Home Furnishings",
+      "moved": false,
+      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-03-at-16.13.10.jpeg",
+      "material": "Woven · Bedroom"
+    },
+    {
+      "slug": "comforter-set",
+      "name": "Comforter set",
+      "collection": "Home Furnishings",
+      "collectionKey": "home-furnishings",
+      "subcategory": "Bedding & Sleep",
+      "subcategoryKey": "bedding-sleep",
+      "previousCollection": "Home Furnishings",
+      "moved": false,
+      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-07-at-18.45.08.jpeg",
+      "material": "Microfibre · Bedroom"
+    },
+    {
+      "slug": "mattresses",
+      "name": "Mattresses",
+      "collection": "Home Furnishings",
+      "collectionKey": "home-furnishings",
+      "subcategory": "Bedding & Sleep",
+      "subcategoryKey": "bedding-sleep",
+      "previousCollection": "Home Furnishings",
+      "moved": false,
+      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2025-12-30-at-18.18.59.jpeg",
+      "material": "High-density foam"
+    },
+    {
+      "slug": "pillows",
+      "name": "Pillows",
+      "collection": "Home Furnishings",
+      "collectionKey": "home-furnishings",
+      "subcategory": "Bedding & Sleep",
+      "subcategoryKey": "bedding-sleep",
+      "previousCollection": "Home Furnishings",
+      "moved": false,
+      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2026-01-18-at-20.09.37.jpeg",
+      "material": "Fibre fill · Bedroom"
+    },
+    {
+      "slug": "aprons",
+      "name": "Aprons",
+      "collection": "Home Furnishings",
+      "collectionKey": "home-furnishings",
+      "subcategory": "Kitchen & Utility",
+      "subcategoryKey": "kitchen-utility",
+      "previousCollection": "Home Furnishings",
+      "moved": false,
+      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2025-12-30-at-16.54.14.jpeg",
+      "material": "Cotton · Kitchen"
+    },
+    {
+      "slug": "fridge-covers",
+      "name": "Fridge covers",
+      "collection": "Home Furnishings",
+      "collectionKey": "home-furnishings",
+      "subcategory": "Kitchen & Utility",
+      "subcategoryKey": "kitchen-utility",
+      "previousCollection": "Home Furnishings",
+      "moved": false,
+      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2025-12-30-at-13.52.38.jpeg",
+      "material": "Quilted · Kitchen"
+    },
+    {
+      "slug": "carpets",
+      "name": "Carpets",
+      "collection": "Home Furnishings",
+      "collectionKey": "home-furnishings",
+      "subcategory": "Living & Soft Furnishing",
+      "subcategoryKey": "living-soft",
+      "previousCollection": "Home Furnishings",
+      "moved": false,
+      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2025-10-14-at-17.29.34.jpeg",
+      "material": "Handwoven pile · Cotton backing"
+    },
+    {
+      "slug": "cushions",
+      "name": "Cushions",
+      "collection": "Home Furnishings",
+      "collectionKey": "home-furnishings",
+      "subcategory": "Living & Soft Furnishing",
+      "subcategoryKey": "living-soft",
+      "previousCollection": "Home Furnishings",
+      "moved": false,
+      "image": "https://vinsho.in/wp-content/uploads/2025/09/Untitled-design-2-1.png",
+      "material": "Cotton blend · Living"
+    },
+    {
+      "slug": "throws",
+      "name": "Throws",
+      "collection": "Home Furnishings",
+      "collectionKey": "home-furnishings",
+      "subcategory": "Living & Soft Furnishing",
+      "subcategoryKey": "living-soft",
+      "previousCollection": "Home Furnishings",
+      "moved": false,
+      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2025-12-30-at-16.59.19.jpeg",
+      "material": "Knit · Living"
+    },
+    {
+      "slug": "blinds",
+      "name": "Blinds",
+      "collection": "Home Furnishings",
+      "collectionKey": "home-furnishings",
+      "subcategory": "Windows",
+      "subcategoryKey": "windows",
+      "previousCollection": "Home Décor",
+      "moved": true,
+      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2026-01-05-at-15.50.37-2.jpeg",
+      "material": "Fabric · Windows"
+    },
+    {
+      "slug": "blinds-with-decor",
+      "name": "Blinds with decor",
+      "collection": "Home Furnishings",
+      "collectionKey": "home-furnishings",
+      "subcategory": "Windows",
+      "subcategoryKey": "windows",
+      "previousCollection": "Home Décor",
+      "moved": true,
+      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-21-at-12.13.59.jpeg",
+      "material": "Fabric · Windows"
+    },
+    {
+      "slug": "curtains",
+      "name": "Curtains",
+      "collection": "Home Furnishings",
+      "collectionKey": "home-furnishings",
+      "subcategory": "Windows",
+      "subcategoryKey": "windows",
+      "previousCollection": "Home Furnishings",
+      "moved": false,
+      "image": "https://vinsho.in/wp-content/uploads/2025/10/Curtain.jpeg",
+      "material": "Woven fabric · Eyelet top"
+    },
+    {
+      "slug": "jute-placemat",
+      "name": "Jute placemat",
+      "collection": "Table & Living",
+      "collectionKey": "table-living",
+      "subcategory": "Placemats & Napkins",
+      "subcategoryKey": "placemats-napkins",
+      "previousCollection": "Home Décor",
+      "moved": true,
+      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-20-at-22.58.19.jpeg",
+      "material": "Jute · Dining"
+    },
+    {
+      "slug": "napkin-set",
+      "name": "Napkin set",
+      "collection": "Table & Living",
+      "collectionKey": "table-living",
+      "subcategory": "Placemats & Napkins",
+      "subcategoryKey": "placemats-napkins",
+      "previousCollection": "Home Décor",
+      "moved": true,
+      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-20-at-23.01.39.jpeg",
+      "material": "Cotton · Dining"
+    },
+    {
+      "slug": "placemats-napkins",
+      "name": "Placemats Napkins",
+      "collection": "Table & Living",
+      "collectionKey": "table-living",
+      "subcategory": "Placemats & Napkins",
+      "subcategoryKey": "placemats-napkins",
+      "previousCollection": "Home Furnishings",
+      "moved": true,
+      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2026-01-05-at-15.50.37-1.jpeg",
+      "material": "Woven · Dining"
+    },
+    {
+      "slug": "round-placemat",
+      "name": "Round placemat",
+      "collection": "Table & Living",
+      "collectionKey": "table-living",
+      "subcategory": "Placemats & Napkins",
+      "subcategoryKey": "placemats-napkins",
+      "previousCollection": "Home Décor",
+      "moved": true,
+      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-20-at-22.59.55.jpeg",
+      "material": "Woven · Dining"
+    },
+    {
+      "slug": "kitchen-ware",
+      "name": "Kitchen Ware",
+      "collection": "Table & Living",
+      "collectionKey": "table-living",
+      "subcategory": "Serveware",
+      "subcategoryKey": "serveware",
+      "previousCollection": "Table & Living",
+      "moved": false,
+      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-14-at-14.42.50.jpeg",
+      "material": "Mixed · Kitchen"
+    },
+    {
+      "slug": "runners",
+      "name": "Runners",
+      "collection": "Table & Living",
+      "collectionKey": "table-living",
+      "subcategory": "Table Linen",
+      "subcategoryKey": "table-linen",
+      "previousCollection": "Home Furnishings",
+      "moved": true,
+      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2025-12-30-at-13.52.40-2.jpeg",
+      "material": "Woven · Dining"
+    },
+    {
+      "slug": "table-cover",
+      "name": "Table cover",
+      "collection": "Table & Living",
+      "collectionKey": "table-living",
+      "subcategory": "Table Linen",
+      "subcategoryKey": "table-linen",
+      "previousCollection": "Home Furnishings",
+      "moved": true,
+      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-05-at-15.50.35.jpeg",
+      "material": "Cotton · Dining"
+    }
+  ],
+  "dataQualityFlags": [
+    {
+      "type": "duplicate",
+      "slugs": [
+        "wall-art",
+        "wall-art-2"
+      ],
+      "issue": "Two products both named 'Wall art', split across Gifting and Special Collection on the live site.",
+      "action": "Merge into one product with image variants. Keep slug 'wall-art', 301 redirect 'wall-art-2'."
+    },
+    {
+      "type": "duplicate",
+      "slugs": [
+        "show-piece",
+        "show-pieces"
+      ],
+      "issue": "'Show Piece' and 'Show Pieces' are the same category of item under two slugs.",
+      "action": "Merge into 'Showpieces'. Keep slug 'show-pieces', 301 redirect 'show-piece'."
+    },
+    {
+      "type": "variant",
+      "slugs": [
+        "blinds",
+        "blinds-with-decor"
+      ],
+      "issue": "'Blinds with decor' is a finish option of 'Blinds', not a separate product.",
+      "action": "Make it a variant of 'blinds'. Keep both URLs live until the client confirms."
+    },
+    {
+      "type": "overlap",
+      "slugs": [
+        "placemats-napkins",
+        "napkin-set",
+        "round-placemat",
+        "jute-placemat"
+      ],
+      "issue": "Four overlapping placemat/napkin entries; 'Placemats Napkins' is a set, the others are individual.",
+      "action": "Rename 'Placemats Napkins' to 'Placemat & Napkin Set'. Keep the other three as individual items."
+    },
+    {
+      "type": "recategorised",
+      "slugs": [
+        "napkin-set"
+      ],
+      "issue": "Sat in Home Décor on the live site while 'Placemats Napkins' sat in Home Furnishing.",
+      "action": "Both now under Table & Living › Placemats & Napkins."
+    },
+    {
+      "type": "retired",
+      "slugs": [],
+      "issue": "'Special Collection' on the live site held 9 unrelated items (a plant, a mirror, kitchenware, a soap dispenser). It was a mixed bag, not a category.",
+      "action": "Retire it as a category. Redistribute all 9 by product type. Reintroduce 'Special Collection' later as a seasonal TAG that can cross-cut collections."
+    },
+    {
+      "type": "broken-link",
+      "slugs": [
+        "show-peice"
+      ],
+      "issue": "Footer on the live site links to /product/show-peice/ which 404s (misspelling).",
+      "action": "Remove or point at 'show-pieces'."
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+---
+export const prerender = true;
+
+import Base from '../layouts/Base.astro';
+import Nav from '../components/Nav.astro';
+import Hero from '../components/Hero.astro';
+import Ticker from '../components/Ticker.astro';
+import Lookbook from '../components/Lookbook.astro';
+import UspStrip from '../components/UspStrip.astro';
+import Statement from '../components/Statement.astro';
+import NewsSection from '../components/NewsSection.astro';
+import Footer from '../components/Footer.astro';
+import Modal from '../components/Modal.astro';
+import CustomCursor from '../components/motion/CustomCursor.astro';
+---
+
+<Base>
+  <CustomCursor />
+  <Nav />
+  <main id="main-content">
+    <Hero />
+    <Ticker />
+    <Lookbook />
+    <UspStrip />
+    <Statement />
+    <NewsSection />
+  </main>
+  <Footer />
+  <Modal />
+</Base>
+

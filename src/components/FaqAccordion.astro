@@ -1,0 +1,191 @@
+---
+export interface FaqItem {
+  q: string;
+  a: string;
+}
+
+export interface Props {
+  items: FaqItem[];
+  class?: string;
+}
+
+const { items, class: className = '' } = Astro.props;
+---
+
+<div class={`faq-accordion-wrap ${className}`} data-faq-accordion>
+  {items.map((item, idx) => {
+    const itemId = `faq-item-${idx}`;
+    const panelId = `faq-panel-${idx}`;
+    const isOpen = idx === 0;
+
+    return (
+      <div class={`faq-accordion-card ${isOpen ? 'is-open' : ''}`} data-faq-card>
+        <button
+          type="button"
+          class="faq-trigger-btn"
+          id={itemId}
+          aria-expanded={isOpen ? 'true' : 'false'}
+          aria-controls={panelId}
+        >
+          <span class="faq-q-text">{item.q}</span>
+          <span class="faq-icon-wrapper" aria-hidden="true">
+            <svg class="faq-icon-plus" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+          </span>
+        </button>
+
+        <div
+          id={panelId}
+          class="faq-panel"
+          role="region"
+          aria-labelledby={itemId}
+        >
+          <div class="faq-panel-inner">
+            <p class="faq-a-text">{item.a}</p>
+          </div>
+        </div>
+      </div>
+    );
+  })}
+</div>
+
+<script>
+  const accordion = document.querySelector('[data-faq-accordion]');
+  if (accordion) {
+    const cards = accordion.querySelectorAll<HTMLElement>('[data-faq-card]');
+
+    cards.forEach((card) => {
+      const btn = card.querySelector<HTMLButtonElement>('.faq-trigger-btn');
+
+      btn?.addEventListener('click', () => {
+        const isOpen = card.classList.contains('is-open');
+
+        // Close all other panels (single open accordion)
+        cards.forEach((otherCard) => {
+          if (otherCard !== card) {
+            otherCard.classList.remove('is-open');
+            const otherBtn = otherCard.querySelector<HTMLButtonElement>('.faq-trigger-btn');
+            if (otherBtn) otherBtn.setAttribute('aria-expanded', 'false');
+          }
+        });
+
+        // Toggle current panel
+        if (isOpen) {
+          card.classList.remove('is-open');
+          btn.setAttribute('aria-expanded', 'false');
+        } else {
+          card.classList.add('is-open');
+          btn.setAttribute('aria-expanded', 'true');
+        }
+      });
+    });
+  }
+</script>
+
+<style>
+  .faq-accordion-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+  }
+
+  .faq-accordion-card {
+    background: #ffffff;
+    border: 1px solid var(--line, #e2d8d5);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: border-color 0.25s var(--ease, ease), box-shadow 0.25s var(--ease, ease);
+  }
+
+  .faq-accordion-card:hover {
+    border-color: rgba(103, 8, 50, 0.25);
+  }
+
+  .faq-accordion-card.is-open {
+    border-color: var(--maroon, #670832);
+    box-shadow: 0 4px 20px rgba(103, 8, 50, 0.06);
+  }
+
+  .faq-trigger-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    color: var(--ink, #1C1917);
+    font-family: var(--sans, sans-serif);
+    font-size: 1.05rem;
+    font-weight: 500;
+    transition: color 0.2s ease;
+  }
+
+  .faq-trigger-btn:hover {
+    color: var(--maroon, #670832);
+  }
+
+  .faq-q-text {
+    flex: 1;
+    line-height: 1.4;
+  }
+
+  .faq-icon-wrapper {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--paper-2, #F9F4F0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--maroon, #670832);
+    flex-shrink: 0;
+    transition: transform 0.3s var(--ease, ease), background 0.3s ease, color 0.3s ease;
+  }
+
+  .faq-accordion-card.is-open .faq-icon-wrapper {
+    transform: rotate(45deg);
+    background: var(--maroon, #670832);
+    color: #ffffff;
+  }
+
+  /* Smooth Grid 0fr -> 1fr animation */
+  .faq-panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .faq-accordion-card.is-open .faq-panel {
+    grid-template-rows: 1fr;
+  }
+
+  .faq-panel-inner {
+    overflow: hidden;
+  }
+
+  .faq-a-text {
+    padding: 0 1.5rem 1.35rem 1.5rem;
+    margin: 0;
+    color: var(--ink-soft, #57534E);
+    font-size: 0.95rem;
+    line-height: 1.65;
+    font-weight: 300;
+  }
+
+  @media (max-width: 640px) {
+    .faq-trigger-btn {
+      padding: 1rem 1.15rem;
+      font-size: 0.98rem;
+    }
+    .faq-a-text {
+      padding: 0 1.15rem 1.15rem 1.15rem;
+      font-size: 0.9rem;
+    }
+  }
+</style>

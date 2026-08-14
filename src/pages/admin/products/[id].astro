@@ -1,0 +1,423 @@
+---
+import Base from '../../../layouts/Base.astro';
+import { getSessionUser } from '../../../lib/auth';
+import { db } from '../../../lib/db';
+import { evaluatePurchasability, COMMERCE_MODE } from '../../../lib/purchasability';
+
+const user = getSessionUser(Astro.request);
+if (!user) {
+  return Astro.redirect('/admin/login');
+}
+
+const productId = parseInt(Astro.params.id || '0', 10);
+
+const product = db.prepare('SELECT * FROM products WHERE id = ?').get(productId) as any;
+if (!product) {
+  return Astro.redirect('/admin/products');
+}
+
+const collections = db.prepare('SELECT * FROM collections WHERE deleted_at IS NULL ORDER BY name ASC').all() as any[];
+const subcategories = db.prepare('SELECT * FROM subcategories WHERE deleted_at IS NULL ORDER BY name ASC').all() as any[];
+const images = db.prepare('SELECT * FROM product_images WHERE product_id = ? ORDER BY position ASC').all(productId) as any[];
+const variants = db.prepare('SELECT * FROM product_variants WHERE product_id = ? ORDER BY position ASC').all(productId) as any[];
+
+const purchasability = evaluatePurchasability(product, variants);
+const missingFields = [...purchasability.missingProductFields, ...purchasability.missingVariantFields];
+---
+
+<Base title={`Edit ${product.name} — VINSHO Admin`}>
+  <div class="admin-dashboard-wrap">
+    <aside class="admin-sidebar">
+      <div class="sidebar-brand">
+        <strong>VINSHO ADMIN</strong>
+        <small>Backoffice System v1.0</small>
+      </div>
+      <nav class="admin-nav">
+        <a href="/admin/products" class="nav-item active">&larr; Back to Catalogue</a>
+        <a href="/admin/crm" class="nav-item">Leads &amp; CRM</a>
+        <a href="/admin/settings" class="nav-item">Settings</a>
+      </nav>
+      <div class="sidebar-user">
+        <span>User: <b>{user.name}</b></span>
+      </div>
+    </aside>
+
+    <main class="admin-content-area">
+      <header class="admin-page-header">
+        <div>
+          <a href="/admin/products" class="back-link">&larr; Return to products list</a>
+          <h1>Editing Product: {product.name}</h1>
+          <p class="header-sub">Update product attributes, Legal Metrology compliance declarations, and variant pricing.</p>
+        </div>
+        <div class="header-right-meta">
+          <button id="btn-save-product" class="btn-save">SAVE ALL CHANGES</button>
+        </div>
+      </header>
+
+      <!-- Client Homework Audit Notice Box (§5) -->
+      <div class={`purchasability-audit-card ${purchasability.isPurchasable ? 'pass' : 'fail'}`}>
+        <div class="audit-card-header">
+          <strong>Purchasability Gate Evaluation: {purchasability.isPurchasable ? '✓ PASSED (ELIGIBLE FOR SALE)' : '⚠ FAILED (ENQUIRY FALLBACK ACTIVE)'}</strong>
+          <span>COMMERCE_MODE: <b>{COMMERCE_MODE.toUpperCase()}</b></span>
+        </div>
+        
+        {!purchasability.isPurchasable && (
+          <div class="audit-card-body">
+            <p><strong>Client Homework Checklist:</strong> The following {missingFields.length} field(s) must be supplied before this product can be sellable online:</p>
+            <ul class="missing-fields-list">
+              {missingFields.map(field => (
+                <li><code>{field}</code></li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+
+      <!-- Main Data Entry Form -->
+      <form id="product-edit-form" class="edit-form-grid">
+        <!-- Card 1: Core Identifiers & Taxonomy -->
+        <div class="form-card">
+          <h3>1. Core Details &amp; Taxonomy</h3>
+          <div class="field-row-2">
+            <div class="field">
+              <label for="name">Product Name *</label>
+              <input type="text" id="name" name="name" value={product.name} required class="admin-input" />
+            </div>
+            <div class="field">
+              <label for="slug">URL Slug *</label>
+              <input type="text" id="slug" name="slug" value={product.slug} required class="admin-input" />
+            </div>
+          </div>
+
+          <div class="field-row-2">
+            <div class="field">
+              <label for="collection_id">Collection *</label>
+              <select id="collection_id" name="collection_id" class="admin-select">
+                {collections.map(c => (
+                  <option value={c.id} selected={c.id === product.collection_id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+            <div class="field">
+              <label for="subcategory_id">Subcategory *</label>
+              <select id="subcategory_id" name="subcategory_id" class="admin-select">
+                {subcategories.map(s => (
+                  <option value={s.id} selected={s.id === product.subcategory_id}>{s.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="material">Material &amp; Construction</label>
+            <input type="text" id="material" name="material" value={product.material} class="admin-input" />
+          </div>
+
+          <div class="field">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="3" class="admin-textarea">{product.description}</textarea>
+            <span class="field-sub">Source: <b>{product.description_source}</b></span>
+          </div>
+        </div>
+
+        <!-- Card 2: Legal Metrology & Shipping Config -->
+        <div class="form-card">
+          <h3>2. Legal Metrology Declarations &amp; Shipping Config</h3>
+
+          <div class="field">
+            <label for="manufacturer_or_packer">Manufacturer or Packer Details (Legal Metrology) *</label>
+            <input 
+              type="text" 
+              id="manufacturer_or_packer" 
+              name="manufacturer_or_packer" 
+              value={product.manufacturer_or_packer || ''} 
+              placeholder="e.g. VINSHO Craft Studio, India Expo Plaza, Greater Noida (201310)" 
+              class="admin-input" 
+            />
+          </div>
+
+          <div class="field">
+            <label for="consumer_care_contact">Consumer Care Contact Details (Legal Metrology) *</label>
+            <input 
+              type="text" 
+              id="consumer_care_contact" 
+              name="consumer_care_contact" 
+              value={product.consumer_care_contact || ''} 
+              placeholder="e.g. info@vinsho.com · Phone: +91 8527406482" 
+              class="admin-input" 
+            />
+          </div>
+
+          <div class="field-row-3">
+            <div class="field">
+              <label for="country_of_origin">Country of Origin *</label>
+              <input type="text" id="country_of_origin" name="country_of_origin" value={product.country_of_origin || 'India'} class="admin-input" />
+            </div>
+
+            <div class="field">
+              <label for="shipping_class">Shipping Class *</label>
+              <select id="shipping_class" name="shipping_class" class="admin-select">
+                <option value="standard" selected={product.shipping_class === 'standard'}>Standard Courier (Phase 1)</option>
+                <option value="fragile" selected={product.shipping_class === 'fragile'}>Fragile / Glassware (Phase 2)</option>
+                <option value="bulky" selected={product.shipping_class === 'bulky'}>Bulky / Oversized (Phase 3)</option>
+                <option value="made-to-order" selected={product.shipping_class === 'made-to-order'}>Made-to-Order (Phase 0)</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="launch_phase">Launch Phase</label>
+              <input type="number" id="launch_phase" name="launch_phase" value={product.launch_phase} class="admin-input" />
+            </div>
+          </div>
+
+          <div class="field-row-2">
+            <div class="field">
+              <label for="lead_time_days">Lead Time (Days)</label>
+              <input type="number" id="lead_time_days" name="lead_time_days" value={product.lead_time_days || ''} placeholder="e.g. 7" class="admin-input" />
+            </div>
+            <div class="field-checkbox">
+              <label>
+                <input type="checkbox" id="sellable_online" name="sellable_online" checked={!!product.sellable_online} />
+                <span>Sellable Online</span>
+              </label>
+              <label>
+                <input type="checkbox" id="returnable" name="returnable" checked={!!product.returnable} />
+                <span>Returnable (30-Day Policy)</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 3: Variant Manager -->
+        <div class="form-card full-width">
+          <div class="card-title-row">
+            <h3>3. Product Variants ({variants.length})</h3>
+            <button type="button" id="btn-add-variant" class="btn-add-row">+ Add Variant</button>
+          </div>
+
+          <div class="table-responsive">
+            <table class="variant-edit-table" id="variants-table">
+              <thead>
+                <tr>
+                  <th>SKU *</th>
+                  <th>Size</th>
+                  <th>Colour</th>
+                  <th>MRP (₹) *</th>
+                  <th>Selling Price (₹) *</th>
+                  <th>HSN Code *</th>
+                  <th>GST % *</th>
+                  <th>Net Qty *</th>
+                  <th>Weight (kg) *</th>
+                  <th>Dims L×B×H (cm) *</th>
+                  <th>Stock *</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {variants.length > 0 ? (
+                  variants.map((v, idx) => (
+                    <tr class="variant-row" data-id={v.id}>
+                      <td><input type="text" class="v-sku admin-input-sm" value={v.sku || ''} placeholder="SKU" /></td>
+                      <td><input type="text" class="v-size admin-input-sm" value={v.size || ''} placeholder="Size" /></td>
+                      <td><input type="text" class="v-colour admin-input-sm" value={v.colour || ''} placeholder="Colour" /></td>
+                      <td><input type="number" step="0.01" class="v-mrp admin-input-sm" value={v.mrp || ''} placeholder="MRP" /></td>
+                      <td><input type="number" step="0.01" class="v-price admin-input-sm" value={v.selling_price || ''} placeholder="Price" /></td>
+                      <td><input type="text" class="v-hsn admin-input-sm" value={v.hsn_code || ''} placeholder="HSN" /></td>
+                      <td><input type="number" step="0.1" class="v-gst admin-input-sm" value={v.gst_rate || ''} placeholder="GST" /></td>
+                      <td><input type="text" class="v-netqty admin-input-sm" value={v.net_quantity || ''} placeholder="1 N" /></td>
+                      <td><input type="number" step="0.01" class="v-weight admin-input-sm" value={v.packed_weight_kg || ''} placeholder="Kg" /></td>
+                      <td>
+                        <div class="dim-inputs">
+                          <input type="number" class="v-l admin-input-xs" value={v.packed_l_cm || ''} placeholder="L" />
+                          <input type="number" class="v-b admin-input-xs" value={v.packed_b_cm || ''} placeholder="B" />
+                          <input type="number" class="v-h admin-input-xs" value={v.packed_h_cm || ''} placeholder="H" />
+                        </div>
+                      </td>
+                      <td><input type="number" class="v-stock admin-input-sm" value={v.stock !== null ? v.stock : ''} placeholder="Stock" /></td>
+                      <td><button type="button" class="btn-del-row" onclick="this.closest('tr').remove()">&times;</button></td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr id="empty-variants-row">
+                    <td colspan="12" style="text-align: center; color: #64748b; padding: 1.5rem;">
+                      Zero variant rows exist for this product. Click <b>+ Add Variant</b> to define sellable SKUs.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Card 4: Primary Image Config -->
+        <div class="form-card full-width">
+          <h3>4. Image Gallery</h3>
+          <div class="field">
+            <label for="primary_image_url">Primary Display Image URL *</label>
+            <input 
+              type="text" 
+              id="primary_image_url" 
+              name="primary_image_url" 
+              value={images.length > 0 ? images[0].url : ''} 
+              class="admin-input" 
+            />
+          </div>
+        </div>
+      </form>
+    </main>
+  </div>
+</Base>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const productId = window.location.pathname.split('/').pop();
+    const saveBtn = document.getElementById('btn-save-product');
+    const addVarBtn = document.getElementById('btn-add-variant');
+    const varTableBody = document.querySelector('#variants-table tbody');
+
+    addVarBtn?.addEventListener('click', () => {
+      document.getElementById('empty-variants-row')?.remove();
+      const tr = document.createElement('tr');
+      tr.className = 'variant-row';
+      tr.innerHTML = `
+        <td><input type="text" class="v-sku admin-input-sm" placeholder="SKU" /></td>
+        <td><input type="text" class="v-size admin-input-sm" placeholder="Size" /></td>
+        <td><input type="text" class="v-colour admin-input-sm" placeholder="Colour" /></td>
+        <td><input type="number" step="0.01" class="v-mrp admin-input-sm" placeholder="MRP" /></td>
+        <td><input type="number" step="0.01" class="v-price admin-input-sm" placeholder="Price" /></td>
+        <td><input type="text" class="v-hsn admin-input-sm" placeholder="HSN" /></td>
+        <td><input type="number" step="0.1" class="v-gst admin-input-sm" placeholder="GST" /></td>
+        <td><input type="text" class="v-netqty admin-input-sm" placeholder="1 N" /></td>
+        <td><input type="number" step="0.01" class="v-weight admin-input-sm" placeholder="Kg" /></td>
+        <td>
+          <div class="dim-inputs">
+            <input type="number" class="v-l admin-input-xs" placeholder="L" />
+            <input type="number" class="v-b admin-input-xs" placeholder="B" />
+            <input type="number" class="v-h admin-input-xs" placeholder="H" />
+          </div>
+        </td>
+        <td><input type="number" class="v-stock admin-input-sm" placeholder="Stock" /></td>
+        <td><button type="button" class="btn-del-row" onclick="this.closest('tr').remove()">&times;</button></td>
+      `;
+      varTableBody?.appendChild(tr);
+    });
+
+    saveBtn?.addEventListener('click', async () => {
+      const name = (document.getElementById('name') as HTMLInputElement).value;
+      const slug = (document.getElementById('slug') as HTMLInputElement).value;
+      const collection_id = parseInt((document.getElementById('collection_id') as HTMLSelectElement).value, 10);
+      const subcategory_id = parseInt((document.getElementById('subcategory_id') as HTMLSelectElement).value, 10);
+      const description = (document.getElementById('description') as HTMLTextAreaElement).value;
+      const material = (document.getElementById('material') as HTMLInputElement).value;
+      const manufacturer_or_packer = (document.getElementById('manufacturer_or_packer') as HTMLInputElement).value;
+      const consumer_care_contact = (document.getElementById('consumer_care_contact') as HTMLInputElement).value;
+      const country_of_origin = (document.getElementById('country_of_origin') as HTMLInputElement).value;
+      const shipping_class = (document.getElementById('shipping_class') as HTMLSelectElement).value;
+      const launch_phase = parseInt((document.getElementById('launch_phase') as HTMLInputElement).value || '1', 10);
+      const lead_time_days = parseInt((document.getElementById('lead_time_days') as HTMLInputElement).value || '0', 10);
+      const sellable_online = (document.getElementById('sellable_online') as HTMLInputElement).checked;
+      const returnable = (document.getElementById('returnable') as HTMLInputElement).checked;
+      const imgUrl = (document.getElementById('primary_image_url') as HTMLInputElement).value;
+
+      // Extract variants
+      const varRows = document.querySelectorAll('.variant-row');
+      const variantsData: any[] = [];
+      varRows.forEach(row => {
+        variantsData.push({
+          sku: (row.querySelector('.v-sku') as HTMLInputElement)?.value.trim() || null,
+          size: (row.querySelector('.v-size') as HTMLInputElement)?.value.trim() || null,
+          colour: (row.querySelector('.v-colour') as HTMLInputElement)?.value.trim() || null,
+          mrp: (row.querySelector('.v-mrp') as HTMLInputElement)?.value || null,
+          selling_price: (row.querySelector('.v-price') as HTMLInputElement)?.value || null,
+          hsn_code: (row.querySelector('.v-hsn') as HTMLInputElement)?.value.trim() || null,
+          gst_rate: (row.querySelector('.v-gst') as HTMLInputElement)?.value || null,
+          net_quantity: (row.querySelector('.v-netqty') as HTMLInputElement)?.value.trim() || null,
+          packed_weight_kg: (row.querySelector('.v-weight') as HTMLInputElement)?.value || null,
+          packed_l_cm: (row.querySelector('.v-l') as HTMLInputElement)?.value || null,
+          packed_b_cm: (row.querySelector('.v-b') as HTMLInputElement)?.value || null,
+          packed_h_cm: (row.querySelector('.v-h') as HTMLInputElement)?.value || null,
+          stock: (row.querySelector('.v-stock') as HTMLInputElement)?.value || null
+        });
+      });
+
+      const imagesData = imgUrl ? [{ url: imgUrl }] : [];
+
+      const res = await fetch(`/api/admin/products/${productId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name, slug, collection_id, subcategory_id, description, material,
+          manufacturer_or_packer, consumer_care_contact, country_of_origin,
+          shipping_class, launch_phase, lead_time_days, sellable_online, returnable,
+          variants: variantsData, images: imagesData
+        })
+      });
+
+      const json = await res.json();
+      if (json.success) {
+        alert('Product updated successfully!');
+        window.location.reload();
+      } else {
+        alert(`Error: ${json.error}`);
+      }
+    });
+  });
+</script>
+
+<style>
+  .admin-dashboard-wrap { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f4f6f8; color: #1a1a1a; }
+  .admin-sidebar { background: #1e293b; color: #f8fafc; padding: 1.5rem; }
+  .sidebar-brand strong { display: block; font-size: 1.15rem; color: #fff; }
+  .admin-nav { margin-top: 2rem; display: flex; flex-direction: column; gap: 0.4rem; }
+  .nav-item { color: #cbd5e1; padding: 0.6rem 0.85rem; border-radius: 4px; text-decoration: none; font-size: 0.88rem; }
+  .nav-item:hover, .nav-item.active { background: #334155; color: #fff; }
+
+  .admin-content-area { padding: 2rem; }
+  .back-link { font-size: 0.813rem; color: #64748b; text-decoration: none; margin-bottom: 0.5rem; display: inline-block; }
+  .admin-page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+  .admin-page-header h1 { font-size: 1.6rem; font-weight: 700; margin: 0; color: #0f172a; }
+
+  .btn-save { background: #16a34a; color: #fff; border: none; padding: 0.65rem 1.4rem; border-radius: 4px; font-weight: 700; font-size: 0.88rem; cursor: pointer; }
+  .btn-save:hover { background: #15803d; }
+
+  /* Audit Card */
+  .purchasability-audit-card { padding: 1.1rem 1.25rem; border-radius: 6px; margin-bottom: 1.5rem; font-size: 0.88rem; border: 1px solid transparent; }
+  .purchasability-audit-card.pass { background: #dcfce7; border-color: #86efac; color: #166534; }
+  .purchasability-audit-card.fail { background: #fef3c7; border-color: #fde68a; color: #92400e; }
+
+  .audit-card-header { display: flex; justify-content: space-between; align-items: center; }
+  .audit-card-body { margin-top: 0.75rem; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 0.75rem; }
+  .missing-fields-list { display: flex; flex-wrap: wrap; gap: 0.4rem; list-style: none; padding: 0; margin: 0.5rem 0 0 0; }
+  .missing-fields-list code { background: #fee2e2; color: #991b1b; padding: 0.2rem 0.5rem; border-radius: 3px; font-size: 0.781rem; }
+
+  .edit-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .form-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 1.25rem; }
+  .form-card.full-width { grid-column: 1 / -1; }
+  .form-card h3 { font-size: 1.05rem; font-weight: 700; margin: 0 0 1rem 0; color: #0f172a; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem; }
+
+  .card-title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+  .btn-add-row { background: #0f172a; color: #fff; border: none; padding: 0.35rem 0.75rem; border-radius: 4px; font-size: 0.781rem; font-weight: 600; cursor: pointer; }
+
+  .field { margin-bottom: 1rem; }
+  .field label { display: block; font-size: 0.813rem; font-weight: 600; color: #334155; margin-bottom: 0.3rem; }
+  .admin-input, .admin-select, .admin-textarea { width: 100%; padding: 0.5rem 0.65rem; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.85rem; }
+  .field-sub { font-size: 0.72rem; color: #64748b; }
+
+  .field-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .field-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+  .field-checkbox { display: flex; gap: 1.5rem; align-items: center; margin-top: 1.5rem; }
+
+  .table-responsive { overflow-x: auto; }
+  .variant-edit-table { width: 100%; border-collapse: collapse; font-size: 0.781rem; }
+  .variant-edit-table th { background: #f8fafc; padding: 0.5rem; text-align: left; border-bottom: 1px solid #cbd5e1; color: #475569; }
+  .variant-edit-table td { padding: 0.4rem; border-bottom: 1px solid #f1f5f9; }
+
+  .admin-input-sm { width: 100%; padding: 0.3rem 0.4rem; font-size: 0.781rem; border: 1px solid #cbd5e1; border-radius: 3px; }
+  .dim-inputs { display: flex; gap: 2px; }
+  .admin-input-xs { width: 32px; padding: 0.3rem 0.2rem; font-size: 0.72rem; border: 1px solid #cbd5e1; border-radius: 2px; text-align: center; }
+  .btn-del-row { background: #fee2e2; color: #dc2626; border: none; border-radius: 3px; padding: 0.2rem 0.5rem; cursor: pointer; font-weight: 700; }
+
+  @media (max-width: 1000px) {
+    .edit-form-grid { grid-template-columns: 1fr; }
+  }
+</style>

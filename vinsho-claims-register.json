@@ -1,0 +1,121 @@
+{
+  "purpose": "Every factual claim allowed on the VINSHO site, graded by evidence. Nothing outside this file may be stated as fact.",
+  "checkedAgainst": [
+    "https://vinsho.in/",
+    "https://vinsho.in/about-us/",
+    "https://vinsho.in/contact-us/",
+    "https://vinsho.in/shop/"
+  ],
+  "checkedOn": "2026-08-09",
+  "verified": [
+    {
+      "claim": "Established 1997",
+      "evidence": "Homepage hero eyebrow: 'Trusted Seller Since 1997'.",
+      "usage": "Free to use. This is the strongest asset the brand has."
+    },
+    {
+      "claim": "29 years of trading (1997–2026)",
+      "evidence": "Arithmetic from the 1997 founding date.",
+      "usage": "Use exactly '29 years'. Never '29+' — the plus overstates a number that is precisely known."
+    },
+    {
+      "claim": "Based at India Expo Plaza, First Floor, Plot No. C-03 & C-04, Knowledge Park-II, Greater Noida, U.P. 201310",
+      "evidence": "Footer on every page; Contact page; Google Map embed.",
+      "usage": "Free to use. Call it premises, showroom or office — see 'studio' under fabricated."
+    },
+    {
+      "claim": "All-India shipping",
+      "evidence": "About page FAQ: 'we offer all-India shipping'.",
+      "usage": "Free to use."
+    },
+    {
+      "claim": "Free returns within 30 days",
+      "evidence": "Site-wide top bar; About page FAQ.",
+      "usage": "Free to use."
+    },
+    {
+      "claim": "Home furnishing, décor and gifting range of 50 products across 4 collections",
+      "evidence": "Live shop catalogue.",
+      "usage": "Free to use. Derive counts from data."
+    }
+  ],
+  "clientClaimedUnverified": [
+    {
+      "claim": "Products reach homes in the USA, Europe and Australia",
+      "exactWording": "Proudly, our creations reach homes across the USA, Europe, and Australia—bringing VINSHO's charm to the world.",
+      "appearsOn": "About page only. Once. The homepage repeats the same paragraph but cuts off before this sentence.",
+      "evidence": "None. No export page, no IEC number, no shipping partner, no client logos, no case studies, no certifications anywhere on the site.",
+      "ruling": "This is the client's own words, so it may be repeated — but ONLY at their strength, not upgraded.",
+      "allowed": "Our creations reach homes across the USA, Europe and Australia",
+      "notAllowed": [
+        "Exported to USA, Europe & Australia",
+        "Export house / exporter / export division",
+        "Internationally trusted brand",
+        "Global brand",
+        "Serving customers worldwide",
+        "Any count of countries, shipments, orders or homes"
+      ],
+      "note": "'Reach homes' is not 'we export'. It could equally describe resellers, diaspora buyers or gifts carried abroad. Do not convert a soft sentence into a hard credential."
+    }
+  ],
+  "neverMentionedAnywhere": [
+    "International tie-ups, partnerships, collaborations or joint ventures",
+    "Distributors, stockists, agents or overseas offices",
+    "Export licence, IEC code, GST number or any registration",
+    "Certifications (ISO, OEKO-TEX, GOTS, Fair Trade or any other)",
+    "Named clients, hotels, cafés or corporate accounts",
+    "Customer counts, order counts, homes served, revenue or growth figures",
+    "Awards, press coverage or features",
+    "Team size, factory, manufacturing unit or production capacity",
+    "Founder name or team members",
+    "Customer reviews, ratings or testimonials — every product on the live site shows 0 reviews"
+  ],
+  "fabricated": [
+    {
+      "text": "Serving 10,000+ Homes Globally",
+      "problem": "No such figure exists anywhere on the site or in any material provided. It is invented.",
+      "severity": "CRITICAL",
+      "action": "Delete. Do not replace with a smaller number — no number is verifiable."
+    },
+    {
+      "text": "29+ Years Active Trading",
+      "problem": "It is exactly 29 years. The '+' inflates a precisely known figure.",
+      "severity": "MEDIUM",
+      "action": "Change to '29 Years of Trading'."
+    },
+    {
+      "text": "grown from a passionate studio ... into an internationally trusted brand",
+      "problem": "'Passionate studio' and 'internationally trusted brand' are both invented. The one export sentence on the site does not support 'internationally trusted'.",
+      "severity": "HIGH",
+      "action": "Rewrite using only verified facts."
+    },
+    {
+      "text": "Greater Noida Studio",
+      "problem": "The premises are at India Expo Plaza, a commercial complex. Nothing on the site calls it a studio, and no workshop or making process is documented.",
+      "severity": "MEDIUM",
+      "action": "Use 'Greater Noida' or 'India Expo Plaza, Greater Noida'."
+    },
+    {
+      "text": "our studio continues to champion artisanal quality",
+      "problem": "Implies in-house making. No evidence of manufacturing anywhere on the site.",
+      "severity": "MEDIUM",
+      "action": "Remove or attribute to curation rather than production."
+    }
+  ],
+  "correctedHeritageBlock": {
+    "eyebrow": "Established 1997",
+    "heading": "A Legacy Built Over 29 Years",
+    "bigNumber": "1997",
+    "bigNumberLabel": "ESTABLISHED",
+    "body": "VINSHO has been trading in home furnishings, décor and gifting since 1997, working out of India Expo Plaza in Greater Noida. Twenty-nine years on, the range spans bedding and soft furnishing, wall décor and showpieces, table linen and curated gifting — and our creations reach homes across the USA, Europe and Australia.",
+    "chips": [
+      "Established 1997",
+      "Greater Noida, Delhi NCR",
+      "All-India shipping",
+      "30-day returns"
+    ],
+    "chipsNote": "No emoji. The reference palette and Bodoni type do not carry pin, trophy and globe emoji.",
+    "todo": "Client to supply: founding story, milestones, archive photographs, and evidence for the export claim (invoices, shipping records, buyer references). Until that evidence exists, the export line stays at the site's own soft wording."
+  },
+  "ruleForAllAgents": "If a fact is not in 'verified', it cannot be stated. If it is in 'clientClaimedUnverified', repeat it only in the allowed wording. If it is in 'neverMentionedAnywhere' or 'fabricated', it does not go on the site in any form. When a section feels thin, leave a TODO — never fill the gap with a plausible-sounding number."
+}

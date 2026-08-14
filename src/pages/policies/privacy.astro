@@ -1,0 +1,44 @@
+---
+import Base from '../../layouts/Base.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+
+const pageTitle = "Privacy Policy — VINSHO";
+---
+
+<Base title={pageTitle}>
+  <Nav />
+  <main class="wrap policy-page-container">
+    <header class="policy-header">
+      <h1>Privacy Policy</h1>
+      <p class="policy-meta">Last Updated: August 2026 &middot; VINSHO (Established 1997)</p>
+    </header>
+
+    <article class="policy-content">
+      <section class="policy-section">
+        <h2>1. Data Collection &amp; DPDP Consent</h2>
+        <p>VINSHO collects personal information (name, phone number, shipping address, email) solely for fulfilling product orders, handling custom quotations, and delivering customer service under the DPDP Act 2023.</p>
+      </section>
+
+      <section class="policy-section">
+        <h2>2. Data Usage &amp; Analytics</h2>
+        <p>We do not sell or lease your personal data. E-commerce analytics (Google Analytics 4, Meta Pixel) capture anonymized usage events (`view_item`, `add_to_cart`, `purchase`) to optimize storefront navigation.</p>
+      </section>
+
+      <section class="policy-section">
+        <h2>3. Data Retention &amp; Withdrawal of Consent</h2>
+        <p>You have the right to request deletion of your personal data or withdraw consent at any time by contacting our designated Grievance Officer.</p>
+      </section>
+    </article>
+  </main>
+  <Footer />
+</Base>
+
+<style>
+  .policy-page-container { padding-block: clamp(2.5rem, 5vw, 5rem); max-width: 52rem; }
+  .policy-header h1 { font-family: var(--display); font-size: clamp(2rem, 4vw, 3rem); color: var(--maroon-2); margin: 0 0 0.5rem 0; }
+  .policy-meta { font-size: 0.813rem; color: var(--ink-soft); margin-bottom: 2.5rem; }
+  .policy-content { font-size: 0.95rem; line-height: 1.7; color: var(--ink); }
+  .policy-section { margin-bottom: 2rem; }
+  .policy-section h2 { font-family: var(--display); font-size: 1.35rem; color: var(--maroon); margin-bottom: 0.75rem; }
+</style>

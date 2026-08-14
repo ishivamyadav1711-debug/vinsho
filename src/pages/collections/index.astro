@@ -1,0 +1,202 @@
+---
+export const prerender = true;
+
+import Base from '../../layouts/Base.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+import TextReveal from '../../components/motion/TextReveal.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import ProductCard from '../../components/ProductCard.astro';
+import { getCollections, getActiveProducts, getCollectionProductCount, getSubcategoryProductCount } from '../../utils/taxonomy';
+
+const collections = getCollections();
+const activeProducts = getActiveProducts();
+
+const breadcrumbItems = [
+  { label: 'Home', url: '/' },
+  { label: 'Collections' }
+];
+---
+
+<Base title="Curated Collections — VINSHO" description="Explore VINSHO's four distinct craft disciplines across Home Furnishings, Home Décor, Table & Living, and Gifting.">
+  <Nav />
+  <main id="main-content" class="wrap collections-landing-page">
+    <Breadcrumbs items={breadcrumbItems} />
+
+    <header class="collections-hero-head">
+      <TextReveal as="h1">Curated Collections</TextReveal>
+      <p class="hero-subtext">
+        Explore our four distinct craft disciplines, grouping {activeProducts.length} handcrafted pieces across 17 sub-categories.
+      </p>
+    </header>
+
+    <div class="collections-master-grid">
+      {collections.map((col) => {
+        const totalCount = getCollectionProductCount(col.key);
+        const colProducts = activeProducts.filter(p => p.collectionKey === col.key).slice(0, 4);
+
+        return (
+          <section class="collection-master-card">
+            <div class="col-card-head">
+              <div class="col-title-group">
+                <h2>
+                  <a href={`/collections/${col.key}`} class="col-head-link">{col.name}</a>
+                </h2>
+                <span class="col-badge-count">{totalCount} pieces</span>
+              </div>
+              <p class="col-blurb-text">{col.blurb}</p>
+
+              <div class="subcat-chips-list">
+                {col.subcategories.map((sub) => {
+                  const subCount = getSubcategoryProductCount(col.key, sub.key);
+                  return (
+                    <a href={`/collections/${col.key}/${sub.key}`} class="subcat-chip">
+                      {sub.name} <span class="subcat-num">({subCount})</span>
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div class="col-featured-preview">
+              <div class="grid">
+                {colProducts.map((product) => (
+                  <ProductCard product={product} />
+                ))}
+              </div>
+            </div>
+
+            <div class="col-view-all-foot">
+              <a href={`/collections/${col.key}`} class="view-all-link">
+                View all {col.name} ({totalCount} pieces) &rarr;
+              </a>
+            </div>
+          </section>
+        );
+      })}
+    </div>
+  </main>
+  <Footer />
+</Base>
+
+<style>
+  .collections-landing-page {
+    padding-block: clamp(2rem, 4vw, 4rem);
+  }
+
+  .collections-hero-head {
+    margin-block: 1rem 2.5rem;
+  }
+
+  .collections-hero-head h1 {
+    font-family: var(--display);
+    font-size: clamp(2.2rem, 4.5vw, 3.6rem);
+    color: var(--maroon-2);
+    margin: 0 0 0.5rem;
+  }
+
+  .hero-subtext {
+    font-size: 1rem;
+    color: var(--ink-soft);
+    max-width: 38rem;
+    margin: 0;
+  }
+
+  .collections-master-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 3.5rem;
+  }
+
+  .collection-master-card {
+    border-top: 2px solid var(--maroon);
+    padding-top: 1.5rem;
+  }
+
+  .col-title-group {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .col-title-group h2 {
+    margin: 0;
+    font-family: var(--display);
+    font-size: clamp(1.6rem, 3vw, 2.4rem);
+  }
+
+  .col-head-link {
+    color: var(--maroon-2);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .col-head-link:hover {
+    color: var(--maroon);
+  }
+
+  .col-badge-count {
+    font-size: 0.813rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--pink);
+    font-weight: 600;
+  }
+
+  .col-blurb-text {
+    margin: 0.5rem 0 1.25rem;
+    color: var(--ink-soft);
+    font-size: 0.92rem;
+    max-width: 44rem;
+  }
+
+  .subcat-chips-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.75rem;
+  }
+
+  .subcat-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: var(--paper-3);
+    color: var(--ink);
+    font-size: 0.813rem;
+    padding: 0.4rem 0.85rem;
+    min-height: 38px;
+    border-radius: 999px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .subcat-chip:hover {
+    background: var(--maroon);
+    color: #fff;
+  }
+
+  .subcat-num {
+    opacity: 0.75;
+    font-size: 0.75rem;
+  }
+
+  .col-view-all-foot {
+    margin-top: 1.5rem;
+    text-align: right;
+  }
+
+  .view-all-link {
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--maroon);
+    text-decoration: none;
+    transition: transform 0.2s ease;
+    display: inline-block;
+  }
+
+  .view-all-link:hover {
+    transform: translateX(4px);
+  }
+</style>

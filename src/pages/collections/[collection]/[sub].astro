@@ -1,0 +1,122 @@
+---
+export const prerender = true;
+
+import Base from '../../../layouts/Base.astro';
+import Nav from '../../../components/Nav.astro';
+import Footer from '../../../components/Footer.astro';
+import TextReveal from '../../../components/motion/TextReveal.astro';
+import Breadcrumbs from '../../../components/Breadcrumbs.astro';
+import ProductCard from '../../../components/ProductCard.astro';
+import Modal from '../../../components/Modal.astro';
+import { getCollections, getCollectionByKey, getSubcategoryByKey, getProductsBySubcategory, getSubcategoryProductCount } from '../../../utils/taxonomy';
+
+export function getStaticPaths() {
+  const collections = getCollections();
+  const paths: { params: { collection: string; sub: string } }[] = [];
+
+  collections.forEach((col) => {
+    col.subcategories.forEach((sub) => {
+      paths.push({
+        params: { collection: col.key, sub: sub.key }
+      });
+    });
+  });
+
+  return paths;
+}
+
+const { collection: collectionKey, sub: subKey } = Astro.params;
+
+const collection = getCollectionByKey(collectionKey);
+const subcategory = getSubcategoryByKey(collectionKey, subKey);
+
+if (!collection || !subcategory) {
+  throw new Error(`Subcategory not found: ${collectionKey}/${subKey}`);
+}
+
+const products = getProductsBySubcategory(collection.key, subcategory.key);
+const totalCount = getSubcategoryProductCount(collection.key, subcategory.key);
+
+const breadcrumbItems = [
+  { label: 'Home', url: '/' },
+  { label: 'Collections', url: '/collections' },
+  { label: collection.name, url: `/collections/${collection.key}` },
+  { label: subcategory.name }
+];
+---
+
+<Base title={`${subcategory.name} — ${collection.name} — VINSHO`} description={`Browse ${totalCount} pieces in ${subcategory.name} under ${collection.name} from VINSHO.`}>
+  <Nav />
+  <main id="main-content" class="wrap subcategory-single-page">
+    <Breadcrumbs items={breadcrumbItems} />
+
+    <header class="subcategory-hero">
+      <div class="sub-hero-top">
+        <TextReveal as="h1">{subcategory.name}</TextReveal>
+        <span class="sub-count-tag">{totalCount} pieces</span>
+      </div>
+      <p class="sub-parent-ref">
+        Collection: <a href={`/collections/${collection.key}`} class="parent-link">{collection.name}</a>
+      </p>
+    </header>
+
+    <div class="grid">
+      {products.map((product) => (
+        <ProductCard product={product} />
+      ))}
+    </div>
+  </main>
+  <Footer />
+  <Modal />
+</Base>
+
+<style>
+  .subcategory-single-page {
+    padding-block: clamp(2rem, 4vw, 4rem);
+  }
+
+  .subcategory-hero {
+    margin-block: 1rem 2.5rem;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 1.5rem;
+  }
+
+  .sub-hero-top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .sub-hero-top h1 {
+    font-family: var(--display);
+    font-size: clamp(2.2rem, 4.5vw, 3.4rem);
+    color: var(--maroon-2);
+    margin: 0;
+  }
+
+  .sub-count-tag {
+    font-size: 0.85rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--pink);
+    font-weight: 600;
+  }
+
+  .sub-parent-ref {
+    margin: 0.5rem 0 0;
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+  }
+
+  .parent-link {
+    color: var(--maroon-2);
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .parent-link:hover {
+    color: var(--maroon);
+  }
+</style>

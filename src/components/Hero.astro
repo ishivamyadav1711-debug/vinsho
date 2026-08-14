@@ -1,0 +1,35 @@
+---
+import content from '../../vinsho-content.json';
+import Magnetic from './motion/Magnetic.astro';
+---
+
+<section class="hero" id="hero-section" style="padding:0">
+  <div class="hero-bg" id="hero-bg-frame">
+    {content.siteImages.hero && (
+      <picture>
+        <source media="(max-width: 767px)" srcset={content.siteImages.hero} />
+        <img 
+          src={content.siteImages.hero} 
+          alt="VINSHO Home Decor" 
+          id="hero-img-target"
+          loading="eager"
+          fetchpriority="high"
+        />
+      </picture>
+    )}
+  </div>
+  <div class="hero-in" id="hero-content">
+    <h1 class="hero-headline">
+      <span class="w"><span id="hero-line-1">Where Every Corner</span></span>
+      <span class="w"><span id="hero-line-2">Tells a Story</span></span>
+    </h1>
+    <Magnetic strength={4}>
+      <a class="btn" id="hero-cta-btn" href="/products">Shop Now
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+          <path d="M5 12h14M13 6l6 6-6 6"/>
+        </svg>
+      </a>
+    </Magnetic>
+  </div>
+  <div class="hero-mark"><span id="hero-wordmark">VINSHO</span></div>
+</section>

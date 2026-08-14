@@ -1,0 +1,178 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { db } from '../../lib/db';
+import { getSessionUser } from '../../lib/auth';
+
+const user = getSessionUser(Astro.request);
+if (!user) {
+  return Astro.redirect('/admin/login');
+}
+
+const returnsList = db.prepare(`
+  SELECT r.*, o.order_number, c.name as customer_name, c.phone as customer_phone, u.name as inspector_name
+  FROM returns r
+  JOIN orders o ON r.order_id = o.id
+  JOIN customers c ON r.customer_id = c.id
+  LEFT JOIN admin_users u ON r.inspected_by = u.id
+  ORDER BY r.created_at DESC
+`).all() as any[];
+
+const rtoCount = returnsList.filter(r => r.is_rto === 1).length;
+const pendingInspectionCount = returnsList.filter(r => r.status === 'REQUESTED' || r.status === 'RECEIVED').length;
+---
+
+<AdminLayout title="Returns & RTO Operations" activeNav="returns">
+  <div class="returns-container">
+    <div class="dash-head">
+      <div>
+        <h1 class="dash-title">Returns &amp; RTO Operations</h1>
+        <p class="dash-sub">Manage customer return requests, reverse logistics, goods inspection &amp; COD RTO tracking.</p>
+      </div>
+    </div>
+
+    <!-- Metric Summary Grid -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <span class="m-label">TOTAL RETURNS</span>
+        <span class="m-val">{returnsList.length > 0 ? returnsList.length : '0'}</span>
+        <span class="m-sub">{returnsList.length === 0 ? 'No data available yet' : 'All time returns & RTOs'}</span>
+      </div>
+
+      <div class="metric-card highlight-alert">
+        <span class="m-label">PENDING INSPECTION</span>
+        <span class="m-val">{pendingInspectionCount > 0 ? pendingInspectionCount : '0'}</span>
+        <span class="m-sub">{pendingInspectionCount === 0 ? 'No data available yet' : 'Awaiting physical inspection'}</span>
+      </div>
+
+      <div class="metric-card">
+        <span class="m-label">RTO (UNDELIVERED SHIPMENTS)</span>
+        <span class="m-val">{rtoCount > 0 ? rtoCount : '0'}</span>
+        <span class="m-sub">{rtoCount === 0 ? 'No data available yet' : 'Courier return-to-origin count'}</span>
+      </div>
+    </div>
+
+    <!-- Returns Table -->
+    <div class="content-card">
+      <div class="card-head">
+        <h2>Returns &amp; RTO Log</h2>
+      </div>
+      {returnsList.length > 0 ? (
+        <table class="crm-table">
+          <thead>
+            <tr>
+              <th>ID &amp; Order</th>
+              <th>Customer</th>
+              <th>Type</th>
+              <th>Reason</th>
+              <th>Refund Amount</th>
+              <th>Status</th>
+              <th>Inspection</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {returnsList.map(r => (
+              <tr>
+                <td>
+                  <strong>#{r.id}</strong>
+                  <small>{r.order_number}</small>
+                </td>
+                <td>
+                  <strong>{r.customer_name}</strong>
+                  <small>{r.customer_phone}</small>
+                </td>
+                <td>
+                  <span class={`type-pill ${r.is_rto === 1 ? 'rto' : 'cust'}`}>
+                    {r.is_rto === 1 ? 'RTO' : 'Customer Return'}
+                  </span>
+                </td>
+                <td>{r.reason}</td>
+                <td>₹{r.refund_amount.toFixed(2)}</td>
+                <td><span class="status-badge">{r.status}</span></td>
+                <td>
+                  {r.inspection_result ? (
+                    <span class={`inspect-badge ${r.inspection_result === 'PASS' ? 'pass' : 'fail'}`}>
+                      {r.inspection_result} {r.inspection_result === 'PASS' ? '(Restocked)' : '(Damaged Write-off)'}
+                    </span>
+                  ) : (
+                    <em>Pending Inspection</em>
+                  )}
+                </td>
+                <td>
+                  {r.status !== 'INSPECTED' && (
+                    <button class="btn-inspect" onclick={`inspectReturn(${r.id})`}>Inspect &rarr;</button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <p class="empty-state-msg">No data available yet. Return requests and RTO undelivered items will appear here.</p>
+      )}
+    </div>
+  </div>
+</AdminLayout>
+
+<script inline>
+  async function inspectReturn(returnId) {
+    const result = prompt('Enter Inspection Result: PASS (Restores sellable stock) or FAIL (Logs damaged write-off):');
+    if (!result || (result !== 'PASS' && result !== 'FAIL')) {
+      alert('Invalid inspection result. Must be PASS or FAIL.');
+      return;
+    }
+
+    const notes = prompt('Inspection Notes:') || '';
+
+    const res = await fetch('/api/admin/returns', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'inspect', returnId, result, notes })
+    });
+
+    const json = await res.json();
+    if (json.success) {
+      alert(`Inspection completed! Result: ${result}.`);
+      window.location.reload();
+    } else {
+      alert(`Error: ${json.error}`);
+    }
+  }
+</script>
+
+<style>
+  .returns-container { padding: 1.5rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  .dash-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+  .dash-title { font-size: 1.6rem; font-weight: 700; color: #0f172a; margin: 0 0 0.25rem 0; }
+  .dash-sub { font-size: 0.88rem; color: #64748b; margin: 0; }
+
+  .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+  .metric-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 1.1rem; display: flex; flex-direction: column; }
+  .metric-card.highlight-alert { border-left: 4px solid #ef4444; background: #fef2f2; }
+  .m-label { font-size: 0.72rem; font-weight: 700; color: #64748b; letter-spacing: 0.05em; }
+  .m-val { font-size: 1.8rem; font-weight: 800; color: #0f172a; margin-block: 0.25rem; }
+  .m-sub { font-size: 0.75rem; color: #94a3b8; }
+
+  .content-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 1.25rem; }
+  .card-head h2 { font-size: 1.1rem; font-weight: 700; color: #0f172a; margin: 0 0 0.25rem 0; }
+
+  .empty-state-msg { text-align: center; color: #64748b; font-size: 0.88rem; padding: 2rem; background: #f8fafc; border-radius: 4px; border: 1px dashed #cbd5e1; }
+
+  .crm-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 0.75rem; }
+  .crm-table th { text-align: left; padding: 0.6rem 0.75rem; background: #f8fafc; color: #475569; border-bottom: 1px solid #e2e8f0; font-weight: 600; }
+  .crm-table td { padding: 0.65rem 0.75rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+  .crm-table td strong { display: block; }
+  .crm-table td small { font-size: 0.75rem; color: #64748b; }
+
+  .type-pill { font-size: 0.72rem; font-weight: 600; padding: 0.2rem 0.5rem; border-radius: 3px; }
+  .type-pill.cust { background: #e0f2fe; color: #0369a1; }
+  .type-pill.rto { background: #fef3c7; color: #92400e; }
+
+  .status-badge { font-size: 0.72rem; font-weight: 600; padding: 0.2rem 0.5rem; border-radius: 3px; background: #f1f5f9; color: #475569; }
+  .inspect-badge { font-size: 0.72rem; font-weight: 700; padding: 0.25rem 0.5rem; border-radius: 3px; }
+  .inspect-badge.pass { background: #dcfce7; color: #15803d; }
+  .inspect-badge.fail { background: #fee2e2; color: #b91c1c; }
+
+  .btn-inspect { background: #670832; color: #fff; border: none; font-size: 0.75rem; padding: 0.3rem 0.75rem; border-radius: 3px; cursor: pointer; }
+  .btn-inspect:hover { background: #4a0523; }
+</style>

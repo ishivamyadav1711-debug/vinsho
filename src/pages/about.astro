@@ -1,0 +1,735 @@
+---
+import Base from '../layouts/Base.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import FaqAccordion from '../components/FaqAccordion.astro';
+import TextReveal from '../components/motion/TextReveal.astro';
+import RevealImage from '../components/motion/RevealImage.astro';
+import ParallaxImage from '../components/motion/ParallaxImage.astro';
+import Magnetic from '../components/motion/Magnetic.astro';
+
+import aboutData from '../../vinsho-about-content.json';
+import siteContent from '../../vinsho-content.json';
+
+// Page SEO Meta
+const pageTitle = "About VINSHO — Home Furnishing, Décor & Gifting ";
+const pageDescription = aboutData.story.paragraphs[0]; // First story paragraph as specified
+
+// Image Substitutions (Replacing generic stock images with genuine VINSHO photography)
+// TODO: client to supply India Expo Plaza studio photo for hero
+const heroImage = siteContent.siteImages.exploreLarge || "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-21-at-10.23.08-1.jpeg";
+
+// TODO: client to supply styled room photo for FAQ
+const faqImage = siteContent.siteImages.artisanalInset || "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-21-at-10.23.07-2.jpeg";
+
+import { COMMERCE_MODE } from '../lib/commerce';
+
+// FAQ answers with mode-aware shipping charge answer
+const formattedFaqItems = aboutData.faq.items.map((item) => {
+  if (item.q.toLowerCase().includes('shipping charges')) {
+    return {
+      q: item.q,
+      a: COMMERCE_MODE === 'live'
+        ? "Shipping charges depend on the product size, volumetric weight, and your delivery pincode. Applicable delivery options and GST charges are calculated dynamically during online checkout."
+        : "Shipping charges depend on product size, weight, and delivery location. Applicable delivery options and fees are confirmed directly via our WhatsApp quote flow when confirming your enquiry."
+    };
+  }
+  return { q: item.q, a: item.a };
+});
+
+// Credentials strip (4 concrete factual badges from claims register)
+const credentialBadges = [
+  "All-India Shipping",
+  "30-Day Free Returns",
+];
+
+// JSON-LD Schemas
+const aboutPageSchema = {
+  "@context": "https://schema.org",
+  "@type": "AboutPage",
+  "name": pageTitle,
+  "description": pageDescription,
+  "url": "https://vinsho.in/about"
+};
+
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": siteContent.brand.name,
+  "url": "https://vinsho.in",
+  "logo": "https://vinsho.in/vinsho-logo.png",
+  "foundingDate": "1997",
+  "description": aboutData.story.paragraphs[0]
+};
+
+const localBusinessSchema = {
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "name": siteContent.brand.name,
+  "description": "Home décor, furnishings and gifting .",
+  "foundingDate": "1997",
+  "image": "https://vinsho.in/vinsho-logo.png",
+  "telephone": siteContent.brand.phone,
+  "email": siteContent.brand.email,
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "India Expo Plaza, First Floor, Plot No. C-03 & 04, Knowledge Park-II",
+    "addressLocality": "Greater Noida",
+    "addressRegion": "Uttar Pradesh",
+    "postalCode": "201310",
+    "addressCountry": "IN"
+  }
+};
+
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": formattedFaqItems.map((item) => ({
+    "@type": "Question",
+    "name": item.q,
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": item.a
+    }
+  }))
+};
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://vinsho.in/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "About",
+      "item": "https://vinsho.in/about"
+    }
+  ]
+};
+---
+
+<Base title={pageTitle} description={pageDescription}>
+  <!-- Schema.org JSON-LD scripts -->
+  <script type="application/ld+json" set:html={JSON.stringify(aboutPageSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(organizationSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(localBusinessSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+
+  <Nav />
+
+  <main class="about-page-main">
+    <!-- Breadcrumbs -->
+    <div class="wrap breadcrumb-container">
+      <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'About' }]} />
+    </div>
+
+    <!-- 1.1 Hero Section -->
+    <section class="about-hero wrap">
+      <div class="about-hero-header">
+        <TextReveal as="h1" class="about-hero-h1" lines={[aboutData.hero.h1]} />
+        <p class="about-hero-subhead">{aboutData.hero.subhead}</p>
+      </div>
+
+      <!-- Hero Image (Substituted with genuine VINSHO image) -->
+      <!-- TODO: client to supply India Expo Plaza premises photo -->
+      <div class="about-hero-img-wrap">
+        <RevealImage
+          src={heroImage}
+          alt="VINSHO Home Décor & Furnishings"
+          effects={['clip', 'scale']}
+          duration={1.1}
+          loading="eager"
+          fetchpriority="high"
+          aspectRatio="21/9"
+        />
+      </div>
+    </section>
+
+    <!-- 1.2 Brand Story Section -->
+    <section class="about-story wrap">
+      <div class="about-story-grid">
+        <div class="about-story-content">
+          <span class="eyebrow">{aboutData.story.eyebrow}</span>
+          <h2 class="story-heading">{aboutData.story.heading}</h2>
+          <p class="story-paragraph">{aboutData.story.paragraphs[0]}</p>
+          <p class="story-paragraph">{aboutData.story.paragraphs[1]}</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1.3 Heritage Block (29 Years Trading Credibility) -->
+    <!-- TODO: Client to supply founding story, milestones, archive photographs, and evidence for the export claim (invoices, shipping records, buyer references). Until that evidence exists, the export line stays at the site's own soft wording. -->
+    <section class="about-heritage wrap">
+      <div class="heritage-card">
+        <div class="heritage-badge">
+          <span class="est-year">1997</span>
+          <span class="est-label">ESTABLISHED</span>
+        </div>
+        <div class="heritage-info">
+          <span class="eyebrow-sub">Established 1997</span>
+          <h2 class="heritage-heading">A Legacy Built Over 29 Years</h2>
+          <p class="heritage-text">
+            VINSHO has been trading in home furnishings, décor and gifting since 1997, working out of India Expo Plaza in Greater Noida. Twenty-nine years on, the range spans bedding and soft furnishing, wall décor and showpieces, table linen and curated gifting — and our creations reach homes across the USA, Europe and Australia.
+          </p>
+          <div class="heritage-meta">
+            <span class="meta-item">Established 1997</span>
+            <span class="meta-item">Greater Noida, Delhi NCR</span>
+            <span class="meta-item">All-India shipping</span>
+            <span class="meta-item">30-day returns</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1.4 Credentials Strip -->
+    <section class="credentials-strip wrap">
+      <div class="credentials-grid">
+        {credentialBadges.map((badge) => (
+          <div class="credential-item">
+            <svg class="cred-check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            <span>{badge}</span>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- 1.5 Gallery Section (6 Image Mosaic) -->
+    <section class="about-gallery wrap">
+      <div class="gallery-header">
+        <span class="eyebrow">Curated Collections</span>
+        <h2>Inside the VINSHO World</h2>
+      </div>
+      <div class="gallery-grid">
+        {aboutData.gallery.map((imgUrl, idx) => (
+          <div class={`gallery-item item-${idx + 1}`}>
+            <ParallaxImage
+              src={imgUrl}
+              alt={`VINSHO Product Showcase ${idx + 1}`}
+              reverse={idx % 2 === 1}
+              aspectRatio={idx % 3 === 0 ? "4/5" : "1/1"}
+            />
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- 1.6 Why Choose Us Section -->
+    <section class="why-choose-section wrap">
+      <div class="why-choose-grid">
+        <div class="why-choose-content">
+          <span class="eyebrow">Our Promise</span>
+          <h2 class="section-title">{aboutData.whyChooseUs.heading}</h2>
+
+          <div class="why-items-list">
+            {aboutData.whyChooseUs.items.map((item, idx) => (
+              <div 
+                class="why-item" 
+                data-reveal-stagger
+                style={`animation-delay: ${idx * 100}ms;`}
+              >
+                <div class="why-number">{String(idx + 1).padStart(2, '0')}</div>
+                <div class="why-body">
+                  <h3 class="why-title">{item.title}</h3>
+                  <p class="why-text">{item.text}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div class="why-choose-img-side">
+          <RevealImage
+            src={aboutData.whyChooseUs.image}
+            alt="Why Choose VINSHO"
+            effects={['clip', 'scale']}
+            duration={1.0}
+            aspectRatio="4/5"
+          />
+        </div>
+      </div>
+    </section>
+
+    <!-- 1.7 FAQ Section -->
+    <!-- TODO: client to supply styled room photo -->
+    <section class="about-faq-section wrap">
+      <div class="faq-section-grid">
+        <div class="faq-intro-block">
+          <span class="eyebrow">Got Questions?</span>
+          <h2 class="faq-heading">{aboutData.faq.heading}</h2>
+          <p class="faq-intro">{aboutData.faq.intro}</p>
+
+          <div class="faq-side-img">
+            <RevealImage
+              src={faqImage}
+              alt="VINSHO Studio Q&A"
+              effects={['clip', 'scale']}
+              duration={1.0}
+              aspectRatio="4/3"
+            />
+          </div>
+        </div>
+
+        <div class="faq-accordion-container">
+          <FaqAccordion items={formattedFaqItems} />
+        </div>
+      </div>
+    </section>
+
+    <!-- 1.8 Closing CTA Section -->
+    <section class="about-cta wrap">
+      <div class="cta-banner-card">
+        <img src={aboutData.cta.image} alt="Transform Your Home" class="cta-bg-img" />
+        <div class="cta-overlay"></div>
+        <div class="cta-content">
+          <h2 class="cta-heading">{aboutData.cta.heading}</h2>
+          <Magnetic strength={4}>
+            <a href="/collections" class="btn cta-btn">
+              {aboutData.cta.button} &rarr;
+            </a>
+          </Magnetic>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+</Base>
+
+<style>
+  .about-page-main {
+    padding-bottom: 4rem;
+  }
+
+  .breadcrumb-container {
+    padding-top: 1.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  /* Eyebrow utility */
+  .eyebrow {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--pink, #CD788F);
+    margin-bottom: 0.5rem;
+  }
+
+  .eyebrow-sub {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--pink-soft, #E8A8B8);
+    margin-bottom: 0.5rem;
+  }
+
+  /* 1.1 Hero */
+  .about-hero {
+    margin-block: 1rem 3.5rem;
+  }
+
+  .about-hero-header {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto 2.5rem auto;
+  }
+
+  .about-hero-h1 {
+    font-family: var(--display, serif);
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 700;
+    color: var(--maroon, #670832);
+    margin: 0 0 0.5rem 0;
+  }
+
+  .about-hero-subhead {
+    font-size: clamp(1.1rem, 2.2vw, 1.4rem);
+    color: var(--ink-soft, #57534E);
+    font-weight: 300;
+    letter-spacing: 0.04em;
+    margin: 0;
+  }
+
+  .about-hero-img-wrap {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 16px 40px rgba(103, 8, 50, 0.08);
+  }
+
+  /* 1.2 Story Section */
+  .about-story {
+    margin-block: 3.5rem;
+  }
+
+  .about-story-grid {
+    max-width: 52rem;
+    margin-inline: auto;
+  }
+
+  .story-heading {
+    font-family: var(--display, serif);
+    font-size: clamp(1.8rem, 3.5vw, 2.75rem);
+    color: var(--maroon, #670832);
+    font-weight: 600;
+    margin: 0.25rem 0 1.5rem 0;
+    line-height: 1.2;
+  }
+
+  .story-paragraph {
+    font-size: 1.05rem;
+    color: var(--ink-soft, #57534E);
+    line-height: 1.7;
+    margin-bottom: 1.25rem;
+    font-weight: 300;
+  }
+
+  /* 1.3 Heritage Block */
+  .about-heritage {
+    margin-block: 3rem;
+  }
+
+  .heritage-card {
+    background: var(--maroon, #670832);
+    color: #ffffff;
+    border-radius: 14px;
+    padding: 3rem 3.5rem;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 3.5rem;
+    align-items: center;
+    box-shadow: 0 16px 45px rgba(103, 8, 50, 0.18);
+  }
+
+  .heritage-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+    padding-right: 3.5rem;
+  }
+
+  .est-year {
+    font-family: var(--display, serif);
+    font-size: 4.5rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--paper, #FBF3F0);
+  }
+
+  .est-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.25em;
+    color: var(--pink-soft, #E8A8B8);
+    margin-top: 0.5rem;
+  }
+
+  .heritage-heading {
+    font-family: var(--display, serif);
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+    color: #ffffff;
+    margin: 0 0 1rem 0;
+  }
+
+  .heritage-text {
+    font-size: 1.05rem;
+    color: rgba(255, 255, 255, 0.88);
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+    font-weight: 300;
+  }
+
+  .heritage-meta {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .meta-item {
+    font-size: 0.844rem;
+    font-weight: 500;
+    color: var(--paper-2, #F9F4F0);
+    background: rgba(255, 255, 255, 0.12);
+    padding: 0.4rem 0.85rem;
+    border-radius: 999px;
+  }
+
+  /* 1.4 Credentials Strip */
+  .credentials-strip {
+    margin-block: 2rem 4rem;
+  }
+
+  .credentials-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+    background: #ffffff;
+    border: 1px solid var(--line, #e2d8d5);
+    border-radius: 10px;
+    padding: 1.5rem 2rem;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+  }
+
+  .credential-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: var(--maroon, #670832);
+  }
+
+  .cred-check-icon {
+    color: var(--pink, #CD788F);
+    flex-shrink: 0;
+  }
+
+  /* 1.5 Gallery */
+  .about-gallery {
+    margin-block: 4rem;
+  }
+
+  .gallery-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+
+  .gallery-header h2 {
+    font-family: var(--display, serif);
+    font-size: clamp(2rem, 4vw, 3rem);
+    color: var(--maroon, #670832);
+    margin: 0;
+  }
+
+  .gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+
+  .gallery-item {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+  }
+
+  /* 1.6 Why Choose Us */
+  .why-choose-section {
+    margin-block: 5rem;
+  }
+
+  .why-choose-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 3.5rem;
+    align-items: center;
+  }
+
+  .section-title {
+    font-family: var(--display, serif);
+    font-size: clamp(2rem, 4vw, 3rem);
+    color: var(--maroon, #670832);
+    margin: 0 0 2rem 0;
+  }
+
+  .why-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .why-item {
+    display: flex;
+    gap: 1.25rem;
+    align-items: flex-start;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--line, #e2d8d5);
+  }
+
+  .why-number {
+    font-family: var(--display, serif);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--pink, #CD788F);
+    line-height: 1;
+    min-width: 30px;
+  }
+
+  .why-title {
+    font-family: var(--sans, sans-serif);
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--maroon, #670832);
+    margin: 0 0 0.35rem 0;
+  }
+
+  .why-text {
+    font-size: 0.95rem;
+    color: var(--ink-soft, #57534E);
+    margin: 0;
+    font-weight: 300;
+    line-height: 1.55;
+  }
+
+  .why-choose-img-side {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 14px 35px rgba(0, 0, 0, 0.08);
+  }
+
+  /* 1.7 FAQ Section */
+  .about-faq-section {
+    margin-block: 5rem;
+  }
+
+  .faq-section-grid {
+    display: grid;
+    grid-template-columns: 0.85fr 1.15fr;
+    gap: 3.5rem;
+    align-items: start;
+  }
+
+  .faq-heading {
+    font-family: var(--display, serif);
+    font-size: clamp(2rem, 4vw, 3rem);
+    color: var(--maroon, #670832);
+    margin: 0 0 0.75rem 0;
+  }
+
+  .faq-intro {
+    font-size: 1.05rem;
+    color: var(--ink-soft, #57534E);
+    line-height: 1.6;
+    margin-bottom: 2rem;
+    font-weight: 300;
+  }
+
+  .faq-side-img {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+  }
+
+  /* 1.8 Closing CTA Banner */
+  .about-cta {
+    margin-block: 5rem 2rem;
+  }
+
+  .cta-banner-card {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    min-height: 380px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 3rem 2rem;
+  }
+
+  .cta-bg-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .cta-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(69, 5, 32, 0.75);
+    backdrop-filter: blur(3px);
+  }
+
+  .cta-content {
+    position: relative;
+    z-index: 2;
+    max-width: 680px;
+  }
+
+  .cta-heading {
+    font-family: var(--display, serif);
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    color: #ffffff;
+    margin: 0 0 2rem 0;
+    line-height: 1.25;
+  }
+
+  .cta-btn {
+    background: #ffffff !important;
+    color: var(--maroon, #670832) !important;
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 0.85rem 2.2rem;
+    border-radius: 999px;
+  }
+
+  .cta-btn:hover {
+    background: var(--paper, #FBF3F0) !important;
+  }
+
+  /* Responsive Breakpoints */
+  @media (max-width: 1024px) {
+    .about-story-grid,
+    .why-choose-grid,
+    .faq-section-grid {
+      grid-template-columns: 1fr;
+      gap: 2.5rem;
+    }
+
+    .heritage-card {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+      padding: 2.5rem 2rem;
+    }
+
+    .heritage-badge {
+      border-right: none;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      padding-right: 0;
+      padding-bottom: 1.5rem;
+    }
+
+    .credentials-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .gallery-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .credentials-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .gallery-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .est-year {
+      font-size: 3.5rem;
+    }
+
+    .heritage-meta {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+  }
+</style>

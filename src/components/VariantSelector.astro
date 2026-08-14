@@ -1,0 +1,195 @@
+---
+import type { Variant } from '../lib/commerce';
+
+export interface Props {
+  variants: Variant[];
+  defaultPrice: number | null;
+  defaultMrp: number | null;
+  class?: string;
+}
+
+const { variants, defaultPrice, defaultMrp, class: className = '' } = Astro.props;
+
+const hasVariants = variants && variants.length > 0;
+---
+
+<div class={`variant-selector-wrapper ${className}`} id="variant-selector-root">
+  {hasVariants ? (
+    <div class="variant-controls">
+      <label for="variant-select-dropdown" class="variant-label">
+        <span>Select Variant / Size / Colour:</span>
+      </label>
+      <select id="variant-select-dropdown" class="variant-dropdown" aria-label="Select product variant">
+        {variants.map((v, idx) => {
+          const label = `${v.size ? v.size + ' ' : ''}${v.colour ? '· ' + v.colour + ' ' : ''}(SKU: ${v.sku})`;
+          const priceStr = v.sellingPrice ? ` - ₹${v.sellingPrice.toLocaleString('en-IN')}` : '';
+          return (
+            <option 
+              value={v.sku} 
+              data-price={v.sellingPrice || ''}
+              data-mrp={v.mrp || ''}
+              data-stock={v.stock || 0}
+              data-img={v.image || ''}
+              selected={idx === 0}
+            >
+              {label}{priceStr}
+            </option>
+          );
+        })}
+      </select>
+
+      <!-- Pill Swatches for 2–10 variants -->
+      {variants.length <= 10 && (
+        <div class="variant-pills-row" id="variant-pills-container">
+          {variants.map((v, idx) => (
+            <button 
+              type="button"
+              class={`variant-pill-btn ${idx === 0 ? 'active' : ''}`}
+              data-sku={v.sku}
+              aria-pressed={idx === 0 ? 'true' : 'false'}
+            >
+              {v.size || v.colour || v.sku}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  ) : (
+    <div class="single-variant-info">
+      <span class="single-variant-badge">Standard Size / Single Variant</span>
+    </div>
+  )}
+</div>
+
+<script>
+  // Variant Selection State Sync Script
+  document.addEventListener('DOMContentLoaded', () => {
+    const dropdown = document.getElementById('variant-select-dropdown') as HTMLSelectElement | null;
+    const pillBtns = document.querySelectorAll<HTMLButtonElement>('.variant-pill-btn');
+    const priceDisplay = document.getElementById('pdp-selling-price');
+    const mrpDisplay = document.getElementById('pdp-mrp-price');
+    const stockBadge = document.getElementById('pdp-stock-badge');
+
+    function syncVariantState(sku: string) {
+      if (!dropdown) return;
+      
+      const option = Array.from(dropdown.options).find(opt => opt.value === sku);
+      if (!option) return;
+
+      dropdown.value = sku;
+
+      // Sync pills
+      pillBtns.forEach(btn => {
+        const active = btn.dataset.sku === sku;
+        btn.classList.toggle('active', active);
+        btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+
+      // Update Price & MRP
+      const price = option.dataset.price;
+      const mrp = option.dataset.mrp;
+      const stock = parseInt(option.dataset.stock || '0', 10);
+
+      if (priceDisplay && price) {
+        priceDisplay.textContent = `₹${parseInt(price, 10).toLocaleString('en-IN')}`;
+      }
+      if (mrpDisplay && mrp && parseInt(mrp, 10) > parseInt(price || '0', 10)) {
+        mrpDisplay.textContent = `MRP: ₹${parseInt(mrp, 10).toLocaleString('en-IN')}`;
+        mrpDisplay.hidden = false;
+      } else if (mrpDisplay) {
+        mrpDisplay.hidden = true;
+      }
+
+      // Update Stock badge
+      if (stockBadge) {
+        if (stock <= 0) {
+          stockBadge.textContent = 'Out of Stock';
+          stockBadge.className = 'stock-badge out-of-stock';
+        } else if (stock <= 5) {
+          stockBadge.textContent = `Only ${stock} left in stock`;
+          stockBadge.className = 'stock-badge low-stock';
+        } else {
+          stockBadge.textContent = 'In Stock (Ready to Dispatch)';
+          stockBadge.className = 'stock-badge in-stock';
+        }
+      }
+    }
+
+    dropdown?.addEventListener('change', (e) => {
+      syncVariantState((e.target as HTMLSelectElement).value);
+    });
+
+    pillBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const sku = btn.dataset.sku;
+        if (sku) syncVariantState(sku);
+      });
+    });
+  });
+</script>
+
+<style>
+  .variant-selector-wrapper {
+    margin-block: 1rem;
+  }
+
+  .variant-label {
+    display: block;
+    font-size: 0.813rem;
+    font-weight: 600;
+    color: var(--maroon-2, #731D42);
+    margin-bottom: 0.5rem;
+  }
+
+  .variant-dropdown {
+    width: 100%;
+    background: var(--paper-2, #F9F4F0);
+    border: 1px solid var(--line, rgba(103, 8, 50, 0.15));
+    color: var(--ink, #3E3336);
+    padding: 0.65rem 0.9rem;
+    border-radius: 4px;
+    font-size: 0.88rem;
+    font-family: var(--sans);
+    outline: none;
+    cursor: pointer;
+    margin-bottom: 0.6rem;
+  }
+
+  .variant-pills-row {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+  }
+
+  .variant-pill-btn {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 0.4rem 0.85rem;
+    min-height: 44px;
+    border-radius: 999px;
+    font-size: 0.781rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .variant-pill-btn.active, .variant-pill-btn:hover {
+    background: var(--maroon, #670832);
+    border-color: var(--maroon, #670832);
+    color: #ffffff;
+  }
+
+  .single-variant-info {
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+  }
+
+  .single-variant-badge {
+    display: inline-block;
+    background: var(--paper-3);
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+  }
+</style>

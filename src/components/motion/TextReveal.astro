@@ -1,0 +1,62 @@
+---
+export interface Props {
+  as?: 'h1' | 'h2' | 'h3' | 'h4' | 'p' | 'div';
+  class?: string;
+  stagger?: number;
+  duration?: number;
+  ease?: string;
+  start?: string;
+  lines?: string[];
+  id?: string;
+}
+
+const {
+  as: Tag = 'h2',
+  class: className = '',
+  stagger = 0.08,
+  duration = 0.8,
+  ease = 'power3.out',
+  start = 'top 85%',
+  lines = [],
+  id,
+  ...rest
+} = Astro.props;
+---
+
+<Tag 
+  class={`text-reveal-container ${className}`} 
+  id={id}
+  data-text-reveal 
+  data-stagger={stagger}
+  data-duration={duration}
+  data-ease={ease}
+  data-start={start}
+  {...rest}
+>
+  {lines.length > 0 ? (
+    lines.map((line) => (
+      <span class="tr-line-wrapper">
+        <span class="tr-line-inner">{line}</span>
+      </span>
+    ))
+  ) : (
+    <span class="tr-line-wrapper">
+      <span class="tr-line-inner"><slot /></span>
+    </span>
+  )}
+</Tag>
+
+<style>
+  .text-reveal-container {
+    display: block;
+  }
+  .tr-line-wrapper {
+    display: block;
+    overflow: hidden;
+    line-height: 1.15;
+  }
+  .tr-line-inner {
+    display: block;
+    will-change: transform;
+  }
+</style>

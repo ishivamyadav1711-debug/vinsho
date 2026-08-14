@@ -1,0 +1,229 @@
+---
+import Base from '../../layouts/Base.astro';
+import { getSessionUser } from '../../lib/auth';
+
+const user = getSessionUser(Astro.request);
+if (user) {
+  return Astro.redirect('/admin/crm');
+}
+---
+
+<Base title="Admin Login — VINSHO CRM">
+  <div class="login-page-wrap">
+    <div class="login-card">
+      <div class="login-header">
+        <a href="/" aria-label="VINSHO Home">
+          <img src="/vinsho-logo-transparent.png" alt="VINSHO - Where Every Corner Tells a Story" class="login-logo-img" />
+        </a>
+        <span class="sub-tag">Internal CRM Portal</span>
+        <p class="login-subtext">Sign in to access private lead management, customer records &amp; studio analytics.</p>
+      </div>
+
+      <form id="login-form" class="login-form">
+        <div class="field-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" name="email" required placeholder="admin@vinsho.com" autocomplete="username" />
+        </div>
+
+        <div class="field-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required placeholder="••••••••••••" autocomplete="current-password" />
+        </div>
+
+        <p class="error-msg" id="login-error" hidden></p>
+
+        <button type="submit" class="login-submit-btn" id="login-btn">
+          LOGIN TO CRM &rarr;
+        </button>
+
+        <div class="demo-creds-box">
+          <p class="creds-title">Demo Credentials:</p>
+          <div class="creds-list">
+            <span><b>Admin:</b> admin@vinsho.com / VinshoAdmin2026!</span>
+            <span><b>Sales:</b> sales@vinsho.com / VinshoSales2026!</span>
+            <span><b>Staff:</b> staff@vinsho.com / VinshoStaff2026!</span>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</Base>
+
+<script>
+  const form = document.getElementById('login-form') as HTMLFormElement | null;
+  const errEl = document.getElementById('login-error');
+  const btn = document.getElementById('login-btn') as HTMLButtonElement | null;
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (errEl) errEl.hidden = true;
+    if (btn) btn.disabled = true;
+
+    const email = (document.getElementById('email') as HTMLInputElement).value;
+    const password = (document.getElementById('password') as HTMLInputElement).value;
+
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        if (errEl) {
+          errEl.hidden = false;
+          errEl.textContent = data.error || 'Invalid credentials.';
+        }
+        if (btn) btn.disabled = false;
+        return;
+      }
+
+      window.location.href = '/admin/crm';
+    } catch (err) {
+      if (errEl) {
+        errEl.hidden = false;
+        errEl.textContent = 'Server connection failed.';
+      }
+      if (btn) btn.disabled = false;
+    }
+  });
+</script>
+
+<style>
+  .login-page-wrap {
+    min-height: 100vh;
+    background: var(--paper, #FBF3F0);
+    display: grid;
+    place-items: center;
+    padding: 1.5rem;
+  }
+
+  .login-card {
+    width: 100%;
+    max-width: 420px;
+    background: var(--paper-2, #F9F4F0);
+    border: 1px solid var(--line, #e2d8d5);
+    border-radius: 8px;
+    padding: 2.5rem 2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  }
+
+  .login-header {
+    text-align: center;
+    margin-bottom: 2rem;
+  }
+
+  .login-logo-img {
+    height: 56px;
+    width: auto;
+    object-fit: contain;
+    margin: 0 auto 0.5rem;
+    display: block;
+    transition: transform 0.25s ease;
+  }
+
+  .login-logo-img:hover {
+    transform: scale(1.04);
+  }
+
+  .sub-tag {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    background: var(--maroon, #670832);
+    color: #ffffff;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    margin-top: 0.4rem;
+  }
+
+  .login-subtext {
+    font-size: 0.844rem;
+    color: var(--ink-soft);
+    margin-top: 0.85rem;
+  }
+
+  .login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .field-group label {
+    font-size: 0.813rem;
+    font-weight: 600;
+    color: var(--maroon-2);
+  }
+
+  .field-group input {
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 0.65rem 0.85rem;
+    font-size: 0.9rem;
+    color: var(--ink);
+    outline: none;
+    transition: border 0.2s ease;
+  }
+
+  .field-group input:focus {
+    border-color: var(--maroon);
+  }
+
+  .error-msg {
+    font-size: 0.813rem;
+    color: #b91c1c;
+    background: #fee2e2;
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    margin: 0;
+  }
+
+  .login-submit-btn {
+    background: var(--maroon);
+    border: 1px solid var(--maroon);
+    color: #ffffff;
+    font-size: 0.813rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    padding: 0.85rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+
+  .login-submit-btn:hover {
+    background: var(--maroon-3, #450320);
+  }
+
+  .demo-creds-box {
+    margin-top: 1.5rem;
+    padding: 0.85rem;
+    background: var(--paper-3);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-size: 0.781rem;
+  }
+
+  .creds-title {
+    font-weight: 700;
+    color: var(--maroon-2);
+    margin: 0 0 0.35rem;
+  }
+
+  .creds-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    color: var(--ink-soft);
+  }
+</style>

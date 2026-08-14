@@ -1,0 +1,278 @@
+---
+import TextReveal from './motion/TextReveal.astro';
+import { getCollections, getCollectionProductCount } from '../utils/taxonomy';
+
+const collections = getCollections();
+
+const collectionItems = collections.map((col, idx) => ({
+  num: `0${idx + 1}`,
+  key: col.key,
+  name: col.name,
+  count: `${getCollectionProductCount(col.key)} pieces`,
+  blurb: col.blurb,
+  image: col.key === 'home-decor' 
+    ? 'https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2025-12-30-at-13.52.37-2.jpeg'
+    : col.key === 'home-furnishing' || col.key === 'home-furnishings'
+    ? 'https://vinsho.in/wp-content/uploads/2025/10/Bedsheet1.jpeg'
+    : 'https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-21-at-10.23.07-1.jpeg'
+}));
+---
+
+<section class="wrap collections-editorial-section" id="collections">
+  <div class="sh">
+    <div>
+      <TextReveal as="h2">Curated Collections</TextReveal>
+      <p>Explore our three distinct craft disciplines designed to bring unity to your space.</p>
+    </div>
+  </div>
+
+  <div class="collections-split-layout">
+    <!-- Left Column: Minimalist Editorial Directory Rows -->
+    <div class="collections-rows-list">
+      {collectionItems.map((item, idx) => (
+        <div class="collection-row-item" data-col-target={item.key}>
+          <a href={`/collections/${item.key}`} class="row-header-link">
+            <div class="row-left">
+              <span class="row-num">{item.num}</span>
+              <div class="row-title-group">
+                <h3 class="row-name">{item.name}</h3>
+                <p class="row-blurb">{item.blurb}</p>
+              </div>
+            </div>
+            <div class="row-right">
+              <span class="row-count">{item.count}</span>
+              <div class="arrow-circle">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </div>
+            </div>
+          </a>
+
+          <!-- Touch inline preview image -->
+          <div class="row-touch-preview">
+            <img src={item.image} alt={item.name} loading="lazy" />
+          </div>
+        </div>
+      ))}
+    </div>
+
+    <!-- Right Column: Minimalist Preview Showcase (Fine Pointer Desktop) -->
+    <div class="collections-right-showcase" aria-hidden="true">
+      <div class="showcase-frame">
+        {collectionItems.map((item, idx) => (
+          <div class={`showcase-slide ${idx === 0 ? 'active' : ''}`} data-col-slide={item.key}>
+            <img src={item.image} alt={item.name} loading="lazy" />
+            <div class="showcase-caption">
+              <span>{item.name}</span>
+              <span class="caption-count">{item.count}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const rowItems = document.querySelectorAll<HTMLElement>('.collection-row-item');
+    const slides = document.querySelectorAll<HTMLElement>('.showcase-slide');
+    const isTouch = window.matchMedia('(hover: none), (pointer: coarse)').matches;
+
+    if (!rowItems.length) return;
+
+    if (!isTouch) {
+      // Desktop fine-pointer hover logic
+      rowItems.forEach((row) => {
+        row.addEventListener('mouseenter', () => {
+          const key = row.dataset.colTarget;
+          if (!key) return;
+
+          rowItems.forEach(r => r.classList.remove('active'));
+          row.classList.add('active');
+
+          slides.forEach((slide) => {
+            if (slide.dataset.colSlide === key) {
+              slide.classList.add('active');
+            } else {
+              slide.classList.remove('active');
+            }
+          });
+        });
+      });
+    } else {
+      // Touch accordion-style inline expansion
+      rowItems.forEach((row) => {
+        const link = row.querySelector('.row-header-link');
+        link?.addEventListener('click', (e) => {
+          const isExpanded = row.classList.contains('expanded');
+          if (!isExpanded) {
+            // Expand inline image on first tap
+            e.preventDefault();
+            rowItems.forEach(r => r.classList.remove('expanded'));
+            row.classList.add('expanded');
+          }
+        });
+      });
+    }
+  });
+</script>
+
+<style>
+  .collections-editorial-section {
+    padding-block: clamp(3.5rem, 6vw, 6.5rem);
+  }
+
+  .collections-split-layout {
+    display: grid;
+    grid-template-columns: 1.25fr 1fr;
+    gap: clamp(2rem, 4vw, 4.5rem);
+    align-items: center;
+    margin-top: 2.5rem;
+  }
+
+  .collections-rows-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .collection-row-item {
+    padding-block: 1.6rem;
+    border-bottom: 1px solid var(--line);
+    position: relative;
+    transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  .collection-row-item:first-child {
+    border-top: 1px solid var(--line);
+  }
+
+  .row-header-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    text-decoration: none;
+    color: var(--ink);
+    width: 100%;
+  }
+
+  .row-left {
+    display: flex;
+    align-items: baseline;
+    gap: 1.5rem;
+    flex: 1;
+  }
+
+  .row-num {
+    font-family: var(--sans);
+    font-size: 0.781rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: var(--pink);
+    min-width: 1.8rem;
+  }
+
+  .row-name {
+    font-family: var(--display);
+    font-size: clamp(1.3rem, 2.2vw, 2rem);
+    font-weight: 500;
+    color: var(--maroon-2);
+    margin: 0 0 0.35rem 0;
+    transition: color 0.3s ease, transform 0.3s ease;
+  }
+
+  .row-blurb {
+    font-size: 0.86rem;
+    color: var(--ink-soft);
+    margin: 0;
+    line-height: 1.5;
+    max-width: 28rem;
+  }
+
+  .row-right {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    flex-shrink: 0;
+  }
+
+  .row-count {
+    font-size: 0.781rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+
+  .arrow-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    display: grid;
+    place-items: center;
+    color: var(--maroon-2);
+    transition: all 0.3s ease;
+  }
+
+  .row-touch-preview {
+    display: none;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: 4px;
+    margin-top: 1rem;
+  }
+
+  .row-touch-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Desktop Fine Pointer Hover Effects */
+  @media (hover: hover) and (pointer: fine) {
+    .collection-row-item:hover, .collection-row-item.active {
+      padding-left: 0.75rem;
+    }
+
+    .collection-row-item:hover .row-name, .collection-row-item.active .row-name {
+      color: var(--maroon);
+    }
+
+    .collection-row-item:hover .arrow-circle, .collection-row-item.active .arrow-circle {
+      background: var(--maroon);
+      border-color: var(--maroon);
+      color: #ffffff;
+      transform: translateX(4px);
+    }
+  }
+
+  /* Touch Accordion Behavior */
+  @media (hover: none), (pointer: coarse), (max-width: 900px) {
+    .collections-split-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .collections-right-showcase {
+      display: none;
+    }
+
+    .row-header-link {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .row-right {
+      width: 100%;
+      justify-content: space-between;
+      margin-top: 0.5rem;
+    }
+
+    .collection-row-item.expanded .row-touch-preview {
+      display: block;
+    }
+  }
+</style>

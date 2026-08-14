@@ -1,0 +1,124 @@
+---
+export interface Props {
+  beforeImg: string;
+  afterImg: string;
+  beforeLabel?: string;
+  afterLabel?: string;
+  class?: string;
+}
+
+const {
+  beforeImg,
+  afterImg,
+  beforeLabel = 'Original',
+  afterLabel = 'Reimagine',
+  class: className = ''
+} = Astro.props;
+---
+
+<!-- 
+  COMPARE SLIDER COMPONENT (Section 5)
+  Note for Client: Requires paired before/after room photographs of the exact same room angle.
+  Currently unmounted until paired styling assets are produced.
+-->
+<div class={`compare-slider-container ${className}`} data-compare-slider tabindex="0" role="region" aria-label="Before and after room comparison slider">
+  <div class="compare-layer after-layer">
+    <img src={afterImg} alt={afterLabel} loading="lazy" />
+    <span class="compare-badge badge-right">{afterLabel}</span>
+  </div>
+  
+  <div class="compare-layer before-layer" id="before-clip-layer">
+    <img src={beforeImg} alt={beforeLabel} loading="lazy" />
+    <span class="compare-badge badge-left">{beforeLabel}</span>
+  </div>
+
+  <div class="compare-divider" id="compare-handle">
+    <div class="handle-line"></div>
+    <div class="handle-circle">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M18 8L22 12L18 16M6 8L2 12L6 16" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<style>
+  .compare-slider-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: 2px;
+    user-select: none;
+    touch-action: pan-y;
+  }
+
+  .compare-layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .compare-layer img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .before-layer {
+    clip-path: inset(0 50% 0 0);
+    z-index: 2;
+  }
+
+  .compare-badge {
+    position: absolute;
+    bottom: 1rem;
+    background: rgba(103, 8, 50, 0.85);
+    color: #fff;
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.35rem 0.85rem;
+    border-radius: 2px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    backdrop-filter: blur(4px);
+  }
+
+  .badge-left { left: 1rem; }
+  .badge-right { right: 1rem; }
+
+  .compare-divider {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 2px;
+    z-index: 3;
+    transform: translateX(-50%);
+    cursor: ew-resize;
+  }
+
+  .handle-line {
+    width: 2px;
+    height: 100%;
+    background: #ffffff;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
+  }
+
+  .handle-circle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
+    background: var(--maroon);
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+</style>

@@ -1,0 +1,62 @@
+---
+import Base from '../../layouts/Base.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+import content from '../../../vinsho-content.json';
+
+const pageTitle = "Return & Refund Policy — VINSHO";
+---
+
+<Base title={pageTitle}>
+  <Nav />
+  <main class="wrap policy-page-container">
+    <header class="policy-header">
+      <h1>Return &amp; Refund Policy</h1>
+      <p class="policy-meta">Last Updated: August 2026 &middot; VINSHO (Established 1997)</p>
+    </header>
+
+    <article class="policy-content">
+      <section class="policy-section">
+        <h2>1. 30-Day Free Return Policy</h2>
+        <p>VINSHO offers free returns within 30 days of delivery for eligible standard home decor and textile products, provided items are returned unused, unwashed, in original packaging with tags intact.</p>
+      </section>
+
+      <section class="policy-section">
+        <h2>2. Category Exclusions (Non-Returnable Items)</h2>
+        <p>Per Indian e-commerce regulations and operational constraints, the following categories are strictly non-returnable:</p>
+        <ul>
+          <li><strong>Made-to-Order &amp; Customized Items:</strong> Custom wallpaper, wallpaper panels, made-to-measure blinds, and custom floral installations cannot be returned or exchanged once produced.</li>
+          <li><strong>Bulky &amp; Large Products:</strong> Mattresses, live plants (bonsai), and oversized carpets are non-returnable unless damaged in transit.</li>
+          <li><strong>Hygiene &amp; Used Textiles:</strong> Products that have been washed, altered, or used cannot be accepted.</li>
+        </ul>
+      </section>
+
+      <section class="policy-section">
+        <h2>3. Transit Damage &amp; Defect Claims</h2>
+        <p>If your package arrives damaged or incomplete, notify us within 48 hours of delivery with photos/videos of the package. We will immediately arrange a replacement or full refund.</p>
+      </section>
+
+      <section class="policy-section">
+        <h2>4. Refund Process &amp; Timelines</h2>
+        <p>Once your returned item is received and inspected at our Greater Noida facility, approved refunds are processed within 5–7 business days back to your original payment method.</p>
+      </section>
+
+      <section class="policy-section">
+        <h2>5. Initiate a Return</h2>
+        <p>To request a return, contact customer support at <a href={`mailto:${content.brand.email}`}>{content.brand.email}</a> or WhatsApp us at +91 8527406482 with your order number.</p>
+      </section>
+    </article>
+  </main>
+  <Footer />
+</Base>
+
+<style>
+  .policy-page-container { padding-block: clamp(2.5rem, 5vw, 5rem); max-width: 52rem; }
+  .policy-header h1 { font-family: var(--display); font-size: clamp(2rem, 4vw, 3rem); color: var(--maroon-2); margin: 0 0 0.5rem 0; }
+  .policy-meta { font-size: 0.813rem; color: var(--ink-soft); margin-bottom: 2.5rem; }
+  .policy-content { font-size: 0.95rem; line-height: 1.7; color: var(--ink); }
+  .policy-section { margin-bottom: 2rem; }
+  .policy-section h2 { font-family: var(--display); font-size: 1.35rem; color: var(--maroon); margin-bottom: 0.75rem; }
+  .policy-section ul { padding-left: 1.25rem; }
+  .policy-section li { margin-bottom: 0.5rem; }
+</style>

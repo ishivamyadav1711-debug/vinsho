@@ -1,0 +1,125 @@
+---
+import type { ProductCommerce } from '../lib/commerce';
+import content from '../../vinsho-content.json';
+
+export interface Props {
+  product: ProductCommerce;
+  class?: string;
+}
+
+const { product, class: className = '' } = Astro.props;
+
+const origin = product.countryOfOrigin || 'India';
+const manufacturer = product.manufacturerOrPacker || content.brand.address;
+const consumerCare = product.consumerCareContact || `${content.brand.email} · Phone: ${content.brand.phone}`;
+const netQty = product.netQuantity || '1 N (Unit)';
+const formattedMrp = product.mrp ? `₹${product.mrp.toLocaleString('en-IN')}` : 'Price on Request';
+---
+
+<div class={`legal-metrology-box ${className}`} id="legal-metrology-declaration">
+  <div class="lm-header">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    </svg>
+    <span>Legal Metrology &amp; Product Compliance</span>
+  </div>
+
+  <div class="lm-content">
+    <div class="lm-row">
+      <span class="lm-label">Net Quantity:</span>
+      <span class="lm-val">{netQty}</span>
+    </div>
+
+    <div class="lm-row">
+      <span class="lm-label">Maximum Retail Price (MRP):</span>
+      <span class="lm-val">{formattedMrp} <small class="lm-sub">(Inclusive of all taxes &amp; GST)</small></span>
+    </div>
+
+    <div class="lm-row">
+      <span class="lm-label">Country of Origin:</span>
+      <span class="lm-val">{origin}</span>
+    </div>
+
+    <div class="lm-row">
+      <span class="lm-label">Manufacturer / Packer Details:</span>
+      <span class="lm-val">{manufacturer}</span>
+    </div>
+
+    <div class="lm-row">
+      <span class="lm-label">Consumer Care Cell:</span>
+      <span class="lm-val">{consumerCare}</span>
+    </div>
+
+    {product.hsnCode && (
+      <div class="lm-row">
+        <span class="lm-label">HSN Code &amp; GST Rate:</span>
+        <span class="lm-val">{product.hsnCode} ({product.gstRate || 0}% GST)</span>
+      </div>
+    )}
+  </div>
+</div>
+
+<style>
+  .legal-metrology-box {
+    background: var(--paper-2, #F9F4F0);
+    border: 1px solid var(--line, rgba(103, 8, 50, 0.15));
+    border-radius: 4px;
+    padding: 1.1rem 1.25rem;
+    margin-block: 1.5rem;
+    font-size: 0.813rem;
+  }
+
+  .lm-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--sans);
+    font-size: 0.781rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--maroon-2, #731D42);
+    margin-bottom: 0.85rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .lm-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+  }
+
+  .lm-row {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 0.75rem;
+    align-items: baseline;
+    line-height: 1.45;
+  }
+
+  .lm-label {
+    font-weight: 500;
+    color: var(--ink-soft, #7C6B6E);
+  }
+
+  .lm-val {
+    color: var(--ink, #3E3336);
+    font-weight: 400;
+  }
+
+  .lm-sub {
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+  }
+
+  @media (max-width: 600px) {
+    .lm-row {
+      grid-template-columns: 1fr;
+      gap: 0.15rem;
+    }
+    .lm-label {
+      font-size: 0.75rem;
+    }
+  }
+</style>

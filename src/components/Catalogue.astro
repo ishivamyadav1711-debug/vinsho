@@ -1,0 +1,389 @@
+---
+import ProductCard from './ProductCard.astro';
+import TextReveal from './motion/TextReveal.astro';
+import FilterPanel from './FilterPanel.astro';
+import { getCollections, getActiveProducts, getCollectionProductCount, getSubcategoryProductCount } from '../utils/taxonomy';
+
+const collections = getCollections();
+const activeProducts = getActiveProducts();
+const totalCount = activeProducts.length;
+---
+
+<section class="wrap catalogue-2tier-section" id="catalogue">
+  <div class="sh">
+    <div>
+      <TextReveal as="h2">Everything We Make</TextReveal>
+      <p>Prices vary by custom dimensions, material finishes and quantity. Tap any item to request a custom quote or order via WhatsApp.</p>
+    </div>
+    <div class="r">
+      <button class="filters-toggle-btn" id="open-filter-panel-btn" aria-expanded="false" aria-controls="filter-panel">
+        <span>FILTERS</span>
+        <svg class="filters-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <span class="field">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+          <circle cx="11" cy="11" r="7"/>
+          <path d="m20 20-3.5-3.5"/>
+        </svg>
+        <input id="q" type="search" placeholder="Search name, sub-category, material…" aria-label="Search catalogue" />
+      </span>
+
+      <span class="field">
+        <select id="sort" aria-label="Sort">
+          <option value="feat">Sort: Featured</option>
+          <option value="az">Name A–Z</option>
+          <option value="za">Name Z–A</option>
+          <option value="cat">Collection &amp; Subcategory</option>
+        </select>
+      </span>
+    </div>
+  </div>
+
+  <!-- Mobile 2-Level Filter Pills -->
+  <div class="mobile-taxonomy-filters" aria-label="Mobile Taxonomy Filters">
+    <div class="mobile-col-pills">
+      <button class="tab-pill active" data-col="all" aria-pressed="true">
+        All products <span class="pill-cnt">{totalCount}</span>
+      </button>
+      {collections.map((col) => {
+        const cnt = getCollectionProductCount(col.key);
+        return (
+          <button class="tab-pill" data-col={col.key} aria-pressed="false">
+            {col.name} <span class="pill-cnt">{cnt}</span>
+          </button>
+        );
+      })}
+    </div>
+
+    <!-- Mobile secondary row for subcategories -->
+    <div class="mobile-sub-pills" id="mobile-sub-row" hidden>
+      <!-- Dynamically populated via JS when collection selected -->
+    </div>
+  </div>
+
+  <div class="catalogue-layout-container">
+    <!-- Desktop Sticky Left Sidebar -->
+    <aside class="desktop-taxonomy-sidebar" aria-label="Catalogue Taxonomy Filter">
+      <div class="sidebar-sticky-inner">
+        <button class="sidebar-item all-item active" data-col="all" data-sub="all">
+          <span class="item-name">All products</span>
+          <span class="item-count">{totalCount}</span>
+        </button>
+        <div class="sidebar-divider"></div>
+
+        {collections.map((col) => {
+          const colCount = getCollectionProductCount(col.key);
+          return (
+            <div class="sidebar-col-group" data-col-group={col.key}>
+              <button class="sidebar-item col-head-item" data-col={col.key} data-sub="all">
+                <span class="item-name">{col.name}</span>
+                <span class="item-count">{colCount}</span>
+              </button>
+              <div class="sidebar-sub-list">
+                {col.subcategories.map((sub) => {
+                  const subCount = getSubcategoryProductCount(col.key, sub.key);
+                  return (
+                    <button class="sidebar-item sub-item" data-col={col.key} data-sub={sub.key}>
+                      <span class="item-name">{sub.name}</span>
+                      <span class="item-count">{subCount}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </aside>
+
+    <!-- Main Grid Content -->
+    <div class="catalogue-grid-area">
+      <!-- Active Filter Chips Bar -->
+      <div class="active-chips-bar" id="active-chips-bar" hidden>
+        <span class="chips-label">Active filters:</span>
+        <div class="chips-wrapper" id="chips-wrapper"></div>
+        <button class="clear-all-chips" id="clear-all-chips">Clear all</button>
+      </div>
+
+      <div class="grid" id="grid" data-batch-grid>
+        {activeProducts.map(product => (
+          <ProductCard product={product} />
+        ))}
+      </div>
+      <p class="empty" id="empty" hidden>Nothing matches that filter or search. Try adjusting your criteria, or ask us on WhatsApp.</p>
+    </div>
+  </div>
+
+  <!-- Premium Slide-Over Filter Panel Drawer / Mobile Bottom Sheet -->
+  <FilterPanel />
+</section>
+
+<style>
+  .catalogue-2tier-section {
+    padding-block: clamp(2rem, 4vw, 4rem);
+  }
+
+  .filters-toggle-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    color: var(--maroon-2);
+    font-family: var(--sans);
+    font-size: 0.781rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    padding: 0.55rem 1.25rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+
+  .filters-toggle-btn:hover {
+    background: var(--maroon);
+    border-color: var(--maroon);
+    color: #ffffff;
+  }
+
+  .filters-toggle-btn:hover .filters-icon {
+    transform: rotate(90deg);
+  }
+
+  .filters-icon {
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .catalogue-layout-container {
+    display: grid;
+    grid-template-columns: clamp(200px, 20vw, 260px) 1fr;
+    gap: clamp(1.25rem, 2.5vw, 2.5rem);
+    align-items: start;
+    margin-top: 1.5rem;
+  }
+
+  /* Desktop Sticky Sidebar */
+  .desktop-taxonomy-sidebar {
+    position: sticky;
+    top: calc(var(--nav) + 20px);
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 1.25rem 1rem;
+    max-height: calc(100vh - var(--nav) - 40px);
+    overflow-y: auto;
+  }
+
+  .sidebar-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: none;
+    border: none;
+    font-family: var(--sans);
+    font-size: 0.88rem;
+    color: var(--ink);
+    padding: 0.45rem 0.6rem;
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+  }
+
+  .sidebar-item:hover {
+    background: var(--paper-3);
+    color: var(--maroon);
+  }
+
+  .sidebar-item.active {
+    background: var(--maroon);
+    color: #fff !important;
+    font-weight: 500;
+  }
+
+  .sidebar-item.active .item-count {
+    color: #fff !important;
+    opacity: 0.9;
+  }
+
+  .all-item {
+    font-weight: 600;
+  }
+
+  .col-head-item {
+    font-weight: 600;
+    margin-top: 0.35rem;
+  }
+
+  .sidebar-divider {
+    height: 1px;
+    background: var(--line);
+    margin-block: 0.6rem;
+  }
+
+  .sidebar-sub-list {
+    padding-left: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    margin-top: 0.15rem;
+  }
+
+  .sub-item {
+    font-size: 0.813rem;
+    color: var(--ink-soft);
+  }
+
+  .item-count {
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+  }
+
+  /* Mobile Taxonomy Filters */
+  .mobile-taxonomy-filters {
+    display: none;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .mobile-col-pills, .mobile-sub-pills {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.35rem;
+    scrollbar-width: none;
+  }
+
+  .mobile-col-pills::-webkit-scrollbar, .mobile-sub-pills::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tab-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    white-space: nowrap;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    font-size: 0.813rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .tab-pill.active {
+    background: var(--maroon);
+    border-color: var(--maroon);
+    color: #fff;
+  }
+
+  .pill-cnt {
+    font-size: 0.72rem;
+    opacity: 0.8;
+  }
+
+  /* Active Filter Chips Bar */
+  .active-chips-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+    background: var(--paper-3);
+    padding: 0.5rem 0.85rem;
+    border-radius: 4px;
+    font-size: 0.813rem;
+  }
+
+  .chips-label {
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+
+  .chips-wrapper {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+  }
+
+  .filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: var(--maroon);
+    color: #fff;
+    font-size: 0.781rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+  }
+
+  .chip-remove {
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    font-size: 0.9rem;
+    line-height: 1;
+    padding: 0;
+  }
+
+  .clear-all-chips {
+    background: none;
+    border: none;
+    color: var(--maroon);
+    text-decoration: underline;
+    cursor: pointer;
+    margin-left: auto;
+    font-size: 0.781rem;
+  }
+
+  @media (max-width: 1023px) {
+    .sh {
+      flex-direction: column;
+      gap: 1.25rem;
+      align-items: stretch;
+    }
+
+    .sh .r {
+      width: 100%;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+    }
+
+    .sh .r .field {
+      flex: 1 1 auto;
+      min-width: 130px;
+    }
+
+    .sh .r .field input {
+      width: 100%;
+    }
+
+    .catalogue-layout-container {
+      grid-template-columns: 1fr;
+    }
+
+    .desktop-taxonomy-sidebar {
+      display: none;
+    }
+
+    .mobile-taxonomy-filters {
+      display: flex;
+      margin-inline: calc(var(--pad) * -1);
+      padding-inline: var(--pad);
+    }
+    
+    .tab-pill {
+      min-height: 44px;
+      padding: 0.5rem 1rem;
+    }
+  }
+</style>
+

@@ -1,0 +1,45 @@
+---
+import Base from '../../layouts/Base.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+import content from '../../../vinsho-content.json';
+
+const pageTitle = "Cancellation Policy — VINSHO";
+---
+
+<Base title={pageTitle}>
+  <Nav />
+  <main class="wrap policy-page-container">
+    <header class="policy-header">
+      <h1>Order Cancellation Policy</h1>
+      <p class="policy-meta">Last Updated: August 2026 &middot; VINSHO (Established 1997)</p>
+    </header>
+
+    <article class="policy-content">
+      <section class="policy-section">
+        <h2>1. Cancellation Before Dispatch</h2>
+        <p>Orders for standard products can be cancelled free of charge within 12 hours of order placement or prior to dispatch, whichever is earlier. Full refunds will be processed to the original payment source within 3–5 business days.</p>
+      </section>
+
+      <section class="policy-section">
+        <h2>2. Cancellation After Dispatch</h2>
+        <p>If an order has already been handed over to the courier, cancellation requests will be treated as a return upon receipt (for returnable standard items). Two-way freight charges may apply.</p>
+      </section>
+
+      <section class="policy-section">
+        <h2>3. Made-to-Order &amp; Custom Order Cancellations</h2>
+        <p>Custom orders (custom wallpaper, custom blinds, bulk corporate orders) cannot be cancelled once production or material cutting has commenced.</p>
+      </section>
+    </article>
+  </main>
+  <Footer />
+</Base>
+
+<style>
+  .policy-page-container { padding-block: clamp(2.5rem, 5vw, 5rem); max-width: 52rem; }
+  .policy-header h1 { font-family: var(--display); font-size: clamp(2rem, 4vw, 3rem); color: var(--maroon-2); margin: 0 0 0.5rem 0; }
+  .policy-meta { font-size: 0.813rem; color: var(--ink-soft); margin-bottom: 2.5rem; }
+  .policy-content { font-size: 0.95rem; line-height: 1.7; color: var(--ink); }
+  .policy-section { margin-bottom: 2rem; }
+  .policy-section h2 { font-family: var(--display); font-size: 1.35rem; color: var(--maroon); margin-bottom: 0.75rem; }
+</style>

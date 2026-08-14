@@ -1,0 +1,422 @@
+---
+import { getCollections, getActiveProducts } from '../utils/taxonomy';
+
+const collections = getCollections();
+const activeProducts = getActiveProducts();
+const totalCount = activeProducts.length;
+
+// Extract distinct material categories present in product data
+const materialsList = [
+  { key: 'cotton-linen', name: 'Cotton & Linen' },
+  { key: 'metal', name: 'Metal & Alloys' },
+  { key: 'wood', name: 'Wood & Timber' },
+  { key: 'ceramic-resin', name: 'Ceramic & Sculpted' },
+  { key: 'silk-botanical', name: 'Silk & Botanicals' },
+  { key: 'glass-mirror', name: 'Glass & Mirror' },
+  { key: 'jute-coir', name: 'Jute & Natural Fibre' },
+  { key: 'wax', name: 'Poured Wax' }
+];
+---
+
+<!-- Overlay backdrop -->
+<div class="filter-backdrop" id="filter-backdrop" hidden aria-hidden="true"></div>
+
+<!-- Slide-Over Drawer / Bottom Sheet Panel -->
+<aside 
+  class="filter-panel" 
+  id="filter-panel" 
+  hidden 
+  role="dialog" 
+  aria-modal="true" 
+  aria-labelledby="filter-panel-title"
+>
+  <!-- Header -->
+  <div class="fp-header">
+    <div class="fp-title-row">
+      <h2 id="filter-panel-title">FILTERS</h2>
+      <div class="fp-header-actions">
+        <button class="fp-clear-all" id="fp-clear-all-btn">Clear All</button>
+        <button class="fp-close-btn" id="fp-close-btn" aria-label="Close Filters">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M18 6L6 18M6 6l12 12" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="fp-counter-row">
+      <span class="fp-counter-text" id="fp-result-count">{totalCount} PRODUCTS</span>
+    </div>
+  </div>
+
+  <!-- Scrollable Filter Content -->
+  <div class="fp-body">
+    <!-- Accordion 1: Collection / Category (Open by default) -->
+    <div class="fp-group open" data-fp-group="collection">
+      <button class="fp-group-header" aria-expanded="true">
+        <span>Collection</span>
+        <span class="fp-group-icon">&minus;</span>
+      </button>
+      <div class="fp-group-content">
+        {collections.map((col) => (
+          <label class="custom-checkbox-label">
+            <input type="checkbox" name="col" value={col.key} class="custom-checkbox-input" />
+            <span class="checkbox-box">
+              <svg class="check-svg" width="10" height="8" viewBox="0 0 10 8" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 4l2.5 2.5L9 1" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="checkbox-text">{col.name}</span>
+          </label>
+        ))}
+      </div>
+    </div>
+
+    <!-- Accordion 2: Sub-category (Open by default) -->
+    <div class="fp-group open" data-fp-group="subcategory">
+      <button class="fp-group-header" aria-expanded="true">
+        <span>Sub-category</span>
+        <span class="fp-group-icon">&minus;</span>
+      </button>
+      <div class="fp-group-content">
+        {collections.flatMap(c => c.subcategories).map((sub) => (
+          <label class="custom-checkbox-label">
+            <input type="checkbox" name="sub" value={sub.key} class="custom-checkbox-input" />
+            <span class="checkbox-box">
+              <svg class="check-svg" width="10" height="8" viewBox="0 0 10 8" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 4l2.5 2.5L9 1" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="checkbox-text">{sub.name}</span>
+          </label>
+        ))}
+      </div>
+    </div>
+
+    <!-- Accordion 3: Material & Craft Finish -->
+    <div class="fp-group" data-fp-group="material">
+      <button class="fp-group-header" aria-expanded="false">
+        <span>Material &amp; Craft</span>
+        <span class="fp-group-icon">&plus;</span>
+      </button>
+      <div class="fp-group-content" hidden>
+        {materialsList.map((mat) => (
+          <label class="custom-checkbox-label">
+            <input type="checkbox" name="mat" value={mat.key} class="custom-checkbox-input" />
+            <span class="checkbox-box">
+              <svg class="check-svg" width="10" height="8" viewBox="0 0 10 8" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 4l2.5 2.5L9 1" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+            <span class="checkbox-text">{mat.name}</span>
+          </label>
+        ))}
+      </div>
+    </div>
+
+    <!-- Accordion 4: Availability -->
+    <div class="fp-group" data-fp-group="availability">
+      <button class="fp-group-header" aria-expanded="false">
+        <span>Availability</span>
+        <span class="fp-group-icon">&plus;</span>
+      </button>
+      <div class="fp-group-content" hidden>
+        <label class="custom-checkbox-label">
+          <input type="checkbox" name="avail" value="in-stock" class="custom-checkbox-input" />
+          <span class="checkbox-box">
+            <svg class="check-svg" width="10" height="8" viewBox="0 0 10 8" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 4l2.5 2.5L9 1" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <span class="checkbox-text">In Stock (Ready to Dispatch)</span>
+        </label>
+        <label class="custom-checkbox-label">
+          <input type="checkbox" name="avail" value="made-to-order" class="custom-checkbox-input" />
+          <span class="checkbox-box">
+            <svg class="check-svg" width="10" height="8" viewBox="0 0 10 8" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 4l2.5 2.5L9 1" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          <span class="checkbox-text">Made to Order (Custom Dimensions)</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Sticky Footer CTA Bar -->
+  <div class="fp-footer-sticky">
+    <button class="fp-mobile-clear" id="fp-mobile-clear-btn">CLEAR ALL</button>
+    <button class="fp-mobile-apply" id="fp-mobile-apply-btn">SHOW {totalCount} PRODUCTS</button>
+  </div>
+</aside>
+
+<style>
+  /* Backdrop */
+  .filter-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 140;
+    background: rgba(30, 20, 24, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    opacity: 0;
+    transition: opacity 0.4s var(--ease, cubic-bezier(0.16, 1, 0.3, 1));
+  }
+
+  .filter-backdrop.active {
+    opacity: 1;
+  }
+
+  /* Filter Panel Container */
+  .filter-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 150;
+    width: clamp(380px, 30vw, 440px);
+    background: var(--paper, #FBF3F0);
+    box-shadow: -12px 0 40px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .filter-panel.active {
+    transform: translateX(0);
+  }
+
+  /* Header */
+  .fp-header {
+    padding: 1.5rem 1.5rem 1rem;
+    border-bottom: 1px solid var(--line, #e2d8d5);
+    background: var(--paper-2, #F9F4F0);
+  }
+
+  .fp-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .fp-title-row h2 {
+    font-family: var(--sans);
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    color: var(--maroon-2, #4A0523);
+    margin: 0;
+  }
+
+  .fp-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+  }
+
+  .fp-clear-all {
+    background: none;
+    border: none;
+    font-size: 0.781rem;
+    font-weight: 500;
+    color: var(--pink, #CD788F);
+    text-decoration: underline;
+    cursor: pointer;
+    transition: color 0.2s ease;
+  }
+
+  .fp-clear-all:hover {
+    color: var(--maroon, #670832);
+  }
+
+  .fp-close-btn {
+    background: none;
+    border: none;
+    color: var(--maroon-2);
+    cursor: pointer;
+    padding: 0.2rem;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    transition: transform 0.2s ease, background 0.2s ease;
+  }
+
+  .fp-close-btn:hover {
+    background: var(--paper-3);
+    transform: rotate(90deg);
+  }
+
+  .fp-counter-row {
+    margin-top: 0.75rem;
+  }
+
+  .fp-counter-text {
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    font-weight: 600;
+    color: var(--ink-soft);
+  }
+
+  /* Body & Scrollable Accordions */
+  .fp-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem 1.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .fp-group {
+    border-bottom: 1px solid var(--line, #e2d8d5);
+    padding-bottom: 0.75rem;
+  }
+
+  .fp-group-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: none;
+    border: none;
+    font-family: var(--sans);
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--maroon-2);
+    padding-block: 0.85rem;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .fp-group-icon {
+    font-size: 1.1rem;
+    color: var(--pink);
+    line-height: 1;
+  }
+
+  .fp-group-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding-bottom: 0.5rem;
+    transition: all 0.3s ease;
+  }
+
+  /* Custom Checkbox Design */
+  .custom-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    cursor: pointer;
+    font-size: 0.844rem;
+    color: var(--ink);
+    user-select: none;
+    transition: color 0.2s ease;
+  }
+
+  .custom-checkbox-label:hover {
+    color: var(--maroon);
+  }
+
+  .custom-checkbox-input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+
+  .checkbox-box {
+    width: 16px;
+    height: 16px;
+    border: 1.5px solid var(--line, #ccc);
+    border-radius: 3px;
+    background: var(--paper-2);
+    display: grid;
+    place-items: center;
+    transition: all 0.22s ease;
+    flex-shrink: 0;
+  }
+
+  .check-svg {
+    opacity: 0;
+    transform: scale(0.5);
+    color: #ffffff;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .custom-checkbox-input:checked + .checkbox-box {
+    background: var(--maroon, #670832);
+    border-color: var(--maroon, #670832);
+  }
+
+  .custom-checkbox-input:checked + .checkbox-box .check-svg {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  .checkbox-text {
+    font-size: 0.844rem;
+  }
+
+  /* Mobile Sticky Footer */
+  .fp-footer-sticky {
+    padding: 1rem 1.5rem;
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    background: var(--paper-2);
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .fp-mobile-clear {
+    flex: 1;
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--maroon-2);
+    font-size: 0.781rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    padding: 0.75rem;
+    min-height: 44px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .fp-mobile-apply {
+    flex: 2;
+    background: var(--maroon);
+    border: 1px solid var(--maroon);
+    color: #ffffff;
+    font-size: 0.781rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    padding: 0.75rem;
+    min-height: 44px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .fp-mobile-apply:hover {
+    background: var(--maroon-3);
+  }
+
+  /* Mobile Sheet Behavior */
+  @media (max-width: 768px) {
+    .filter-panel {
+      width: 100%;
+      height: 85dvh;
+      max-height: 85vh;
+      top: auto;
+      bottom: 0;
+      border-radius: 16px 16px 0 0;
+      transform: translateY(100%);
+    }
+
+    .filter-panel.active {
+      transform: translateY(0);
+    }
+  }
+</style>

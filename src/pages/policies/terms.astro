@@ -1,0 +1,49 @@
+---
+import Base from '../../layouts/Base.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+
+const pageTitle = "Terms & Conditions — VINSHO";
+---
+
+<Base title={pageTitle}>
+  <Nav />
+  <main class="wrap policy-page-container">
+    <header class="policy-header">
+      <h1>Terms &amp; Conditions</h1>
+      <p class="policy-meta">Last Updated: August 2026 &middot; VINSHO (Established 1997)</p>
+    </header>
+
+    <article class="policy-content">
+      <section class="policy-section">
+        <h2>1. Overview &amp; Acceptance</h2>
+        <p>This website is operated by VINSHO, located at India Expo Plaza, Greater Noida, Delhi NCR (201310). By browsing or purchasing from this site, you agree to these Terms and Conditions.</p>
+      </section>
+
+      <section class="policy-section">
+        <h2>2. Product Representation &amp; Pricing</h2>
+        <p>Prices are listed in INR inclusive of applicable GST taxes. In Enquiry Mode, prices are provided upon request via custom quotation. Product colors may vary slightly due to screen resolutions and natural craft materials.</p>
+      </section>
+
+      <section class="policy-section">
+        <h2>3. Orders &amp; Payment Processing</h2>
+        <p>All online payments and checkout transactions are processed securely via our commerce partner (Shopify Hosted Checkout). VINSHO does not store card credentials or sensitive financial details on local servers.</p>
+      </section>
+
+      <section class="policy-section">
+        <h2>4. Governing Law &amp; Jurisdiction</h2>
+        <p>These terms are governed by the laws of India. Any legal disputes shall be subject to the exclusive jurisdiction of the courts in Gautam Buddha Nagar / Greater Noida, Uttar Pradesh.</p>
+      </section>
+    </article>
+  </main>
+  <Footer />
+</Base>
+
+<style>
+  .policy-page-container { padding-block: clamp(2.5rem, 5vw, 5rem); max-width: 52rem; }
+  .policy-header h1 { font-family: var(--display); font-size: clamp(2rem, 4vw, 3rem); color: var(--maroon-2); margin: 0 0 0.5rem 0; }
+  .policy-meta { font-size: 0.813rem; color: var(--ink-soft); margin-bottom: 2.5rem; }
+  .policy-content { font-size: 0.95rem; line-height: 1.7; color: var(--ink); }
+  .policy-section { margin-bottom: 2rem; }
+  .policy-section h2 { font-family: var(--display); font-size: 1.35rem; color: var(--maroon); margin-bottom: 0.75rem; }
+</style>

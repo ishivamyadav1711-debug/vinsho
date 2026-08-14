@@ -1,0 +1,19 @@
+---
+export interface Props {
+  class?: string;
+  strength?: number;
+}
+
+const { class: className = '', strength = 4 } = Astro.props;
+---
+
+<div class={`magnetic-wrapper ${className}`} data-magnetic data-strength={strength}>
+  <slot />
+</div>
+
+<style>
+  .magnetic-wrapper {
+    display: inline-block;
+    will-change: transform;
+  }
+</style>

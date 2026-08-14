@@ -1,0 +1,25 @@
+:root{
+  --paper:#FBF3F0; --paper-2:#F9F4F0; --paper-3:#F5EBE8;
+  --maroon:#670832; --maroon-2:#731D42; --maroon-3:#8E2E56;
+  --pink:#CD788F; --pink-soft:#F2D6DC;
+  --ink:#3E3336; --ink-soft:#7C6B6E; --line:rgba(103,8,50,.15);
+  --display:'Inter',system-ui,-apple-system,sans-serif;
+  --sans:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --pad:clamp(1rem,3.6vw,4rem); --gap:clamp(.85rem,1.5vw,1.5rem);
+  --ease:cubic-bezier(.2,.7,.3,1); --nav:58px; --nav-mobile:52px; --max-w:1600px;
+
+  /* Fluid Spacing Scale */
+  --space-3xs: clamp(0.25rem, 0.5vw, 0.375rem);
+  --space-2xs: clamp(0.375rem, 0.75vw, 0.5rem);
+  --space-xs: clamp(0.5rem, 1vw, 0.75rem);
+  --space-sm: clamp(0.75rem, 1.5vw, 1.125rem);
+  --space-md: clamp(1rem, 2.2vw, 1.75rem);
+  --space-lg: clamp(1.5rem, 3.5vw, 2.75rem);
+  --space-xl: clamp(2.25rem, 5vw, 4rem);
+  --space-2xl: clamp(3.5rem, 7vw, 6rem);
+
+  /* Fluid Card Bounds */
+  --card-min-w: 220px;
+  --card-max-w: 340px;
+  --card-aspect: 4 / 5;
+}

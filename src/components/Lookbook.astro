@@ -1,0 +1,30 @@
+---
+import content from '../../vinsho-content.json';
+import TextReveal from './motion/TextReveal.astro';
+import ParallaxImage from './motion/ParallaxImage.astro';
+
+const looks = content.lookbook;
+---
+
+<section class="wrap" id="lookbook">
+  <div class="sh">
+    <div>
+      <TextReveal as="h2">In Real Homes</TextReveal>
+      <p>Explore how VINSHO furnishings, lighting and textiles interact across living rooms, dining spaces and quiet bedrooms.</p>
+    </div>
+  </div>
+  <div class="mos" id="mos" data-mosaic-clip>
+    {looks.map((look, index) => (
+      <button class={`mt ${index === 0 ? 'a' : index === 1 ? 'b' : ''}`} data-look={index} aria-label={`View lookbook: ${look.title}`}>
+        <ParallaxImage 
+          src={look.image} 
+          alt={look.title} 
+          reverse={index % 2 === 1}
+          loading="lazy"
+        />
+        <span class="tg">{look.tag}</span>
+        <span class="nm">{look.title}</span>
+      </button>
+    ))}
+  </div>
+</section>

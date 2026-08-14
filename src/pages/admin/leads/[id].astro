@@ -1,0 +1,706 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { db } from '../../../lib/db';
+import { getSessionUser } from '../../../lib/auth';
+import taxonomyData from '../../../../vinsho-taxonomy.json';
+
+const user = getSessionUser(Astro.request);
+if (!user) {
+  return Astro.redirect('/admin/login');
+}
+
+const { id } = Astro.params;
+if (!id) return Astro.redirect('/admin/leads');
+
+const lead = db.prepare('SELECT * FROM leads WHERE id = ?').get(id) as any;
+if (!lead) return Astro.redirect('/admin/leads');
+
+const activities = db.prepare('SELECT * FROM lead_activities WHERE lead_id = ? ORDER BY created_at DESC').all(id) as any[];
+const notes = db.prepare('SELECT * FROM lead_notes WHERE lead_id = ? ORDER BY created_at DESC').all(id) as any[];
+const followUps = db.prepare('SELECT * FROM follow_ups WHERE lead_id = ? ORDER BY scheduled_at ASC').all(id) as any[];
+const users = db.prepare('SELECT id, name FROM users ORDER BY name ASC').all() as any[];
+
+// Duplicate check
+let duplicateLead: any = null;
+if (lead.email || lead.phone) {
+  duplicateLead = db.prepare(`
+    SELECT id, name, email, phone, status, created_at FROM leads
+    WHERE id != ? AND ((email != '' AND email = ?) OR (phone != '' AND phone = ?))
+    LIMIT 1
+  `).get(id, lead.email || '', lead.phone || '');
+}
+
+// Customer record check
+const customerRecord = db.prepare('SELECT id, converted_at FROM customers WHERE lead_id = ?').get(id) as any;
+
+const productObj = taxonomyData.products.find(p => p.slug === lead.product_slug);
+const collectionObj = taxonomyData.collections.find(c => c.key === lead.collection_key);
+---
+
+<AdminLayout title={`${lead.name} — Lead Profile`} activeNav="leads">
+  <div class="lead-profile-container">
+    <!-- Breadcrumb Nav -->
+    <div class="profile-top-nav">
+      <a href="/admin/leads" class="back-link">&larr; Back to Lead Management</a>
+      <span class="lead-id-tag">Lead #{lead.id}</span>
+    </div>
+
+    <!-- Duplicate Warning Alert Banner -->
+    {duplicateLead && (
+      <div class="duplicate-alert-banner">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <div>
+          <b>Existing Duplicate Contact Detected:</b> Matches <a href={`/admin/leads/${duplicateLead.id}`} class="dup-link">{duplicateLead.name} (#{duplicateLead.id})</a> — Status: {duplicateLead.status}.
+        </div>
+      </div>
+    )}
+
+    <!-- Lead Profile Header Bar -->
+    <header class="profile-hero-card">
+      <div class="hero-left">
+        <h1 class="lead-display-name">{lead.name}</h1>
+        <div class="hero-subline">
+          {lead.company && <span class="comp-text">🏢 {lead.company}</span>}
+          {lead.location && <span class="loc-text">📍 {lead.location}</span>}
+          <span class="source-badge">Source: {lead.source}</span>
+        </div>
+      </div>
+
+      <div class="hero-right-actions">
+        <!-- Status Dropdown Select -->
+        <div class="status-updater-box">
+          <label>Status:</label>
+          <select id="status-select" data-lead-id={lead.id} class={`status-select-btn status-${lead.status.toLowerCase()}`}>
+            <option value="NEW" selected={lead.status === 'NEW'}>NEW</option>
+            <option value="CONTACTED" selected={lead.status === 'CONTACTED'}>CONTACTED</option>
+            <option value="QUALIFIED" selected={lead.status === 'QUALIFIED'}>QUALIFIED</option>
+            <option value="FOLLOW-UP" selected={lead.status === 'FOLLOW-UP'}>FOLLOW-UP</option>
+            <option value="PROPOSAL" selected={lead.status === 'PROPOSAL'}>PROPOSAL</option>
+            <option value="NEGOTIATION" selected={lead.status === 'NEGOTIATION'}>NEGOTIATION</option>
+            <option value="CONVERTED" selected={lead.status === 'CONVERTED'}>CONVERTED</option>
+            <option value="LOST" selected={lead.status === 'LOST'}>LOST</option>
+          </select>
+        </div>
+
+        <!-- Team Member Assignee Select -->
+        <div class="assign-updater-box">
+          <label>Assigned To:</label>
+          <select id="assignee-select" data-lead-id={lead.id} class="assign-select-btn">
+            <option value="">Unassigned</option>
+            {users.map(u => (
+              <option value={u.name} selected={lead.assigned_to === u.name}>{u.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <!-- Convert Customer Button -->
+        {customerRecord ? (
+          <a href="/admin/customers" class="converted-badge-btn">✓ Converted Customer</a>
+        ) : (
+          <button class="convert-btn" id="open-convert-modal-btn">Convert to Customer &rarr;</button>
+        )}
+      </div>
+    </header>
+
+    <!-- Main Profile Two-Column Layout -->
+    <div class="profile-layout-grid">
+      <!-- Left Column: Info & Notes -->
+      <div class="left-info-column">
+        <!-- Customer & Contact Info Card -->
+        <div class="info-section-card">
+          <h2>Customer Information</h2>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="lbl">Full Name</span>
+              <span class="val">{lead.name}</span>
+            </div>
+            <div class="info-item">
+              <span class="lbl">Phone Number</span>
+              <span class="val"><a href={`tel:${lead.phone}`} class="val-link">{lead.phone}</a></span>
+            </div>
+            <div class="info-item">
+              <span class="lbl">Email Address</span>
+              <span class="val"><a href={`mailto:${lead.email}`} class="val-link">{lead.email || '&mdash;'}</a></span>
+            </div>
+            <div class="info-item">
+              <span class="lbl">Company / Firm</span>
+              <span class="val">{lead.company || '&mdash;'}</span>
+            </div>
+            <div class="info-item">
+              <span class="lbl">Location</span>
+              <span class="val">{lead.location || '&mdash;'}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Product & Collection Interest Card -->
+        <div class="info-section-card">
+          <h2>Product &amp; Collection Interest</h2>
+          <div class="interest-details-box">
+            {productObj ? (
+              <div class="product-preview-row">
+                <img src={productObj.image} alt={productObj.name} class="prod-thumb" />
+                <div>
+                  <h4 class="p-name">{productObj.name}</h4>
+                  <p class="p-cat">{productObj.subcategory} &middot; {productObj.collection}</p>
+                  <p class="p-mat">Material: {productObj.material}</p>
+                </div>
+              </div>
+            ) : collectionObj ? (
+              <div class="col-preview-box">
+                <h4 class="p-name">🎨 Collection: {collectionObj.name}</h4>
+                <p class="p-cat">{collectionObj.blurb}</p>
+              </div>
+            ) : (
+              <p class="no-prod-note">General Inquiry (No specific product attached)</p>
+            )}
+
+            {lead.requirement && (
+              <div class="req-box">
+                <span class="lbl">Requirement / Sizing Details:</span>
+                <p class="req-text">"{lead.requirement}"</p>
+              </div>
+            )}
+            {lead.budget && (
+              <div class="budget-row">
+                <span class="lbl">Budget Range:</span>
+                <span class="budget-val">{lead.budget}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <!-- Private Internal Notes Card -->
+        <div class="info-section-card">
+          <div class="card-head-row">
+            <h2>Private Internal Notes</h2>
+            <span class="lock-tag">🔒 Private (CRM Only)</span>
+          </div>
+
+          <form id="add-note-form" class="note-form" data-lead-id={lead.id}>
+            <textarea name="content" rows="3" placeholder="Add confidential CRM note..." required class="note-input"></textarea>
+            <button type="submit" class="note-submit-btn">+ Add Internal Note</button>
+          </form>
+
+          <div class="notes-list">
+            {notes.length === 0 ? (
+              <p class="empty-note-text">No internal notes added yet.</p>
+            ) : (
+              notes.map((nt) => (
+                <div class="note-item">
+                  <div class="note-head">
+                    <span class="n-author">{nt.user_name}</span>
+                    <span class="n-time">{new Date(nt.created_at).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                  </div>
+                  <p class="n-content">{nt.content}</p>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Timeline, Activities & Follow-ups -->
+      <div class="right-timeline-column">
+        <!-- Scheduled Follow-ups Panel -->
+        <div class="info-section-card">
+          <div class="card-head-row">
+            <h2>Follow-up Scheduler</h2>
+            <button class="small-action-btn" id="toggle-follow-form-btn">+ Schedule Follow-up</button>
+          </div>
+
+          <form id="schedule-followup-form" class="followup-form" data-lead-id={lead.id} style="display:none;">
+            <div class="f-field">
+              <label>Follow-up Date &amp; Time *</label>
+              <input type="datetime-local" name="scheduledAt" required class="f-input" />
+            </div>
+            <div class="f-field">
+              <label>Follow-up Action / Task Note *</label>
+              <input type="text" name="note" placeholder="e.g. Send living room quotation" required class="f-input" />
+            </div>
+            <button type="submit" class="save-follow-btn">Save Scheduled Follow-up</button>
+          </form>
+
+          <div class="followups-container">
+            {followUps.length === 0 ? (
+              <p class="empty-note-text">No scheduled follow-ups.</p>
+            ) : (
+              followUps.map((fol) => (
+                <div class={`fol-card ${fol.status === 'COMPLETED' ? 'completed' : ''}`}>
+                  <div class="fol-top">
+                    <span class="fol-date">📅 {new Date(fol.scheduled_at).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                    <span class={`fol-status-tag ${fol.status.toLowerCase()}`}>{fol.status}</span>
+                  </div>
+                  <p class="fol-text">"{fol.note}"</p>
+                  {fol.status === 'PENDING' && (
+                    <button class="complete-fol-btn" data-fol-id={fol.id} data-lead-id={lead.id}>✓ Mark Complete</button>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        <!-- Add Activity Form Panel -->
+        <div class="info-section-card">
+          <h2>Record Activity</h2>
+          <form id="add-activity-form" class="act-form" data-lead-id={lead.id}>
+            <div class="act-type-row">
+              <label><input type="radio" name="type" value="CALL" checked /> 📞 Call</label>
+              <label><input type="radio" name="type" value="WHATSAPP" /> 💬 WhatsApp</label>
+              <label><input type="radio" name="type" value="EMAIL" /> ✉️ Email</label>
+              <label><input type="radio" name="type" value="MEETING" /> 🤝 Meeting</label>
+              <label><input type="radio" name="type" value="QUOTATION" /> 📄 Quotation</label>
+            </div>
+            <textarea name="notes" rows="2" placeholder="Describe interaction outcome..." required class="act-textarea"></textarea>
+            <button type="submit" class="act-submit-btn">Log Activity to Timeline</button>
+          </form>
+        </div>
+
+        <!-- Activity Timeline Card -->
+        <div class="info-section-card">
+          <h2>Activity Timeline</h2>
+          <div class="timeline-list">
+            {activities.length === 0 ? (
+              <p class="empty-note-text">No timeline history recorded.</p>
+            ) : (
+              activities.map((act) => (
+                <div class="timeline-item">
+                  <div class="tl-icon-dot"></div>
+                  <div class="tl-body">
+                    <div class="tl-top">
+                      <span class="tl-type">{act.type}</span>
+                      <span class="tl-by">by {act.user_name}</span>
+                      <span class="tl-date">{new Date(act.created_at).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                    <p class="tl-notes">{act.notes}</p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Convert to Customer Modal -->
+  <div class="modal-backdrop" id="convert-modal" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>Convert Lead to Official Customer</h2>
+        <button class="close-btn" id="close-convert-modal-btn">&times;</button>
+      </div>
+      <form id="convert-form" class="modal-form" data-lead-id={lead.id}>
+        <p class="convert-intro">Converting <b>{lead.name}</b> will create a permanent Customer Profile in the VINSHO CRM database.</p>
+
+        <div class="f-group">
+          <label>Customer Delivery / Billing Address</label>
+          <textarea name="address" rows="3" placeholder="Enter billing & delivery address..." required>{lead.location}</textarea>
+        </div>
+
+        <div class="f-group" style="margin-top:1rem;">
+          <label>Customer Conversion Notes</label>
+          <textarea name="notes" rows="2" placeholder="Initial order or client relationship notes..."></textarea>
+        </div>
+
+        <div class="modal-foot">
+          <button type="button" class="cancel-btn" id="cancel-convert-modal-btn">Cancel</button>
+          <button type="submit" class="submit-btn">Confirm Customer Conversion</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  // Status updater listener
+  const statusSelect = document.getElementById('status-select') as HTMLSelectElement | null;
+  statusSelect?.addEventListener('change', async () => {
+    const leadId = statusSelect.dataset.leadId;
+    const status = statusSelect.value;
+    try {
+      await fetch(`/api/admin/leads/${leadId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+      window.location.reload();
+    } catch (err) {
+      alert('Failed to update status');
+    }
+  });
+
+  // Assignee updater listener
+  const assigneeSelect = document.getElementById('assignee-select') as HTMLSelectElement | null;
+  assigneeSelect?.addEventListener('change', async () => {
+    const leadId = assigneeSelect.dataset.leadId;
+    const assigned_to = assigneeSelect.value;
+    try {
+      await fetch(`/api/admin/leads/${leadId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assigned_to })
+      });
+      window.location.reload();
+    } catch (err) {
+      alert('Failed to update assignee');
+    }
+  });
+
+  // Add internal note listener
+  const noteForm = document.getElementById('add-note-form') as HTMLFormElement | null;
+  noteForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const leadId = noteForm.dataset.leadId;
+    const formData = new FormData(noteForm);
+    const content = formData.get('content');
+
+    try {
+      await fetch(`/api/admin/leads/${leadId}/notes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content })
+      });
+      window.location.reload();
+    } catch (err) {
+      alert('Failed to add note');
+    }
+  });
+
+  // Schedule follow-up form toggle
+  const toggleFollowBtn = document.getElementById('toggle-follow-form-btn');
+  const followForm = document.getElementById('schedule-followup-form');
+  toggleFollowBtn?.addEventListener('click', () => {
+    if (followForm) followForm.style.display = followForm.style.display === 'none' ? 'block' : 'none';
+  });
+
+  // Schedule follow-up form submit
+  followForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const leadId = followForm.dataset.leadId;
+    const formData = new FormData(followForm as HTMLFormElement);
+    const scheduledAt = formData.get('scheduledAt');
+    const note = formData.get('note');
+
+    try {
+      await fetch(`/api/admin/leads/${leadId}/follow-up`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scheduledAt, note })
+      });
+      window.location.reload();
+    } catch (err) {
+      alert('Failed to schedule follow-up');
+    }
+  });
+
+  // Mark follow-up complete
+  document.querySelectorAll('.complete-fol-btn').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const folId = (btn as HTMLElement).dataset.folId;
+      const leadId = (btn as HTMLElement).dataset.leadId;
+      try {
+        await fetch(`/api/admin/leads/${leadId}/follow-up`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'complete', followUpId: folId })
+        });
+        window.location.reload();
+      } catch (err) {
+        alert('Failed to complete follow-up');
+      }
+    });
+  });
+
+  // Record Activity form listener
+  const actForm = document.getElementById('add-activity-form') as HTMLFormElement | null;
+  actForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const leadId = actForm.dataset.leadId;
+    const formData = new FormData(actForm);
+    const type = formData.get('type');
+    const notes = formData.get('notes');
+
+    try {
+      await fetch(`/api/admin/leads/${leadId}/activities`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type, notes })
+      });
+      window.location.reload();
+    } catch (err) {
+      alert('Failed to log activity');
+    }
+  });
+
+  // Convert to customer modal listeners
+  const convertModal = document.getElementById('convert-modal');
+  const openConvertBtn = document.getElementById('open-convert-modal-btn');
+  const closeConvertBtn = document.getElementById('close-convert-modal-btn');
+  const cancelConvertBtn = document.getElementById('cancel-convert-modal-btn');
+  const convertForm = document.getElementById('convert-form') as HTMLFormElement | null;
+
+  openConvertBtn?.addEventListener('click', () => convertModal && (convertModal.hidden = false));
+  closeConvertBtn?.addEventListener('click', () => convertModal && (convertModal.hidden = true));
+  cancelConvertBtn?.addEventListener('click', () => convertModal && (convertModal.hidden = true));
+
+  convertForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const leadId = convertForm.dataset.leadId;
+    const formData = new FormData(convertForm);
+    const address = formData.get('address');
+    const notes = formData.get('notes');
+
+    try {
+      const res = await fetch(`/api/admin/leads/${leadId}/convert`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address, notes })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || 'Failed to convert customer');
+        return;
+      }
+      window.location.href = '/admin/customers';
+    } catch (err) {
+      alert('Conversion failed.');
+    }
+  });
+</script>
+
+<style>
+  .lead-profile-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .profile-top-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.844rem;
+  }
+
+  .back-link { color: var(--maroon); text-decoration: none; font-weight: 600; }
+  .lead-id-tag { background: var(--paper-3); color: var(--ink-soft); font-weight: 700; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 4px; }
+
+  .duplicate-alert-banner {
+    background: #fffbe6;
+    border: 1px solid #ffe58f;
+    color: #873800;
+    padding: 0.85rem 1rem;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .dup-link { color: #d46b08; font-weight: 700; text-decoration: underline; }
+
+  .profile-hero-card {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 1.5rem 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+  }
+
+  .lead-display-name {
+    font-family: var(--display);
+    font-size: 2.2rem;
+    color: var(--maroon-2);
+    margin: 0;
+  }
+
+  .hero-subline {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-size: 0.844rem;
+    color: var(--ink-soft);
+    margin-top: 0.35rem;
+  }
+
+  .source-badge { background: var(--paper-3); padding: 0.15rem 0.55rem; border-radius: 4px; font-weight: 500; }
+
+  .hero-right-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .status-updater-box, .assign-updater-box {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--ink-soft);
+  }
+
+  .status-select-btn, .assign-select-btn {
+    padding: 0.45rem 0.85rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.813rem;
+    outline: none;
+    border: 1px solid var(--line);
+  }
+
+  .status-new { background: #fef3c7; color: #92400e; }
+  .status-contacted { background: #e0f2fe; color: #075985; }
+  .status-qualified { background: #dcfce7; color: #166534; }
+  .status-follow-up { background: #fae8ff; color: #86198f; }
+  .status-proposal { background: #ede9fe; color: #5b21b6; }
+  .status-converted { background: #bbf7d0; color: #14532d; }
+  .status-lost { background: #fee2e2; color: #991b1b; }
+
+  .convert-btn {
+    background: var(--maroon);
+    color: #ffffff;
+    border: none;
+    font-size: 0.813rem;
+    font-weight: 600;
+    padding: 0.65rem 1.25rem;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+
+  .converted-badge-btn {
+    background: #bbf7d0;
+    color: #14532d;
+    font-size: 0.813rem;
+    font-weight: 700;
+    padding: 0.65rem 1.25rem;
+    border-radius: 999px;
+    text-decoration: none;
+  }
+
+  /* Grid Layout */
+  .profile-layout-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  .info-section-card {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .info-section-card h2 {
+    font-family: var(--display);
+    font-size: 1.25rem;
+    color: var(--maroon-2);
+    margin: 0 0 1rem;
+  }
+
+  .card-head-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+
+  .card-head-row h2 { margin: 0; }
+  .lock-tag { font-size: 0.72rem; color: var(--pink); font-weight: 600; }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .info-item { display: flex; flex-direction: column; gap: 0.2rem; }
+  .lbl { font-size: 0.75rem; color: var(--ink-soft); font-weight: 600; }
+  .val { font-size: 0.875rem; font-weight: 500; color: var(--ink); }
+  .val-link { color: var(--maroon-2); text-decoration: none; font-weight: 600; }
+
+  /* Product Interest */
+  .product-preview-row {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    background: #ffffff;
+    border: 1px solid var(--line);
+    padding: 0.85rem;
+    border-radius: 6px;
+  }
+
+  .prod-thumb { width: 64px; height: 64px; object-fit: cover; border-radius: 4px; }
+  .p-name { font-family: var(--display); font-size: 1.05rem; margin: 0; color: var(--maroon-2); }
+  .p-cat { font-size: 0.781rem; color: var(--pink); font-weight: 600; margin: 0.2rem 0; }
+  .p-mat { font-size: 0.75rem; color: var(--ink-soft); margin: 0; }
+
+  .req-box { margin-top: 1rem; background: var(--paper-3); padding: 0.75rem; border-radius: 4px; }
+  .req-text { font-size: 0.844rem; color: var(--ink); margin: 0.25rem 0 0; font-style: italic; }
+
+  /* Notes */
+  .note-form { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.25rem; }
+  .note-input { background: #ffffff; border: 1px solid var(--line); border-radius: 4px; padding: 0.65rem; font-size: 0.844rem; outline: none; }
+  .note-submit-btn { background: var(--maroon-2); color: #ffffff; border: none; font-size: 0.781rem; font-weight: 600; padding: 0.45rem 1rem; border-radius: 999px; cursor: pointer; align-self: flex-end; }
+
+  .notes-list { display: flex; flex-direction: column; gap: 0.75rem; }
+  .note-item { background: #ffffff; border: 1px solid var(--line); border-left: 3px solid var(--pink); border-radius: 4px; padding: 0.75rem; }
+  .note-head { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--ink-soft); margin-bottom: 0.25rem; }
+  .n-author { font-weight: 700; color: var(--maroon-2); }
+  .n-content { font-size: 0.844rem; color: var(--ink); margin: 0; }
+
+  /* Followup Form */
+  .small-action-btn { background: none; border: 1px solid var(--line); color: var(--maroon); font-size: 0.75rem; font-weight: 600; padding: 0.3rem 0.75rem; border-radius: 999px; cursor: pointer; }
+  .followup-form { display: flex; flex-direction: column; gap: 0.65rem; background: #ffffff; padding: 1rem; border: 1px solid var(--line); border-radius: 6px; margin-bottom: 1rem; }
+  .f-field { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.75rem; font-weight: 600; }
+  .f-input { padding: 0.45rem; border: 1px solid var(--line); border-radius: 4px; font-size: 0.813rem; }
+  .save-follow-btn { background: var(--maroon); color: #ffffff; border: none; padding: 0.45rem; border-radius: 999px; font-size: 0.781rem; font-weight: 600; cursor: pointer; }
+
+  .fol-card { background: #ffffff; border: 1px solid var(--line); border-left: 3px solid #2563eb; border-radius: 4px; padding: 0.75rem; margin-bottom: 0.65rem; }
+  .fol-card.completed { border-left-color: #16a34a; opacity: 0.7; }
+  .fol-top { display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 600; color: var(--maroon-2); }
+  .fol-text { font-size: 0.813rem; color: var(--ink); margin: 0.35rem 0 0.5rem; }
+  .complete-fol-btn { background: var(--paper-3); border: 1px solid var(--line); color: var(--maroon); font-size: 0.72rem; font-weight: 700; padding: 0.25rem 0.65rem; border-radius: 999px; cursor: pointer; }
+
+  /* Activity Timeline */
+  .act-form { display: flex; flex-direction: column; gap: 0.65rem; }
+  .act-type-row { display: flex; flex-wrap: wrap; gap: 0.65rem; font-size: 0.781rem; }
+  .act-textarea { background: #ffffff; border: 1px solid var(--line); border-radius: 4px; padding: 0.55rem; font-size: 0.844rem; outline: none; }
+  .act-submit-btn { background: var(--maroon-2); color: #ffffff; border: none; padding: 0.55rem; border-radius: 999px; font-size: 0.781rem; font-weight: 600; cursor: pointer; }
+
+  .timeline-list { display: flex; flex-direction: column; gap: 1rem; position: relative; padding-left: 0.5rem; }
+  .timeline-item { display: flex; gap: 0.75rem; align-items: flex-start; }
+  .tl-icon-dot { width: 10px; height: 10px; background: var(--maroon); border-radius: 50%; margin-top: 0.35rem; flex-shrink: 0; }
+  .tl-body { background: #ffffff; border: 1px solid var(--line); border-radius: 6px; padding: 0.65rem 0.85rem; flex: 1; }
+  .tl-top { display: flex; gap: 0.5rem; font-size: 0.72rem; align-items: baseline; }
+  .tl-type { font-weight: 700; color: var(--maroon); }
+  .tl-by { color: var(--ink-soft); }
+  .tl-date { color: var(--ink-soft); margin-left: auto; }
+  .tl-notes { font-size: 0.813rem; color: var(--ink); margin: 0.25rem 0 0; }
+
+  /* Modal */
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: grid; place-items: center; padding: 1.5rem; }
+  .modal-card { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; width: 100%; max-width: 500px; padding: 1.5rem; }
+  .modal-head { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 0.5rem; }
+  .modal-head h2 { font-family: var(--display); margin: 0; color: var(--maroon-2); }
+  .convert-intro { font-size: 0.844rem; color: var(--ink); margin: 1rem 0; }
+  .modal-foot { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.25rem; }
+  .cancel-btn { background: none; border: 1px solid var(--line); padding: 0.45rem 1rem; border-radius: 999px; cursor: pointer; }
+  .submit-btn { background: var(--maroon); color: #ffffff; border: none; padding: 0.45rem 1rem; border-radius: 999px; font-weight: 600; cursor: pointer; }
+
+  @media (max-width: 900px) {
+    .profile-layout-grid { grid-template-columns: 1fr; }
+  }
+</style>

@@ -1,0 +1,88 @@
+---
+export interface BreadcrumbItem {
+  label: string;
+  url?: string;
+}
+
+export interface Props {
+  items: BreadcrumbItem[];
+}
+
+const { items } = Astro.props;
+
+const baseUrl = 'https://vinsho.in';
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: items.map((item, idx) => ({
+    '@type': 'ListItem',
+    position: idx + 1,
+    name: item.label,
+    item: item.url ? `${baseUrl}${item.url}` : undefined
+  }))
+};
+---
+
+<nav class="breadcrumbs-container" aria-label="Breadcrumb">
+  <ol class="breadcrumbs-list">
+    {items.map((item, idx) => (
+      <li class="breadcrumb-item">
+        {item.url && idx < items.length - 1 ? (
+          <a href={item.url} class="breadcrumb-link">{item.label}</a>
+        ) : (
+          <span class="breadcrumb-current" aria-current="page">{item.label}</span>
+        )}
+        {idx < items.length - 1 && <span class="breadcrumb-separator">›</span>}
+      </li>
+    ))}
+  </ol>
+</nav>
+
+<script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+
+<style>
+  .breadcrumbs-container {
+    padding-block: 0.75rem;
+    font-family: var(--sans);
+    font-size: 0.813rem;
+  }
+
+  .breadcrumbs-list {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    color: var(--ink-soft);
+  }
+
+  .breadcrumb-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .breadcrumb-link {
+    color: var(--ink-soft);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .breadcrumb-link:hover {
+    color: var(--maroon);
+  }
+
+  .breadcrumb-current {
+    color: var(--maroon-2);
+    font-weight: 500;
+  }
+
+  .breadcrumb-separator {
+    color: var(--pink);
+    font-size: 0.9rem;
+    line-height: 1;
+  }
+</style>

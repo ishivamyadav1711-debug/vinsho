@@ -1,0 +1,52 @@
+---
+export interface Props {
+  src: string;
+  alt?: string;
+  class?: string;
+  reverse?: boolean;
+  aspectRatio?: string;
+  loading?: 'lazy' | 'eager';
+}
+
+const {
+  src,
+  alt = '',
+  class: className = '',
+  reverse = false,
+  aspectRatio,
+  loading = 'lazy'
+} = Astro.props;
+---
+
+<div 
+  class={`parallax-image-container ${className}`} 
+  data-parallax-container
+  data-reverse={reverse ? 'true' : 'false'}
+  style={aspectRatio ? `aspect-ratio: ${aspectRatio};` : undefined}
+>
+  <img 
+    src={src} 
+    alt={alt} 
+    loading={loading}
+    class="parallax-img-target"
+  />
+</div>
+
+<style>
+  .parallax-image-container {
+    position: relative;
+    overflow: hidden;
+    display: block;
+    width: 100%;
+  }
+
+  .parallax-img-target {
+    width: 100%;
+    height: 115%;
+    object-fit: cover;
+    display: block;
+    position: relative;
+    top: -7.5%;
+    will-change: transform;
+  }
+</style>

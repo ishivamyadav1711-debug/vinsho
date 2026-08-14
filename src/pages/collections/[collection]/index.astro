@@ -1,0 +1,198 @@
+---
+export const prerender = true;
+
+import Base from '../../../layouts/Base.astro';
+import Nav from '../../../components/Nav.astro';
+import Footer from '../../../components/Footer.astro';
+import TextReveal from '../../../components/motion/TextReveal.astro';
+import Breadcrumbs from '../../../components/Breadcrumbs.astro';
+import ProductCard from '../../../components/ProductCard.astro';
+import Modal from '../../../components/Modal.astro';
+import { getCollections, getCollectionByKey, getProductsByCollection, getCollectionProductCount, getSubcategoryProductCount } from '../../../utils/taxonomy';
+
+export function getStaticPaths() {
+  const collections = getCollections();
+  return collections.map((col) => ({
+    params: { collection: col.key }
+  }));
+}
+
+const { collection: collectionKey } = Astro.params;
+const collection = getCollectionByKey(collectionKey);
+
+if (!collection) {
+  throw new Error(`Collection not found: ${collectionKey}`);
+}
+
+const totalCount = getCollectionProductCount(collection.key);
+const products = getProductsByCollection(collection.key);
+
+const breadcrumbItems = [
+  { label: 'Home', url: '/' },
+  { label: 'Collections', url: '/collections' },
+  { label: collection.name }
+];
+---
+
+<Base title={`${collection.name} — VINSHO`} description={collection.blurb}>
+  <Nav />
+  <main id="main-content" class="wrap collection-single-page">
+    <Breadcrumbs items={breadcrumbItems} />
+
+    <header class="collection-single-hero">
+      <div class="col-hero-top">
+        <TextReveal as="h1">{collection.name}</TextReveal>
+        <span class="col-count-badge">{totalCount} pieces</span>
+      </div>
+      <p class="col-hero-blurb">{collection.blurb}</p>
+
+      <nav class="subcat-nav-bar" aria-label="Sub-categories">
+        {collection.subcategories.map((sub) => {
+          const subCount = getSubcategoryProductCount(collection.key, sub.key);
+          return (
+            <a href={`/collections/${collection.key}/${sub.key}`} class="sub-nav-pill">
+              {sub.name} <span class="sub-pill-num">({subCount})</span>
+            </a>
+          );
+        })}
+      </nav>
+    </header>
+
+    <div class="collection-grouped-sections">
+      {collection.subcategories.map((sub) => {
+        const subProducts = products.filter(p => p.subcategoryKey === sub.key);
+        if (subProducts.length === 0) return null;
+
+        return (
+          <section class="subcat-group-block" id={sub.key}>
+            <div class="subcat-block-head">
+              <h2>
+                <a href={`/collections/${collection.key}/${sub.key}`} class="subcat-title-link">
+                  {sub.name}
+                </a>
+              </h2>
+              <span class="subcat-block-count">{subProducts.length} items</span>
+            </div>
+
+            <div class="grid">
+              {subProducts.map((product) => (
+                <ProductCard product={product} />
+              ))}
+            </div>
+          </section>
+        );
+      })}
+    </div>
+  </main>
+  <Footer />
+  <Modal />
+</Base>
+
+<style>
+  .collection-single-page {
+    padding-block: clamp(2rem, 4vw, 4rem);
+  }
+
+  .collection-single-hero {
+    margin-block: 1rem 3rem;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 2rem;
+  }
+
+  .col-hero-top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .col-hero-top h1 {
+    font-family: var(--display);
+    font-size: clamp(2.2rem, 4.5vw, 3.6rem);
+    color: var(--maroon-2);
+    margin: 0;
+  }
+
+  .col-count-badge {
+    font-size: 0.88rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--pink);
+    font-weight: 600;
+  }
+
+  .col-hero-blurb {
+    font-size: 1rem;
+    color: var(--ink-soft);
+    max-width: 44rem;
+    margin: 0.75rem 0 1.75rem;
+  }
+
+  .subcat-nav-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .sub-nav-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--paper-3);
+    color: var(--maroon-2);
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 0.4rem 1rem;
+    border-radius: 999px;
+    text-decoration: none;
+    transition: all 0.22s ease;
+  }
+
+  .sub-nav-pill:hover {
+    background: var(--maroon);
+    color: #fff;
+  }
+
+  .sub-pill-num {
+    opacity: 0.75;
+    font-size: 0.781rem;
+  }
+
+  .collection-grouped-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 3.5rem;
+  }
+
+  .subcat-block-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid var(--paper-3);
+    padding-bottom: 0.5rem;
+  }
+
+  .subcat-block-head h2 {
+    font-family: var(--display);
+    font-size: clamp(1.4rem, 2.5vw, 2rem);
+    margin: 0;
+  }
+
+  .subcat-title-link {
+    color: var(--maroon-2);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .subcat-title-link:hover {
+    color: var(--maroon);
+  }
+
+  .subcat-block-count {
+    font-size: 0.813rem;
+    color: var(--ink-soft);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+</style>

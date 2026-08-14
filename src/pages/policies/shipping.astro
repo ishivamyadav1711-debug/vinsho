@@ -1,0 +1,71 @@
+---
+import Base from '../../layouts/Base.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+import content from '../../../vinsho-content.json';
+
+const pageTitle = "Shipping & Delivery Policy — VINSHO";
+---
+
+<Base title={pageTitle}>
+  <Nav />
+  <main class="wrap policy-page-container">
+    <header class="policy-header">
+      <h1>Shipping &amp; Delivery Policy</h1>
+      <p class="policy-meta">Last Updated: August 2026 &middot; VINSHO (Established 1997)</p>
+    </header>
+
+    <article class="policy-content">
+      <section class="policy-section">
+        <h2>1. Coverage &amp; Serviceable Destinations</h2>
+        <p>VINSHO offers pan-India delivery across all major states and union territories. Orders are dispatched from our premises at India Expo Plaza, Greater Noida, Delhi NCR (201310).</p>
+      </section>
+
+      <section class="policy-section">
+        <h2>2. Shipping Classes &amp; Delivery Timelines</h2>
+        <p>Delivery timelines vary depending on the shipping class assigned to each item:</p>
+        <ul>
+          <li><strong>Standard Courier Items:</strong> Estimated delivery within 3–7 business days post-dispatch.</li>
+          <li><strong>Fragile &amp; Glassware Items:</strong> Dispatched via specialized protective packaging carriers within 5–9 business days.</li>
+          <li><strong>Bulky &amp; Large Items (e.g. Mattresses, Bonsai):</strong> Shipped via surface freight (7–12 business days). Delivery for certain bulky products may be restricted to Greater Noida and Delhi NCR.</li>
+          <li><strong>Made-to-Order &amp; Custom Items (e.g. Wallpaper, Blinds, Floral Panels):</strong> Quoted individually. Lead time determined following site measurement (typically 10–21 business days).</li>
+        </ul>
+      </section>
+
+      <section class="policy-section">
+        <h2>3. Shipping Charges &amp; Volumetric Calculations</h2>
+        <p>Shipping fees are calculated based on either actual packed weight (in kg) or volumetric weight (length × width × height in cm ÷ 5000), whichever is greater. Final shipping costs are displayed at checkout or provided in your custom WhatsApp quotation.</p>
+      </section>
+
+      <section class="policy-section">
+        <h2>4. Order Tracking &amp; Dispatch Confirmation</h2>
+        <p>Upon dispatch, tracking details and courier partner link will be sent to your registered email address and WhatsApp number.</p>
+      </section>
+
+      <section class="policy-section">
+        <h2>5. Inquiries &amp; Support</h2>
+        <p>For order status or delivery updates, contact our logistics team at <a href={`mailto:${content.brand.email}`}>{content.brand.email}</a> or WhatsApp us at +91 8527406482.</p>
+      </section>
+    </article>
+  </main>
+  <Footer />
+</Base>
+
+<style>
+  .policy-page-container {
+    padding-block: clamp(2.5rem, 5vw, 5rem);
+    max-width: 52rem;
+  }
+  .policy-header h1 {
+    font-family: var(--display);
+    font-size: clamp(2rem, 4vw, 3rem);
+    color: var(--maroon-2);
+    margin: 0 0 0.5rem 0;
+  }
+  .policy-meta { font-size: 0.813rem; color: var(--ink-soft); margin-bottom: 2.5rem; }
+  .policy-content { font-size: 0.95rem; line-height: 1.7; color: var(--ink); }
+  .policy-section { margin-bottom: 2rem; }
+  .policy-section h2 { font-family: var(--display); font-size: 1.35rem; color: var(--maroon); margin-bottom: 0.75rem; }
+  .policy-section ul { padding-left: 1.25rem; }
+  .policy-section li { margin-bottom: 0.5rem; }
+</style>

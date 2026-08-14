@@ -1,0 +1,95 @@
+---
+import '../styles/global.css';
+import content from '../../vinsho-content.json';
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { 
+  title = "VINSHO — Luxury Home Décor & Furnishings",
+  description = "VINSHO — luxury home décor, furnishings and gifting. Curated pieces that blend elegance, comfort and functionality. Greater Noida, trusted seller since 1997."
+} = Astro.props;
+
+// Prepare JSON-LD
+const organization = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": content.brand.name,
+  "url": "https://vinsho.in",
+  "logo": "https://vinsho.in/logo.png"
+};
+
+const localBusiness = {
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "name": content.brand.name,
+  "description": content.brand.tagline,
+  "foundingDate": content.brand.established,
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Greater Noida",
+    "addressRegion": "Delhi NCR",
+    "addressCountry": "IN"
+  },
+  "telephone": content.brand.phone
+};
+
+const itemList = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "itemListElement": content.products.map((product, index) => ({
+    "@type": "ListItem",
+    "position": index + 1,
+    "item": {
+      "@type": "Product",
+      "name": product.name,
+      "description": product.description,
+      "image": product.image
+    }
+  }))
+};
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content={description} />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    {content.siteImages.hero ? <meta property="og:image" content={content.siteImages.hero} /> : <meta property="og:image" content={content.siteImages.exploreLarge} />}
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:title" content={title} />
+    <meta property="twitter:description" content={description} />
+    {content.siteImages.hero ? <meta property="twitter:image" content={content.siteImages.hero} /> : <meta property="twitter:image" content={content.siteImages.exploreLarge} />}
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&display=swap" rel="stylesheet" />
+
+    <script type="application/ld+json" set:html={JSON.stringify(organization)} />
+    <script type="application/ld+json" set:html={JSON.stringify(localBusiness)} />
+    <script type="application/ld+json" set:html={JSON.stringify(itemList)} />
+  </head>
+  <body>
+    <div id="prog"></div>
+    <slot />
+    <div class="toast" id="toast"></div>
+    
+    <script src="../scripts/motion.ts"></script>
+    <script src="../scripts/modal.ts"></script>
+    <script src="../scripts/catalogue.ts"></script>
+  </body>
+</html>
