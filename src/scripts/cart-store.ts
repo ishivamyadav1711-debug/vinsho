@@ -69,7 +69,7 @@ export function recalculateCartState(state: Partial<LocalCartState>): LocalCartS
 
     const cleanImg = (item.image && item.image !== '/placeholder.png')
       ? item.image
-      : `/images/candles/${slug}.jpg`;
+      : `/images/vinsho/products/${slug}.jpg`;
 
     subtotal += (item.price || 0) * (item.quantity || 1);
     totalQuantity += (item.quantity || 1);

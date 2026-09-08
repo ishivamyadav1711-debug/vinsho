@@ -140,7 +140,7 @@ section{padding-block:clamp(2rem,4vw,4.5rem)}
 header.bar.main-navbar {
   position: sticky;
   top: 0;
-  z-index: 90;
+  z-index: 100;
   height: var(--nav);
   background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(14px);
@@ -161,6 +161,7 @@ header.bar.main-navbar {
   transition: opacity 0.2s;
   padding-block: 2px;
   min-height: 44px;
+  flex-shrink: 0;
 }
 
 .nav-logo-img {
@@ -234,13 +235,16 @@ header.bar.main-navbar {
 .util-link {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.4rem;
   color: var(--ink);
   font-weight: 500;
   transition: color 0.2s;
   text-decoration: none;
   min-height: 44px;
+  min-width: 44px;
   padding: 0.25rem;
+  touch-action: manipulation;
 }
 
 .util-link:hover {
@@ -280,8 +284,8 @@ header.bar.main-navbar {
 }
 
 .ico {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   flex: none;
   color: var(--ink);
 }
@@ -290,19 +294,30 @@ header.bar.main-navbar {
   display: none;
   width: 44px;
   height: 44px;
+  min-width: 44px;
+  min-height: 44px;
   align-items: center;
   justify-content: center;
   background: none;
   border: none;
   color: var(--maroon-2);
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 6px;
   transition: background 0.2s;
+  touch-action: manipulation;
+  z-index: 101;
+  padding: 0;
+  margin: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mobile-hamburger-btn:active {
+  background: rgba(138, 23, 75, 0.08);
 }
 
 @media (max-width: 1023px) {
   header.bar.main-navbar {
-    height: var(--nav-mobile);
+    height: 58px;
   }
   .bar nav.nav-links {
     display: none;
@@ -312,6 +327,9 @@ header.bar.main-navbar {
   }
   .util-text {
     display: none;
+  }
+  .nav-cta-btn {
+    display: none !important;
   }
 }
 
@@ -328,22 +346,29 @@ header.bar.main-navbar {
     line-height: 1.25;
   }
   header.bar.main-navbar {
-    height: 52px;
-    padding-inline: 16px;
+    height: 58px;
+    padding-inline: 12px;
   }
   .nav-logo-img {
-    height: 34px;
+    height: 36px;
+    max-height: 36px;
   }
   .bar .util {
-    gap: 0.4rem;
+    gap: 0.25rem;
+    margin-left: auto;
   }
   .util-link {
-    min-height: 40px;
-    padding: 0.2rem;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0.4rem;
   }
   .mobile-hamburger-btn {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    margin-left: 0.25rem;
+    flex-shrink: 0;
   }
 }
 
@@ -351,16 +376,18 @@ header.bar.main-navbar {
 .mobile-nav-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 105;
+  z-index: 190;
   background: rgba(30, 20, 24, 0.55);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   opacity: 0;
+  pointer-events: none;
   transition: opacity 0.35s var(--ease);
 }
 
 .mobile-nav-backdrop.open {
   opacity: 1;
+  pointer-events: auto;
 }
 
 .mobile-nav-drawer {
@@ -368,15 +395,17 @@ header.bar.main-navbar {
   top: 0;
   right: 0;
   bottom: 0;
-  z-index: 110;
-  width: min(380px, 90vw);
+  z-index: 200;
+  width: min(350px, 85vw);
+  max-width: 100vw;
   background: var(--paper);
   box-shadow: -12px 0 40px rgba(0, 0, 0, 0.18);
   display: flex;
   flex-direction: column;
   transform: translateX(100%);
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   overflow: hidden;
+  pointer-events: auto;
 }
 
 .mobile-nav-drawer.open {

@@ -247,28 +247,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // -------------------------------------------------------------
   const mainNav = document.querySelector<HTMLElement>('.main-navbar');
   if (mainNav && !isReducedMotion) {
-    let lastScroll = 0;
-
     ScrollTrigger.create({
       start: 80,
       onUpdate: (self) => {
         const currentScroll = self.scroll;
-        const isMobile = window.innerWidth <= 720;
-
         if (currentScroll > 80) {
           mainNav.classList.add('scrolled');
         } else {
           mainNav.classList.remove('scrolled');
         }
-
-        if (isMobile) {
-          if (currentScroll > lastScroll && currentScroll > 120) {
-            mainNav.classList.add('nav-hidden');
-          } else {
-            mainNav.classList.remove('nav-hidden');
-          }
-        }
-        lastScroll = currentScroll;
       }
     });
   }

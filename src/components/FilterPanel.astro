@@ -159,11 +159,13 @@ const materialsList = [
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
     opacity: 0;
+    pointer-events: none;
     transition: opacity 0.4s var(--ease, cubic-bezier(0.16, 1, 0.3, 1));
   }
 
   .filter-backdrop.active {
     opacity: 1;
+    pointer-events: auto;
   }
 
   /* Filter Panel Container */
