@@ -12,9 +12,22 @@ import { getCollections, getCollectionByKey, getProductsByCollection, getCollect
 
 export function getStaticPaths() {
   const collections = getCollections();
-  return collections.map((col) => ({
-    params: { collection: col.key }
-  }));
+  const paths: Array<{ params: { collection: string } }> = [];
+
+  collections.forEach((col) => {
+    paths.push({ params: { collection: col.key } });
+    if (col.key === 'gifting-collection') {
+      paths.push({ params: { collection: 'gifting' } });
+    }
+    if (col.key === 'home-furnishing') {
+      paths.push({ params: { collection: 'home-furnishings' } });
+    }
+    if (col.key === 'home-decor') {
+      paths.push({ params: { collection: 'decor' } });
+    }
+  });
+
+  return paths;
 }
 
 const { collection: collectionKey } = Astro.params;
@@ -46,47 +59,74 @@ const breadcrumbItems = [
       </div>
       <p class="col-hero-blurb">{collection.blurb}</p>
 
-      <nav class="subcat-nav-bar" aria-label="Sub-categories">
-        {collection.subcategories.map((sub) => {
-          const subCount = getSubcategoryProductCount(collection.key, sub.key);
-          return (
-            <a href={`/collections/${collection.key}/${sub.key}`} class="sub-nav-pill">
-              {sub.name} <span class="sub-pill-num">({subCount})</span>
-            </a>
-          );
-        })}
-      </nav>
+      {collection.key === 'gifting-collection' && (
+        <div class="gifting-hero-banner">
+          <div class="banner-txt">
+            <span class="eyebrow">✦ VINSHO GIFTING CONCIERGE</span>
+            <h2>CREATE YOUR OWN HAMPER</h2>
+            <p>Select handcrafted luxury pieces and personalize your custom gift hamper.</p>
+          </div>
+          <div class="banner-ctas">
+            <a href="/gifting/create-your-hamper" class="btn-gifting-primary">CREATE YOUR OWN HAMPER →</a>
+          </div>
+        </div>
+      )}
+
+      {collection.key === 'gifting-collection' && collection.subcategories && (
+        <div class="gifting-subcategories-bar" id="gifting-sub-bar">
+          <a href={`/collections/${collection.key}`} class="gifting-sub-pill active" data-gifting-sub="all">
+            ALL GIFTING ({totalCount})
+          </a>
+          {collection.subcategories.map((sub) => {
+            const subCount = getSubcategoryProductCount(collection.key, sub.key);
+            return (
+              <a href={`/collections/${collection.key}/${sub.key}`} class="gifting-sub-pill" data-gifting-sub={sub.key}>
+                {sub.name.toUpperCase()} ({subCount})
+              </a>
+            );
+          })}
+        </div>
+      )}
     </header>
 
-    <div class="collection-grouped-sections">
-      {collection.subcategories.map((sub) => {
-        const subProducts = products.filter(p => p.subcategoryKey === sub.key);
-        if (subProducts.length === 0) return null;
-
-        return (
-          <section class="subcat-group-block" id={sub.key}>
-            <div class="subcat-block-head">
-              <h2>
-                <a href={`/collections/${collection.key}/${sub.key}`} class="subcat-title-link">
-                  {sub.name}
-                </a>
-              </h2>
-              <span class="subcat-block-count">{subProducts.length} items</span>
-            </div>
-
-            <div class="grid">
-              {subProducts.map((product) => (
-                <ProductCard product={product} />
-              ))}
-            </div>
-          </section>
-        );
-      })}
+    {/* Single Flat Product Grid showing all products in this collection */}
+    <div class="collection-all-products-wrapper">
+      <div class="grid collection-flat-grid">
+        {products.map((product) => (
+          <ProductCard product={product} />
+        ))}
+      </div>
     </div>
   </main>
   <Footer />
   <Modal />
 </Base>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const bar = document.getElementById('gifting-sub-bar');
+    if (!bar) return;
+    const pills = bar.querySelectorAll<HTMLButtonElement>('.gifting-sub-pill');
+    const cards = document.querySelectorAll<HTMLElement>('.collection-flat-grid .pc');
+
+    pills.forEach((pill) => {
+      pill.addEventListener('click', () => {
+        const subKey = pill.dataset.giftingSub || 'all';
+        pills.forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+
+        cards.forEach((card) => {
+          const cardSub = card.dataset.subKey || '';
+          if (subKey === 'all' || cardSub === subKey) {
+            card.style.display = '';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      });
+    });
+  });
+</script>
 
 <style>
   .collection-single-page {
@@ -194,5 +234,162 @@ const breadcrumbItems = [
     color: var(--ink-soft);
     letter-spacing: 0.08em;
     text-transform: uppercase;
+  }
+
+  .collection-all-products-wrapper {
+    margin-top: 2rem;
+  }
+
+  .collection-flat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.75rem 1.25rem;
+  }
+
+  @media (max-width: 1024px) {
+    .collection-flat-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .collection-flat-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem 0.75rem;
+    }
+  }
+
+  /* Gifting Banner */
+  .gifting-hero-banner {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .banner-txt .eyebrow {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    color: var(--maroon);
+    display: block;
+    margin-bottom: 0.3rem;
+  }
+
+  .banner-txt h2 {
+    font-family: var(--display);
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--maroon-2);
+    margin: 0 0 0.35rem;
+  }
+
+  .banner-txt p {
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  .banner-ctas {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+
+  .btn-gifting-primary, .btn-gifting-secondary {
+    font-size: 0.781rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 0.7rem 1.35rem;
+    border-radius: 999px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .btn-gifting-primary {
+    background: var(--maroon);
+    color: #ffffff;
+  }
+
+  .btn-gifting-secondary {
+    background: #ffffff;
+    color: var(--maroon);
+    border: 1px solid var(--maroon);
+  }
+
+  .gifting-subcategories-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+  }
+
+  .gifting-sub-pill {
+    background: #ffffff;
+    border: 1px solid var(--line, #e2d8d5);
+    color: var(--maroon-2, #6B0E38);
+    font-size: 0.813rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 0.6rem 1.25rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.22s ease;
+  }
+
+  .gifting-sub-pill:hover {
+    border-color: var(--maroon, #8A174B);
+    color: var(--maroon, #8A174B);
+  }
+
+  .gifting-sub-pill.active {
+    background: var(--maroon, #8A174B);
+    color: #ffffff;
+    border-color: var(--maroon, #8A174B);
+    box-shadow: 0 4px 12px rgba(138, 23, 75, 0.2);
+  }
+
+  .gifting-sub-pill .cnt {
+    opacity: 0.8;
+    font-size: 0.75rem;
+    margin-left: 0.25rem;
+  }
+
+  @media (max-width: 768px) {
+    .gifting-hero-banner {
+      flex-direction: column;
+      align-items: stretch;
+      padding: 1.15rem;
+    }
+    .banner-ctas {
+      flex-direction: column;
+      width: 100%;
+    }
+    .btn-gifting-primary, .btn-gifting-secondary {
+      width: 100%;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      box-sizing: border-box;
+    }
+    .gifting-subcategories-bar {
+      gap: 0.5rem;
+    }
+    .gifting-sub-pill {
+      font-size: 0.75rem;
+      padding: 0.5rem 0.9rem;
+    }
+    .sub-nav-pill {
+      min-height: 44px;
+    }
   }
 </style>

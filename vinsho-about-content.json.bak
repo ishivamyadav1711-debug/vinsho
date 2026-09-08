@@ -1,0 +1,145 @@
+{
+  "source": "https://vinsho.in/about-us/",
+  "extracted": "2026-08-09",
+  "hero": {
+    "h1": "About Us",
+    "subhead": "Everything your home deserves",
+    "image": "https://vinsho.in/wp-content/uploads/2025/09/white-furniture-in-room.jpg",
+    "imageFlag": "STOCK PHOTO — not a VINSHO product or space. Must be replaced."
+  },
+  "story": {
+    "eyebrow": "Who we are",
+    "heading": "A creation that suits your personality.",
+    "paragraphs": [
+      "At VINSHO, we believe your home should reflect your personality, warmth, and joy. Our curated selection of décor, furnishings, and gifts is designed to bring beauty, comfort, and meaning to every space.",
+      "From timeless classics to modern trends, each VINSHO creation is a blend of fine craftsmanship, premium quality, and an eye for detail. Whether you're styling your home or surprising someone with the perfect gift, we help you make every moment memorable.",
+      "Proudly, our creations reach homes across the USA, Europe, and Australia — bringing VINSHO's charm to the world."
+    ]
+  },
+  "badges": [
+    "Home Furnishing, Decor and Gift Store",
+    "Premium Product",
+    "Professional Services",
+    "100% Safe transactions"
+  ],
+  "gallery": [
+    "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-21-at-10.23.08-1.jpeg",
+    "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-21-at-10.23.08.jpeg",
+    "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-21-at-10.23.07-3.jpeg",
+    "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-21-at-10.23.07-2.jpeg",
+    "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-21-at-10.23.07-1.jpeg",
+    "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-21-at-10.23.07.jpeg"
+  ],
+  "faq": {
+    "heading": "FAQ",
+    "intro": "Find quick and clear answers to the most common questions about Vinsho, our products, and services.",
+    "image": "https://vinsho.in/wp-content/uploads/2025/09/dining-room-with-wooden-furniture.jpg",
+    "imageFlag": "STOCK PHOTO — not a VINSHO space. Must be replaced.",
+    "items": [
+      {
+        "q": "What is Vinsho?",
+        "a": "Vinsho is a home décor & furnishings brand offering curated furniture, decorations, and gifts that combine fine craftsmanship, premium quality, and aesthetic design, to help you express your personality in every corner of your home."
+      },
+      {
+        "q": "Do you deliver all over India?",
+        "a": "Yes — we offer all-India shipping so no matter where you are, you can enjoy our products delivered to your doorstep."
+      },
+      {
+        "q": "How long will delivery take?",
+        "a": "Delivery times vary depending on your location. Once you place an order, we'll send you an estimated delivery date. For remote areas or special items, delivery may take slightly longer."
+      },
+      {
+        "q": "What are the shipping charges?",
+        "a": "Shipping charges depend on the product size, weight, and your delivery location. Sometimes, for certain order values or promotions, shipping may be free. Check the product page or during checkout for exact charges.",
+        "flag": "Refers to 'during checkout'. There is no checkout on the new site — it is enquiry-based. Rewrite this answer."
+      },
+      {
+        "q": "What is your return & refund policy?",
+        "a": "We offer free returns within 30 days of receipt for eligible products. If something is wrong with your order (damage, defect, etc.), contact us and we'll guide you through the return and refund process. See our detailed Return & Refund Policy for full conditions."
+      }
+    ]
+  },
+  "whyChooseUs": {
+    "heading": "Why Choose Us",
+    "items": [
+      {
+        "title": "Thoughtful Craftsmanship",
+        "text": "Every piece is designed with care, precision, and purpose."
+      },
+      {
+        "title": "Aesthetics & Comfort",
+        "text": "Striking the perfect balance between beauty and functionality."
+      },
+      {
+        "title": "Thoughtful Gifting",
+        "text": "Unique, handpicked items that bring joy to every celebration."
+      },
+      {
+        "title": "Personalised Experience",
+        "text": "Our team is here to help you find the perfect pieces for your home."
+      },
+      {
+        "title": "Sustainable Choices",
+        "text": "We care for our planet as much as we care for your home."
+      }
+    ],
+    "image": "/images/about/why-choose-us.jpg"
+  },
+  "cta": {
+    "heading": "Transform your home into a sanctuary of comfort and relaxation.",
+    "button": "Shop Now",
+    "image": "https://vinsho.in/wp-content/uploads/2025/10/Untitled-design-3.png",
+    "linkFlag": "Live site points at /product/ which 404s. Should target the catalogue."
+  },
+  "topbar": {
+    "message": "Express delivery and free returns within 30 days",
+    "email": "Info@vinsho.com"
+  },
+  "contact": {
+    "email": "info@vinsho.com",
+    "phone": "+91 9625515351",
+    "address": "India Expo Plaza, First Floor, Plot No. C-03 & C-04, Knowledge Park-II, Greater Noida, U.P. 201310"
+  },
+  "contentFlags": [
+    {
+      "severity": "HIGH",
+      "issue": "Twenty-nine years of trading is the strongest credibility asset this brand has.",
+      "action": "Build a heritage block into the new About page. Ask the client for founding story, milestones and any archive photographs."
+    },
+    {
+      "severity": "HIGH",
+      "issue": "Badge '100% Safe transactions' cannot be substantiated. The site takes no payments — there is no checkout, no gateway, no prices.",
+      "action": "Remove the badge, or replace with something true such as 'Quotes confirmed on WhatsApp'."
+    },
+    {
+      "severity": "HIGH",
+      "issue": "Both About page images are stock photography (white-furniture-in-room.jpg, dining-room-with-wooden-furniture.jpg). A brand claiming 'fine craftsmanship' illustrating its own About page with generic stock furniture is a direct contradiction.",
+      "action": "Replace with VINSHO product or workshop photography. Do not ship the new About page with these."
+    },
+    {
+      "severity": "MEDIUM",
+      "issue": "'Sustainable Choices — We care for our planet as much as we care for your home' is an unbacked environmental claim. Unsupported sustainability claims carry real regulatory and reputational risk.",
+      "action": "Either get specifics from the client (materials, packaging, sourcing) or soften the wording."
+    },
+    {
+      "severity": "MEDIUM",
+      "issue": "FAQ answer on shipping charges tells the visitor to check 'during checkout'. There is no checkout on the new site.",
+      "action": "Rewrite to point at the WhatsApp quote flow."
+    },
+    {
+      "severity": "MEDIUM",
+      "issue": "Badges 'Premium Product' and 'Professional Services' say nothing specific and could belong to any business.",
+      "action": "Replace with concrete facts: 'Exported to USA, Europe & Australia', 'All-India shipping', '30-day returns'."
+    },
+    {
+      "severity": "LOW",
+      "issue": "The export claim (USA, Europe, Australia) sits in the middle of a paragraph. It is the clearest B2B credibility signal on the page and is buried.",
+      "action": "Give it its own element and link it to a bulk/export enquiry route."
+    },
+    {
+      "severity": "LOW",
+      "issue": "No founder, no team, no workshop, no named people anywhere on the page.",
+      "action": "Request a founder photo and a short note from the client."
+    }
+  ]
+}

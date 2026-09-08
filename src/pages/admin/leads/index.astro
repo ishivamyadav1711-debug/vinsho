@@ -49,7 +49,7 @@ else if (sortFilter === 'next_follow_up') sql += ' ORDER BY next_follow_up_at AS
 else sql += ' ORDER BY created_at DESC';
 
 const leads = db.prepare(sql).all(...params) as any[];
-const users = db.prepare('SELECT id, name FROM users ORDER BY name ASC').all() as any[];
+const users = db.prepare('SELECT id, name FROM admin_users ORDER BY name ASC').all() as any[];
 
 const collections = taxonomyData.collections;
 ---

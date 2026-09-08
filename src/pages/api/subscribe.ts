@@ -1,7 +1,12 @@
 import type { APIRoute } from 'astro';
 import { addSubscriber } from '../../lib/db';
+import { checkRateLimit, tooManyRequestsResponse, getClientIp, LIMITS } from '../../lib/rateLimiter.js';
 
 export const POST: APIRoute = async ({ request }) => {
+  const ip = getClientIp(request);
+  const rl = checkRateLimit('SUBSCRIBE', ip, LIMITS.SUBSCRIBE);
+  if (!rl.allowed) return tooManyRequestsResponse(rl.retryAfterSec);
+
   try {
     const body = await request.json();
     const { email, source } = body;

@@ -12,9 +12,9 @@ const nowIso = new Date().toISOString();
 const currentMonth = nowIso.substring(0, 7); // 'YYYY-MM'
 
 // 1. Sales Analytics
-const totalRevenue = (db.prepare('SELECT COALESCE(SUM(grand_total), 0) as val FROM orders WHERE payment_status = "paid"').get() as any).val;
-const monthRevenue = (db.prepare('SELECT COALESCE(SUM(grand_total), 0) as val FROM orders WHERE payment_status = "paid" AND strftime("%Y-%m", placed_at) = ?').get(currentMonth) as any).val;
-const totalPaidOrders = (db.prepare('SELECT COUNT(*) as cnt FROM orders WHERE payment_status = "paid"').get() as any).cnt;
+const totalRevenue = (db.prepare(`SELECT COALESCE(SUM(grand_total), 0) as val FROM orders WHERE payment_status = 'paid'`).get() as any).val;
+const monthRevenue = (db.prepare(`SELECT COALESCE(SUM(grand_total), 0) as val FROM orders WHERE payment_status = 'paid' AND strftime('%Y-%m', placed_at) = ?`).get(currentMonth) as any).val;
+const totalPaidOrders = (db.prepare(`SELECT COUNT(*) as cnt FROM orders WHERE payment_status = 'paid'`).get() as any).cnt;
 const aov = totalPaidOrders > 0 ? (totalRevenue / totalPaidOrders) : 0;
 
 // Revenue by Shipping Class
@@ -39,7 +39,7 @@ const lowStockCount = (db.prepare('SELECT COUNT(*) as cnt FROM product_variants 
 // 3. CRM Analytics
 const totalCustomersCount = (db.prepare('SELECT COUNT(*) as cnt FROM customers WHERE deleted_at IS NULL').get() as any).cnt;
 const totalEnquiriesCount = (db.prepare('SELECT COUNT(*) as cnt FROM enquiries').get() as any).cnt;
-const convertedEnquiries = (db.prepare('SELECT COUNT(*) as cnt FROM enquiries WHERE status = "Converted"').get() as any).cnt;
+const convertedEnquiries = (db.prepare(`SELECT COUNT(*) as cnt FROM enquiries WHERE status = 'Converted'`).get() as any).cnt;
 const conversionRate = totalEnquiriesCount > 0 ? ((convertedEnquiries / totalEnquiriesCount) * 100) : 0;
 ---
 

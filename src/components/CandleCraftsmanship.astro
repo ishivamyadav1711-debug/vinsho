@@ -1,0 +1,183 @@
+---
+export interface Props {
+  title?: string;
+  subtitle?: string;
+  class?: string;
+}
+
+const { 
+  title = "CANDLE CRAFTSMANSHIP & CARE", 
+  subtitle = "Hand-poured with thoughtful materials and balanced fragrances for a refined, soothing ambience.",
+  class: className = ""
+} = Astro.props;
+
+const candleFeatures = [
+  {
+    icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>`,
+    title: "Premium Wax Selection",
+    description: "Pure coconut-soy wax for smooth jar burns, and a soy-beeswax blend for stable form in decorative candles."
+  },
+  {
+    icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg>`,
+    title: "Botanical Fragrance",
+    description: "High-quality fragrance compositions inspired by natural floral and botanical character."
+  },
+  {
+    icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z"/><path d="M12 7v5l3 3"/></svg>`,
+    title: "Balanced Scent Throw",
+    description: "Carefully blended to create a comforting, soothing atmosphere without overwhelming your space."
+  },
+  {
+    icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`,
+    title: "Unique Artisanal Blends",
+    description: "Distinctive scent profiles developed specifically to offer a refined and uncommon fragrance experience."
+  },
+  {
+    icon: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>`,
+    title: "Thoughtful Experience",
+    description: "Clean materials selected to deliver a pleasant, consistent burn and fragrance when used as directed."
+  }
+];
+---
+
+<section class={`v-candle-craftsmanship-section ${className}`}>
+  <div class="v-candle-craft-header">
+    <span class="v-craft-eyebrow">OUR CANDLE PHILOSOPHY</span>
+    <h2 class="v-craft-title">{title}</h2>
+    <p class="v-craft-sub">{subtitle}</p>
+  </div>
+
+  <!-- 5-Feature Visual Cards Grid -->
+  <div class="v-candle-craft-grid">
+    {candleFeatures.map((feat) => (
+      <div class="v-craft-card">
+        <div class="v-craft-icon-box" set:html={feat.icon} />
+        <h3 class="v-craft-card-title">{feat.title}</h3>
+        <p class="v-craft-card-desc">{feat.description}</p>
+      </div>
+    ))}
+  </div>
+</section>
+
+<style>
+  .v-candle-craftsmanship-section {
+    margin-top: clamp(2.5rem, 5vw, 4rem);
+    padding: clamp(1.75rem, 3.5vw, 3rem);
+    background: #FAF6F0;
+    border: 1px solid rgba(138, 23, 75, 0.1);
+    border-radius: 20px;
+  }
+
+  .v-candle-craft-header {
+    text-align: center;
+    max-width: 680px;
+    margin: 0 auto clamp(2rem, 3.5vw, 2.75rem);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .v-craft-eyebrow {
+    font-family: var(--sans, sans-serif);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    color: #8A174B;
+    text-transform: uppercase;
+  }
+
+  .v-craft-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.5rem, 2.5vw, 2rem);
+    font-weight: 700;
+    color: #241D1B;
+    margin: 0;
+    line-height: 1.2;
+  }
+
+  .v-craft-sub {
+    font-family: var(--sans, sans-serif);
+    font-size: 0.938rem;
+    color: #8A7D77;
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  /* 5-Column Desktop Grid with Fallback wrapping */
+  .v-candle-craft-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: clamp(1rem, 2vw, 1.5rem);
+  }
+
+  .v-craft-card {
+    background: #FFFFFF;
+    border: 1px solid #ECE0DA;
+    border-radius: 14px;
+    padding: 1.5rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.75rem;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  }
+
+  .v-craft-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 28px rgba(138, 23, 75, 0.08);
+    border-color: #8A174B;
+  }
+
+  .v-craft-icon-box {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: #F5EBE8;
+    color: #8A174B;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+
+  .v-craft-card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #241D1B;
+    margin: 0;
+    line-height: 1.25;
+  }
+
+  .v-craft-card-desc {
+    font-family: var(--sans, sans-serif);
+    font-size: 0.813rem;
+    color: #8A7D77;
+    margin: 0;
+    line-height: 1.45;
+  }
+
+  /* Responsive Grid Adjustments */
+  @media (max-width: 1120px) {
+    .v-candle-craft-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .v-candle-craft-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 520px) {
+    .v-candle-craft-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .v-candle-craftsmanship-section {
+      padding: 1.5rem 1rem;
+    }
+  }
+</style>

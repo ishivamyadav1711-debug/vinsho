@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const empty = document.getElementById('empty');
   const qInput = document.getElementById('q') as HTMLInputElement | null;
   const sortSelect = document.getElementById('sort') as HTMLSelectElement | null;
+  const mobileSortSelect = document.getElementById('mobile-sort-select') as HTMLSelectElement | null;
 
   // Filter Drawer & Backdrop Elements
   const filterBtn = document.getElementById('open-filter-panel-btn');
@@ -37,6 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let selectedSubs: string[] = [];
   let selectedMats: string[] = [];
   let selectedAvails: string[] = [];
+  let availMode: 'all' | 'online' | 'store' = 'all';
   let query = '';
   let sort = 'feat';
 
@@ -82,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Accordion Toggle Handling inside Filter Panel
+  // Accordion Toggle Handling inside Filter Panel Drawer
   const groupHeaders = document.querySelectorAll<HTMLButtonElement>('.fp-group-header');
   groupHeaders.forEach((header) => {
     header.addEventListener('click', () => {
@@ -143,10 +145,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // Read URL query parameters
   function readParamsFromURL() {
     const params = new URLSearchParams(window.location.search);
-    const c = params.get('c');
+    const c = params.get('c') || params.get('category');
     selectedCols = c ? c.split(',') : [];
 
-    const sub = params.get('sub');
+    const sub = params.get('sub') || params.get('subcategory');
     selectedSubs = sub ? sub.split(',') : [];
 
     const mat = params.get('mat');
@@ -261,16 +263,30 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function updateSidebarState() {
+    const isGiftingSelected = selectedCols.includes('gifting-collection') || selectedCols.includes('gifting');
+    const giftingSubList = document.getElementById('gifting-sidebar-sub-list');
+
+    // Expand subcategories when Gifting Collection is selected or when a subcategory under it is active
+    if (giftingSubList) {
+      giftingSubList.hidden = !isGiftingSelected && selectedSubs.length === 0;
+    }
+
     sidebarItems.forEach((btn) => {
       const c = btn.dataset.col;
-      const s = btn.dataset.sub;
+      const sub = btn.dataset.sub;
 
-      if (c === 'all' && s === 'all') {
+      if (sub) {
+        // Subcategory item (e.g. Candles or Corporate Gifting)
+        const isSubActive = selectedSubs.includes(sub);
+        btn.classList.toggle('active', isSubActive);
+      } else if (c === 'all') {
         btn.classList.toggle('active', selectedCols.length === 0 && selectedSubs.length === 0);
-      } else if (c && s === 'all') {
-        btn.classList.toggle('active', selectedCols.length === 1 && selectedCols[0] === c && selectedSubs.length === 0);
-      } else if (c && s) {
-        btn.classList.toggle('active', selectedCols.includes(c) && selectedSubs.includes(s));
+      } else if (c) {
+        const isColActive = selectedCols.length === 1 && selectedCols[0] === c;
+        const isParentActive = (c === 'gifting-collection' || c === 'gifting') && (isGiftingSelected || selectedSubs.length > 0);
+
+        btn.classList.toggle('active', isColActive && selectedSubs.length === 0);
+        btn.classList.toggle('parent-active', isParentActive);
       }
     });
   }
@@ -284,8 +300,6 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.classList.toggle('active', selectedCols.includes(c));
       }
     });
-
-    renderMobileSubRow();
   }
 
   function updateChipsBar() {
@@ -396,8 +410,47 @@ document.addEventListener('DOMContentLoaded', () => {
     activeChipsBar.hidden = !hasChips;
   }
 
+  // Availability mode tab button listeners
+  const availTabBtns = document.querySelectorAll<HTMLButtonElement>('.avail-tab-btn');
+  availTabBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const mode = (btn.dataset.availMode || 'all') as 'all' | 'online' | 'store';
+      availMode = mode;
+      availTabBtns.forEach((b) => b.classList.toggle('active', b === btn));
+      if (mode !== 'online' && (selectedSubs.includes('candles') || selectedSubs.includes('corporate-gifting'))) {
+        selectedSubs = [];
+        syncCheckboxesWithState();
+      }
+      updateURL();
+      draw();
+    });
+  });
+
+  // Online Subcategory Pills listener (1st Candles, 2nd Corporate Gifting)
+  const onlineSubPills = document.querySelectorAll<HTMLButtonElement>('.online-sub-pill');
+  onlineSubPills.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const subKey = btn.dataset.onlineSub || 'all';
+      if (subKey === 'all') {
+        selectedSubs = [];
+      } else {
+        selectedSubs = [subKey];
+      }
+      syncCheckboxesWithState();
+      updateURL();
+      draw();
+    });
+  });
+
   function getFilteredProducts() {
     return items.filter((item) => {
+      // Availability Mode Filter: Gifting Collection = Available Online, All Other = Store Only
+      const isGiftingCol = item.colKey === 'gifting' || item.colKey === 'gifting-collection';
+      const matchesAvailMode = 
+        availMode === 'all' ||
+        (availMode === 'online' && isGiftingCol) ||
+        (availMode === 'store' && !isGiftingCol);
+
       // Collection Filter (OR inside group)
       const matchesCol = selectedCols.length === 0 || selectedCols.includes(item.colKey);
 
@@ -411,7 +464,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const searchableText = `${item.name} ${item.desc} ${item.eyebrow} ${item.rawMaterial} ${item.colKey} ${item.subKey}`.toLowerCase();
       const matchesQuery = !query || searchableText.includes(query);
 
-      return matchesCol && matchesSub && matchesMat && matchesQuery;
+      return matchesAvailMode && matchesCol && matchesSub && matchesMat && matchesQuery;
     });
   }
 
@@ -420,9 +473,46 @@ document.addEventListener('DOMContentLoaded', () => {
     updateMobilePillsState();
     updateChipsBar();
 
+    // Online subcategories bar visibility & active state sync
+    const onlineSubBar = document.getElementById('online-subcategories-bar');
+    if (onlineSubBar) {
+      if (availMode === 'online') {
+        onlineSubBar.hidden = false;
+        onlineSubPills.forEach((pill) => {
+          const subKey = pill.dataset.onlineSub || 'all';
+          if (subKey === 'all') {
+            pill.classList.toggle('active', selectedSubs.length === 0);
+          } else {
+            pill.classList.toggle('active', selectedSubs.includes(subKey));
+          }
+        });
+      } else {
+        onlineSubBar.hidden = true;
+      }
+    }
+
     const filtered = getFilteredProducts();
 
-    // Dynamic result count update inside filter drawer & mobile button
+    // Dynamic result count & banner header update
+    const activeHeadingEl = document.getElementById('active-collection-heading');
+    const activeCountEl = document.getElementById('active-collection-count');
+    if (activeHeadingEl && activeCountEl) {
+      if (selectedSubs.length === 1) {
+        let subName = selectedSubs[0];
+        taxonomyData.collections.forEach(col => {
+          const s = col.subcategories.find(sub => sub.key === selectedSubs[0]);
+          if (s) subName = s.name;
+        });
+        activeHeadingEl.textContent = subName.toUpperCase();
+      } else if (selectedCols.length === 1) {
+        const colObj = taxonomyData.collections.find((c) => c.key === selectedCols[0]);
+        activeHeadingEl.textContent = colObj ? colObj.name.toUpperCase() : selectedCols[0].toUpperCase();
+      } else {
+        activeHeadingEl.textContent = 'ALL PRODUCTS';
+      }
+      activeCountEl.textContent = `${filtered.length} products`;
+    }
+
     if (resultCountText) {
       resultCountText.textContent = `${filtered.length} PRODUCTS`;
     }
@@ -455,7 +545,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (empty) {
       if (filtered.length === 0) {
         empty.hidden = false;
-        empty.innerHTML = `No products match those filter criteria. Try <button id="empty-clear-btn" style="background:none;border:none;color:var(--maroon);text-decoration:underline;cursor:pointer;font-size:inherit;">clearing your filters</button>, or <a href="https://wa.me/${taxonomyData.brand?.whatsapp || '918527406482'}?text=Hi%20VINSHO,%20I%20am%20looking%20for%20a%20custom%20product." target="_blank" rel="noopener noreferrer">ask us on WhatsApp &rarr;</a>`;
+        empty.innerHTML = `No products match those filter criteria. Try <button id="empty-clear-btn" style="background:none;border:none;color:var(--maroon);text-decoration:underline;cursor:pointer;font-size:inherit;">clearing your filters</button>, or <a href="https://wa.me/${taxonomyData.brand?.whatsapp || '919625515351'}?text=Hi%20VINSHO,%20I%20am%20looking%20for%20a%20custom%20product." target="_blank" rel="noopener noreferrer">ask us on WhatsApp &rarr;</a>`;
         document.getElementById('empty-clear-btn')?.addEventListener('click', clearAllFilters);
       } else {
         empty.hidden = true;
@@ -496,21 +586,21 @@ document.addEventListener('DOMContentLoaded', () => {
   clearAllChipsBtn?.addEventListener('click', clearAllFilters);
   mobileApplyBtn?.addEventListener('click', closeFilterPanel);
 
-  // Desktop sidebar event listeners
+  // Desktop sidebar collection & subcategory item click handlers
   sidebarItems.forEach((btn) => {
     btn.addEventListener('click', () => {
       const c = btn.dataset.col;
-      const s = btn.dataset.sub;
+      const sub = btn.dataset.sub;
 
-      if (c === 'all' && s === 'all') {
+      if (sub && c) {
+        selectedCols = [c];
+        selectedSubs = [sub];
+      } else if (c === 'all') {
         selectedCols = [];
         selectedSubs = [];
-      } else if (c && s === 'all') {
+      } else if (c) {
         selectedCols = [c];
         selectedSubs = [];
-      } else if (c && s) {
-        selectedCols = [c];
-        selectedSubs = [s];
       }
 
       syncCheckboxesWithState();
@@ -544,19 +634,241 @@ document.addEventListener('DOMContentLoaded', () => {
     draw();
   });
 
-  // Sort select listener
+  // Sort select listeners
   sortSelect?.addEventListener('change', (e) => {
     sort = (e.target as HTMLSelectElement).value;
+    if (mobileSortSelect) mobileSortSelect.value = sort;
     draw();
+    updateMobileAccordionUI();
+  });
+
+  mobileSortSelect?.addEventListener('change', (e) => {
+    sort = (e.target as HTMLSelectElement).value;
+    if (sortSelect) sortSelect.value = sort;
+    draw();
+    updateMobileAccordionUI();
+  });
+
+  // ==========================================================================
+  // MOBILE ACCORDION MUTUALLY-EXCLUSIVE CONTROL BAR STATE & LOGIC
+  // ==========================================================================
+  let activeMobilePanel: 'search' | 'filter' | 'categories' | 'sort' | null = null;
+
+  const mBtnSearch = document.getElementById('m-btn-search');
+  const mBtnFilter = document.getElementById('m-btn-filter');
+  const mBtnCategories = document.getElementById('m-btn-categories');
+  const mBtnSort = document.getElementById('m-btn-sort');
+
+  const mPanelSearch = document.getElementById('m-panel-search');
+  const mPanelCategories = document.getElementById('m-panel-categories');
+  const mPanelSort = document.getElementById('m-panel-sort');
+
+  const qMobileInput = document.getElementById('q-mobile') as HTMLInputElement | null;
+  const mSearchCloseBtn = document.getElementById('m-search-close-btn');
+
+  const mSearchDot = document.getElementById('m-search-dot');
+  const mFilterBadge = document.getElementById('m-filter-badge');
+  const mCatDot = document.getElementById('m-cat-dot');
+  const mSortBtnLabel = document.getElementById('m-sort-btn-label');
+
+  const mAvailButtons = document.querySelectorAll<HTMLButtonElement>('[data-m-avail]');
+  const mColButtons = document.querySelectorAll<HTMLButtonElement>('[data-m-col]');
+  const mOnlineSubButtons = document.querySelectorAll<HTMLButtonElement>('[data-m-online-sub]');
+  const mSortButtons = document.querySelectorAll<HTMLButtonElement>('[data-m-sort]');
+
+  const mOnlineSubTitle = document.getElementById('m-online-subcat-title');
+  const mOnlineSubRow = document.getElementById('m-online-subcat-row');
+
+  function updateMobileAccordionUI() {
+    // Toggle active classes on triggers
+    mBtnSearch?.classList.toggle('active', activeMobilePanel === 'search');
+    mBtnFilter?.classList.toggle('active', activeMobilePanel === 'filter');
+    mBtnCategories?.classList.toggle('active', activeMobilePanel === 'categories');
+    mBtnSort?.classList.toggle('active', activeMobilePanel === 'sort');
+
+    mBtnSearch?.setAttribute('aria-expanded', activeMobilePanel === 'search' ? 'true' : 'false');
+    mBtnFilter?.setAttribute('aria-expanded', activeMobilePanel === 'filter' ? 'true' : 'false');
+    mBtnCategories?.setAttribute('aria-expanded', activeMobilePanel === 'categories' ? 'true' : 'false');
+    mBtnSort?.setAttribute('aria-expanded', activeMobilePanel === 'sort' ? 'true' : 'false');
+
+    // Mutually exclusive panel visibility
+    if (mPanelSearch) mPanelSearch.hidden = (activeMobilePanel !== 'search');
+    if (mPanelCategories) mPanelCategories.hidden = (activeMobilePanel !== 'categories');
+    if (mPanelSort) mPanelSort.hidden = (activeMobilePanel !== 'sort');
+
+    // Active state indicators
+    if (mSearchDot) mSearchDot.hidden = query.length === 0;
+    
+    const activeFilterCount = selectedCols.length + selectedSubs.length + selectedMats.length + selectedAvails.length;
+    if (mFilterBadge) {
+      mFilterBadge.hidden = activeFilterCount === 0;
+      mFilterBadge.textContent = String(activeFilterCount);
+    }
+
+    if (mCatDot) mCatDot.hidden = (selectedCols.length === 0 && selectedSubs.length === 0 && availMode === 'all');
+
+    if (mSortBtnLabel) {
+      if (sort === 'az') mSortBtnLabel.textContent = 'A–Z';
+      else if (sort === 'za') mSortBtnLabel.textContent = 'Z–A';
+      else if (sort === 'cat') mSortBtnLabel.textContent = 'Category';
+      else mSortBtnLabel.textContent = 'Sort';
+    }
+
+    // Sync input values with main inputs
+    if (qMobileInput && qMobileInput.value !== query) {
+      qMobileInput.value = query;
+    }
+
+    // Sync availability mode buttons in mobile panel
+    mAvailButtons.forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.mAvail === availMode);
+    });
+
+    // Show online subcategories inside mobile category panel when online mode is active
+    if (mOnlineSubTitle && mOnlineSubRow) {
+      const isOnlineMode = availMode === 'online';
+      mOnlineSubTitle.hidden = !isOnlineMode;
+      mOnlineSubRow.hidden = !isOnlineMode;
+    }
+
+    // Sync collection buttons in mobile panel
+    mColButtons.forEach((btn) => {
+      const colVal = btn.dataset.mCol;
+      const isAct = (colVal === 'all' && selectedCols.length === 0) || (colVal && selectedCols.includes(colVal));
+      btn.classList.toggle('active', Boolean(isAct));
+    });
+
+    // Sync sort buttons in mobile panel
+    mSortButtons.forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.mSort === sort);
+    });
+  }
+
+  // Trigger clicks
+  mBtnSearch?.addEventListener('click', () => {
+    activeMobilePanel = (activeMobilePanel === 'search') ? null : 'search';
+    updateMobileAccordionUI();
+    if (activeMobilePanel === 'search' && qMobileInput) {
+      setTimeout(() => qMobileInput.focus(), 60);
+    }
+  });
+
+  mBtnFilter?.addEventListener('click', () => {
+    activeMobilePanel = null;
+    updateMobileAccordionUI();
+    openFilterPanel();
+  });
+
+  mBtnCategories?.addEventListener('click', () => {
+    activeMobilePanel = (activeMobilePanel === 'categories') ? null : 'categories';
+    updateMobileAccordionUI();
+  });
+
+  mBtnSort?.addEventListener('click', () => {
+    activeMobilePanel = (activeMobilePanel === 'sort') ? null : 'sort';
+    updateMobileAccordionUI();
+  });
+
+  mSearchCloseBtn?.addEventListener('click', () => {
+    activeMobilePanel = null;
+    updateMobileAccordionUI();
+  });
+
+  // Search input in mobile panel
+  qMobileInput?.addEventListener('input', (e) => {
+    query = (e.target as HTMLInputElement).value.trim().toLowerCase();
+    if (qInput) qInput.value = (e.target as HTMLInputElement).value;
+    updateURL();
+    draw();
+    updateMobileAccordionUI();
+  });
+
+  // Availability mode buttons in mobile panel
+  mAvailButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const mode = (btn.dataset.mAvail || 'all') as 'all' | 'online' | 'store';
+      availMode = mode;
+      
+      document.querySelectorAll('.avail-tab-btn').forEach((tab) => {
+        tab.classList.toggle('active', (tab as HTMLElement).dataset.availMode === mode);
+      });
+
+      if (mode === 'store') {
+        selectedCols = selectedCols.filter(c => c !== 'gifting-collection');
+        selectedSubs = [];
+      }
+
+      syncCheckboxesWithState();
+      updateURL();
+      draw();
+      updateMobileAccordionUI();
+    });
+  });
+
+  // Collection buttons in mobile panel
+  mColButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const c = btn.dataset.mCol;
+      if (c === 'all') {
+        selectedCols = [];
+        selectedSubs = [];
+      } else if (c) {
+        selectedCols = [c];
+        selectedSubs = [];
+      }
+
+      syncCheckboxesWithState();
+      updateURL();
+      draw();
+      updateMobileAccordionUI();
+    });
+  });
+
+  // Online subcategories in mobile panel
+  mOnlineSubButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const sub = btn.dataset.mOnlineSub;
+      mOnlineSubButtons.forEach(b => b.classList.toggle('active', b === btn));
+      
+      if (sub === 'all') {
+        selectedCols = ['gifting-collection'];
+        selectedSubs = [];
+      } else if (sub) {
+        selectedCols = ['gifting-collection'];
+        selectedSubs = [sub];
+      }
+
+      syncCheckboxesWithState();
+      updateURL();
+      draw();
+      updateMobileAccordionUI();
+    });
+  });
+
+  // Sort buttons in mobile panel
+  mSortButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const val = btn.dataset.mSort;
+      if (val) {
+        sort = val;
+        if (sortSelect) sortSelect.value = sort;
+        if (mobileSortSelect) mobileSortSelect.value = sort;
+        draw();
+        activeMobilePanel = null;
+        updateMobileAccordionUI();
+      }
+    });
   });
 
   // Handle browser back/forward buttons
   window.addEventListener('popstate', () => {
     readParamsFromURL();
     draw();
+    updateMobileAccordionUI();
   });
 
   // Initial load
   readParamsFromURL();
   draw();
+  updateMobileAccordionUI();
 });

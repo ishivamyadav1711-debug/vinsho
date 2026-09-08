@@ -10,7 +10,7 @@
   "verified": [
     {
       "claim": "Established 1997",
-      "evidence": "Homepage hero eyebrow: 'Trusted Seller Since 1997'.",
+      "evidence": "Homepage hero eyebrow.",
       "usage": "Free to use. This is the strongest asset the brand has."
     },
     {
@@ -102,20 +102,6 @@
       "action": "Remove or attribute to curation rather than production."
     }
   ],
-  "correctedHeritageBlock": {
-    "eyebrow": "Established 1997",
-    "heading": "A Legacy Built Over 29 Years",
-    "bigNumber": "1997",
-    "bigNumberLabel": "ESTABLISHED",
-    "body": "VINSHO has been trading in home furnishings, décor and gifting since 1997, working out of India Expo Plaza in Greater Noida. Twenty-nine years on, the range spans bedding and soft furnishing, wall décor and showpieces, table linen and curated gifting — and our creations reach homes across the USA, Europe and Australia.",
-    "chips": [
-      "Established 1997",
-      "Greater Noida, Delhi NCR",
-      "All-India shipping",
-      "30-day returns"
-    ],
-    "chipsNote": "No emoji. The reference palette and Bodoni type do not carry pin, trophy and globe emoji.",
-    "todo": "Client to supply: founding story, milestones, archive photographs, and evidence for the export claim (invoices, shipping records, buyer references). Until that evidence exists, the export line stays at the site's own soft wording."
-  },
+
   "ruleForAllAgents": "If a fact is not in 'verified', it cannot be stated. If it is in 'clientClaimedUnverified', repeat it only in the allowed wording. If it is in 'neverMentionedAnywhere' or 'fabricated', it does not go on the site in any form. When a section feels thin, leave a TODO — never fill the gap with a plausible-sounding number."
 }

@@ -11,9 +11,10 @@ const totalCount = activeProducts.length;
 
 <section class="wrap catalogue-2tier-section" id="catalogue">
   <div class="sh">
-    <div>
+    <div class="sh-text">
       <TextReveal as="h2">Everything We Make</TextReveal>
-      <p>Prices vary by custom dimensions, material finishes and quantity. Tap any item to request a custom quote or order via WhatsApp.</p>
+      <p class="store-avail-general-note">All products are available at our store.</p>
+      <p class="sh-subdesc">Prices vary by custom dimensions, material finishes and quantity. Request a custom quote or order via WhatsApp.</p>
     </div>
     <div class="r">
       <button class="filters-toggle-btn" id="open-filter-panel-btn" aria-expanded="false" aria-controls="filter-panel">
@@ -28,10 +29,10 @@ const totalCount = activeProducts.length;
           <circle cx="11" cy="11" r="7"/>
           <path d="m20 20-3.5-3.5"/>
         </svg>
-        <input id="q" type="search" placeholder="Search name, sub-category, material…" aria-label="Search catalogue" />
+        <input id="q" type="search" placeholder="Search name, sub-category…" aria-label="Search catalogue" />
       </span>
 
-      <span class="field">
+      <span class="field field-sort">
         <select id="sort" aria-label="Sort">
           <option value="feat">Sort: Featured</option>
           <option value="az">Name A–Z</option>
@@ -42,57 +43,173 @@ const totalCount = activeProducts.length;
     </div>
   </div>
 
-  <!-- Mobile 2-Level Filter Pills -->
-  <div class="mobile-taxonomy-filters" aria-label="Mobile Taxonomy Filters">
+  <!-- Mobile Mutually-Exclusive Accordion Control Bar (< 768px Only) -->
+  <div class="mobile-accordion-bar" id="mobile-accordion-bar" aria-label="Mobile Catalogue Controls">
+    <div class="m-bar-triggers">
+      <button class="m-trigger-btn" data-m-panel="search" id="m-btn-search" aria-expanded="false">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="7"/>
+          <path d="m20 20-3.5-3.5"/>
+        </svg>
+        <span>Search</span>
+        <span class="m-active-dot" id="m-search-dot" hidden></span>
+      </button>
+
+      <button class="m-trigger-btn" data-m-panel="filter" id="m-btn-filter" aria-expanded="false">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>Filter</span>
+        <span class="m-badge-cnt" id="m-filter-badge" hidden>0</span>
+      </button>
+
+      <button class="m-trigger-btn" data-m-panel="categories" id="m-btn-categories" aria-expanded="false">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round"/>
+        </svg>
+        <span>Categories</span>
+        <span class="m-active-dot" id="m-cat-dot" hidden></span>
+      </button>
+
+      <button class="m-trigger-btn" data-m-panel="sort" id="m-btn-sort" aria-expanded="false">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M7 15l5 5 5-5M7 9l5-5 5 5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span id="m-sort-btn-label">Sort</span>
+      </button>
+    </div>
+
+    <!-- Mutually Exclusive Expandable Panel 1: SEARCH -->
+    <div class="m-panel-box" id="m-panel-search" hidden>
+      <div class="m-search-input-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+          <circle cx="11" cy="11" r="7"/>
+          <path d="m20 20-3.5-3.5"/>
+        </svg>
+        <input id="q-mobile" type="search" placeholder="Search name, sub-category, material…" aria-label="Search catalogue mobile" />
+        <button class="m-panel-close" id="m-search-close-btn" aria-label="Close search panel">&times;</button>
+      </div>
+    </div>
+
+    <!-- Mutually Exclusive Expandable Panel 2: CATEGORIES -->
+    <div class="m-panel-box" id="m-panel-categories" hidden>
+      <div class="m-categories-content">
+        <div class="m-panel-section-head">Availability Mode:</div>
+        <div class="m-avail-pills-row">
+          <button class="m-sub-pill active" data-m-avail="all">All Products</button>
+          <button class="m-sub-pill" data-m-avail="online">Available Online</button>
+          <button class="m-sub-pill" data-m-avail="store">Store Only</button>
+        </div>
+
+        <div class="m-panel-section-head" style="margin-top: 0.5rem;">Collections:</div>
+        <div class="m-col-pills-row">
+          <button class="m-sub-pill active" data-m-col="all">All ({totalCount})</button>
+          {collections.map((col) => {
+            const cnt = getCollectionProductCount(col.key);
+            return (
+              <button class="m-sub-pill" data-m-col={col.key}>
+                {col.name} ({cnt})
+              </button>
+            );
+          })}
+        </div>
+
+        <div class="m-panel-section-head" id="m-online-subcat-title" style="margin-top: 0.5rem;" hidden>Online Categories:</div>
+        <div class="m-col-pills-row" id="m-online-subcat-row" hidden>
+          <button class="m-sub-pill active" data-m-online-sub="all">All Online</button>
+          <button class="m-sub-pill" data-m-online-sub="candles">Candles</button>
+          <button class="m-sub-pill" data-m-online-sub="corporate-gifting">Corporate Gifting</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mutually Exclusive Expandable Panel 3: SORT -->
+    <div class="m-panel-box" id="m-panel-sort" hidden>
+      <div class="m-sort-grid">
+        <button class="m-sort-item active" data-m-sort="feat">Featured</button>
+        <button class="m-sort-item" data-m-sort="az">Name A–Z</button>
+        <button class="m-sort-item" data-m-sort="za">Name Z–A</button>
+        <button class="m-sort-item" data-m-sort="cat">Collection &amp; Category</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Availability Filter Tabs (Available Online | Available at Store Only) -->
+  <div class="availability-filter-tabs" aria-label="Product Availability Filter">
+    <button class="avail-tab-btn active" data-avail-mode="all" id="tab-avail-all">
+      ALL PRODUCTS
+    </button>
+    <button class="avail-tab-btn" data-avail-mode="online" id="tab-avail-online">
+      <span class="online-dot"></span> AVAILABLE ONLINE
+    </button>
+    <button class="avail-tab-btn" data-avail-mode="store" id="tab-avail-store">
+      <span class="store-dot"></span> AVAILABLE AT STORE ONLY
+    </button>
+  </div>
+
+  <!-- Online Subcategory Filter Bar (Visible when Available Online is active) -->
+  <div class="online-subcategories-bar" id="online-subcategories-bar" hidden aria-label="Available Online Categories">
+    <span class="online-sub-label">Categories:</span>
+    <button class="online-sub-pill active" data-online-sub="all">
+      All Online Products
+    </button>
+    <button class="online-sub-pill" data-online-sub="candles">
+      Candles
+    </button>
+    <button class="online-sub-pill" data-online-sub="corporate-gifting">
+      Corporate Gifting
+    </button>
+  </div>
+
+  <!-- Mobile Top-Level Filter Pills -->
+  <div class="mobile-taxonomy-filters" aria-label="Mobile Collections Filter">
     <div class="mobile-col-pills">
       <button class="tab-pill active" data-col="all" aria-pressed="true">
-        All products <span class="pill-cnt">{totalCount}</span>
+        ALL PRODUCTS <span class="pill-cnt">{totalCount}</span>
       </button>
       {collections.map((col) => {
         const cnt = getCollectionProductCount(col.key);
         return (
           <button class="tab-pill" data-col={col.key} aria-pressed="false">
-            {col.name} <span class="pill-cnt">{cnt}</span>
+            {col.name.toUpperCase()} <span class="pill-cnt">{cnt}</span>
           </button>
         );
       })}
     </div>
-
-    <!-- Mobile secondary row for subcategories -->
-    <div class="mobile-sub-pills" id="mobile-sub-row" hidden>
-      <!-- Dynamically populated via JS when collection selected -->
-    </div>
   </div>
 
   <div class="catalogue-layout-container">
-    <!-- Desktop Sticky Left Sidebar -->
-    <aside class="desktop-taxonomy-sidebar" aria-label="Catalogue Taxonomy Filter">
+    <!-- Desktop Clean Top-Level Collections Sidebar -->
+    <aside class="desktop-taxonomy-sidebar" aria-label="Catalogue Collection Filter">
       <div class="sidebar-sticky-inner">
-        <button class="sidebar-item all-item active" data-col="all" data-sub="all">
-          <span class="item-name">All products</span>
+        <button class="sidebar-item all-item active" data-col="all">
+          <span class="item-name">ALL PRODUCTS</span>
           <span class="item-count">{totalCount}</span>
         </button>
         <div class="sidebar-divider"></div>
 
         {collections.map((col) => {
           const colCount = getCollectionProductCount(col.key);
+          const isGifting = col.key === 'gifting-collection' || col.key === 'gifting';
           return (
-            <div class="sidebar-col-group" data-col-group={col.key}>
-              <button class="sidebar-item col-head-item" data-col={col.key} data-sub="all">
-                <span class="item-name">{col.name}</span>
+            <div class={`sidebar-group ${isGifting ? 'gifting-group' : ''}`}>
+              <button class="sidebar-item col-head-item" data-col={col.key}>
+                <span class="item-name">{col.name.toUpperCase()}</span>
                 <span class="item-count">{colCount}</span>
               </button>
-              <div class="sidebar-sub-list">
-                {col.subcategories.map((sub) => {
-                  const subCount = getSubcategoryProductCount(col.key, sub.key);
-                  return (
-                    <button class="sidebar-item sub-item" data-col={col.key} data-sub={sub.key}>
-                      <span class="item-name">{sub.name}</span>
-                      <span class="item-count">{subCount}</span>
-                    </button>
-                  );
-                })}
-              </div>
+              {isGifting && col.subcategories && col.subcategories.length > 0 && (
+                <div class="sidebar-sub-list" id="gifting-sidebar-sub-list">
+                  {col.subcategories.map((sub) => {
+                    const subCount = getSubcategoryProductCount(col.key, sub.key);
+                    return (
+                      <button class="sidebar-item sub-item" data-col={col.key} data-sub={sub.key}>
+                        <span class="sub-name">{sub.name}</span>
+                        <span class="item-count">{subCount}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           );
         })}
@@ -101,6 +218,22 @@ const totalCount = activeProducts.length;
 
     <!-- Main Grid Content -->
     <div class="catalogue-grid-area">
+      <!-- Collection Banner Heading & Mobile Sort Row -->
+      <div class="collection-header-banner">
+        <div class="col-head-txt-group">
+          <h3 id="active-collection-heading" class="active-collection-title">ALL PRODUCTS</h3>
+          <span id="active-collection-count" class="active-collection-count">{totalCount} products</span>
+        </div>
+        <div class="mobile-sort-wrapper">
+          <select id="mobile-sort-select" class="mobile-sort-select" aria-label="Sort products">
+            <option value="feat">Sort: Featured</option>
+            <option value="az">Name A–Z</option>
+            <option value="za">Name Z–A</option>
+            <option value="cat">Collection &amp; Subcategory</option>
+          </select>
+        </div>
+      </div>
+
       <!-- Active Filter Chips Bar -->
       <div class="active-chips-bar" id="active-chips-bar" hidden>
         <span class="chips-label">Active filters:</span>
@@ -123,21 +256,66 @@ const totalCount = activeProducts.length;
 
 <style>
   .catalogue-2tier-section {
-    padding-block: clamp(2rem, 4vw, 4rem);
+    padding-block: clamp(0.5rem, 1.5vw, 1.5rem);
+  }
+
+  .sh {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .sh-text {
+    max-width: 580px;
+  }
+
+  .sh h2 {
+    font-family: var(--display, 'Playfair Display', serif);
+    font-size: clamp(1.6rem, 2.5vw, 2.2rem);
+    font-weight: 700;
+    color: var(--maroon-2, #720E3B);
+    margin: 0 0 0.15rem 0;
+    line-height: 1.15;
+  }
+
+  .store-avail-general-note {
+    font-size: 0.813rem;
+    color: var(--maroon-2);
+    font-weight: 600;
+    margin-top: 0.1rem;
+    margin-bottom: 0.15rem;
+  }
+
+  .sh-subdesc {
+    font-size: 0.813rem;
+    color: var(--ink-soft);
+    line-height: 1.35;
+    margin: 0;
+  }
+
+  .sh .r {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex-wrap: nowrap;
+    flex-shrink: 0;
   }
 
   .filters-toggle-btn {
     display: inline-flex;
     align-items: center;
-    gap: 0.6rem;
+    gap: 0.4rem;
+    height: 36px;
     background: var(--paper-2);
     border: 1px solid var(--line);
     color: var(--maroon-2);
     font-family: var(--sans);
-    font-size: 0.781rem;
+    font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.12em;
-    padding: 0.55rem 1.25rem;
+    padding: 0 0.85rem;
     border-radius: 999px;
     cursor: pointer;
     transition: all 0.25s ease;
@@ -157,23 +335,219 @@ const totalCount = activeProducts.length;
     transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
+  .sh .field {
+    height: 36px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 0 0.75rem;
+    font-size: 0.781rem;
+  }
+
+  .sh .field svg {
+    width: 14px;
+    height: 14px;
+    color: var(--ink-soft);
+    flex-shrink: 0;
+  }
+
+  .sh .field input {
+    border: none;
+    background: none;
+    outline: none;
+    font-size: 0.781rem;
+    color: var(--ink);
+    width: 170px;
+  }
+
+  .sh .field select {
+    border: none;
+    background: none;
+    outline: none;
+    font-size: 0.781rem;
+    color: var(--maroon-2);
+    font-weight: 600;
+    cursor: pointer;
+    background: transparent;
+  }
+
+  .availability-filter-tabs {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-top: 0.5rem;
+    margin-bottom: 0.35rem;
+    flex-wrap: wrap;
+  }
+
+  .avail-tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 0.32rem 0.85rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+
+  .avail-tab-btn:hover {
+    background: var(--paper-3);
+    color: var(--maroon);
+  }
+
+  .avail-tab-btn.active {
+    background: var(--maroon);
+    border-color: var(--maroon);
+    color: #ffffff;
+  }
+
+  .online-subcategories-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.35rem;
+    margin-bottom: 0.4rem;
+    padding: 0;
+    background: transparent;
+    border: none;
+    flex-wrap: wrap;
+    animation: fadeInSubList 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .online-subcategories-bar[hidden] {
+    display: none !important;
+  }
+
+  .online-sub-label {
+    font-size: 0.781rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+    letter-spacing: 0.02em;
+    margin-right: 0.15rem;
+  }
+
+  .online-sub-pill {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .online-sub-pill:hover {
+    border-color: var(--maroon);
+    color: var(--maroon);
+    background: var(--paper-3);
+  }
+
+  .online-sub-pill.active {
+    background: var(--maroon);
+    border-color: var(--maroon);
+    color: #ffffff;
+  }
+
+  .online-dot, .store-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .online-dot { background: #22c55e; }
+  .store-dot { background: var(--pink); }
+  .avail-tab-btn.active .online-dot { background: #86efac; }
+  .avail-tab-btn.active .store-dot { background: #fca5a5; }
+
+  /* Collection Header Banner / Section Label */
+  .collection-header-banner {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.65rem;
+    padding-bottom: 0.35rem;
+    border-bottom: 1px solid var(--line);
+    flex-wrap: wrap;
+  }
+
+  .col-head-txt-group {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+
+  .active-collection-title {
+    font-family: var(--sans);
+    font-size: 0.938rem;
+    font-weight: 700;
+    color: var(--maroon-2, #720E3B);
+    margin: 0;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .active-collection-count {
+    font-family: var(--sans, sans-serif);
+    font-size: 0.781rem;
+    font-weight: 500;
+    color: var(--ink-soft);
+    text-transform: lowercase;
+  }
+
+  .grid {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: clamp(0.6rem, 1.2vw, 1rem);
+    align-items: stretch;
+    width: 100%;
+  }
+
+  @media (max-width: 1023px) {
+    .grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+      gap: 0.6rem;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      gap: 0.5rem;
+    }
+  }
+
   .catalogue-layout-container {
     display: grid;
-    grid-template-columns: clamp(200px, 20vw, 260px) 1fr;
-    gap: clamp(1.25rem, 2.5vw, 2.5rem);
+    grid-template-columns: clamp(180px, 16vw, 220px) 1fr;
+    gap: clamp(1rem, 2vw, 1.75rem);
     align-items: start;
-    margin-top: 1.5rem;
+    margin-top: 0.6rem;
   }
 
   /* Desktop Sticky Sidebar */
   .desktop-taxonomy-sidebar {
     position: sticky;
-    top: calc(var(--nav) + 20px);
+    top: calc(var(--nav) + 15px);
     background: var(--paper-2);
     border: 1px solid var(--line);
-    border-radius: 4px;
-    padding: 1.25rem 1rem;
-    max-height: calc(100vh - var(--nav) - 40px);
+    border-radius: 6px;
+    padding: 0.85rem 0.65rem;
+    max-height: calc(100vh - var(--nav) - 30px);
     overflow-y: auto;
   }
 
@@ -205,9 +579,10 @@ const totalCount = activeProducts.length;
     font-weight: 500;
   }
 
-  .sidebar-item.active .item-count {
+  .sidebar-item.active .item-count,
+  .sidebar-item.active .col-accordion-toggle {
     color: #fff !important;
-    opacity: 0.9;
+    opacity: 0.95;
   }
 
   .all-item {
@@ -219,10 +594,88 @@ const totalCount = activeProducts.length;
     margin-top: 0.35rem;
   }
 
+  .sidebar-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar-sub-list {
+    display: flex;
+    flex-direction: column;
+    padding-left: 0.75rem;
+    gap: 0.2rem;
+    margin-top: 0.25rem;
+    margin-bottom: 0.5rem;
+    border-left: 2px solid var(--line, #e2d8d5);
+    margin-left: 0.75rem;
+    transition: all 0.25s ease;
+  }
+
+  .sidebar-sub-list[hidden] {
+    display: none;
+  }
+
+  .sidebar-item.sub-item {
+    font-size: 0.813rem;
+    font-weight: 500;
+    color: var(--ink-soft, #8A7D77);
+    padding: 0.35rem 0.55rem;
+    border-radius: 4px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.2s ease;
+  }
+
+  .sidebar-item.sub-item:hover {
+    color: var(--maroon, #8A174B);
+    background: var(--paper-3, #F3EAE6);
+  }
+
+  .sidebar-item.sub-item.active {
+    background: var(--maroon, #8A174B);
+    color: #ffffff !important;
+    font-weight: 600;
+  }
+
+  .sidebar-item.sub-item.active .item-count {
+    color: #ffffff !important;
+    opacity: 0.95;
+  }
+
+  .sidebar-item.col-head-item.parent-active {
+    color: var(--maroon, #8A174B);
+    font-weight: 700;
+    background: rgba(138, 23, 75, 0.06);
+  }
+
+  .item-meta-end {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .col-accordion-toggle {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--pink);
+    line-height: 1;
+    min-width: 12px;
+    text-align: center;
+    transition: transform 0.25s ease;
+  }
+
   .sidebar-divider {
     height: 1px;
     background: var(--line);
     margin-block: 0.6rem;
+  }
+
+  .sidebar-sub-list[hidden] {
+    display: none !important;
   }
 
   .sidebar-sub-list {
@@ -231,11 +684,22 @@ const totalCount = activeProducts.length;
     flex-direction: column;
     gap: 0.15rem;
     margin-top: 0.15rem;
+    animation: fadeInSubList 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes fadeInSubList {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   .sub-item {
     font-size: 0.813rem;
     color: var(--ink-soft);
+  }
+
+  .col-all-sub-item {
+    font-weight: 600;
+    color: var(--maroon);
   }
 
   .item-count {
@@ -344,46 +808,323 @@ const totalCount = activeProducts.length;
     font-size: 0.781rem;
   }
 
-  @media (max-width: 1023px) {
+  .mobile-sort-wrapper {
+    display: none;
+  }
+
+  .mobile-accordion-bar {
+    display: none;
+  }
+
+  /* ==========================================================================
+     MOBILE-ONLY MUTUALLY-EXCLUSIVE ACCORDION CONTROL BAR (max-width: 768px)
+     Collapse upper section into 1 horizontal bar: [Search] [Filter] [Categories] [Sort]
+     Only ONE panel expands at a time. Desktop/tablet UI remains 100% untouched.
+     ========================================================================== */
+  @media (max-width: 768px) {
+    .catalogue-2tier-section {
+      padding-block: 0.75rem 2rem;
+    }
+
+    /* 1. Page Title & Compact Subtitle */
     .sh {
       flex-direction: column;
-      gap: 1.25rem;
+      gap: 0.25rem;
       align-items: stretch;
+      margin-bottom: 0.5rem;
     }
 
+    .sh h2 {
+      font-size: 1.3rem;
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+      margin-bottom: 0.1rem;
+    }
+
+    .store-avail-general-note {
+      font-size: 0.781rem;
+      margin-top: 0.05rem;
+      margin-bottom: 0.05rem;
+    }
+
+    .sh p:not(.store-avail-general-note) {
+      display: none !important; /* Hide verbose paragraph on mobile to save vertical space */
+    }
+
+    /* 2. Mobile Accordion Control Bar */
+    .mobile-accordion-bar {
+      display: flex;
+      flex-direction: column;
+      gap: 0.45rem;
+      margin-bottom: 0.6rem;
+      width: 100%;
+    }
+
+    .m-bar-triggers {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      width: 100%;
+    }
+
+    .m-trigger-btn {
+      flex: 1 1 0px;
+      height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.3rem;
+      background: var(--paper-2);
+      border: 1px solid var(--line);
+      color: var(--maroon-2);
+      font-family: var(--sans);
+      font-size: 0.72rem;
+      font-weight: 700;
+      border-radius: 999px;
+      cursor: pointer;
+      position: relative;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      padding: 0 0.4rem;
+    }
+
+    .m-trigger-btn.active {
+      background: var(--maroon);
+      border-color: var(--maroon);
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(138, 23, 75, 0.2);
+    }
+
+    .m-active-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--pink);
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .m-trigger-btn.active .m-active-dot {
+      background: #86efac;
+    }
+
+    .m-badge-cnt {
+      background: var(--pink);
+      color: #ffffff;
+      font-size: 0.625rem;
+      font-weight: 700;
+      padding: 0 0.35rem;
+      border-radius: 999px;
+      line-height: 1.4;
+    }
+
+    .m-panel-box {
+      background: var(--paper-2);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 0.65rem;
+      animation: mPanelSlideDown 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .m-panel-box[hidden] {
+      display: none !important;
+    }
+
+    @keyframes mPanelSlideDown {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .m-search-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 0 0.75rem;
+      height: 40px;
+    }
+
+    .m-search-input-wrap svg {
+      width: 14px;
+      height: 14px;
+      color: var(--ink-soft);
+      flex-shrink: 0;
+    }
+
+    .m-search-input-wrap input {
+      flex: 1;
+      border: none;
+      background: none;
+      outline: none;
+      font-size: 0.813rem;
+      color: var(--ink);
+    }
+
+    .m-panel-close {
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      color: var(--ink-soft);
+      cursor: pointer;
+      padding: 0 0.25rem;
+      line-height: 1;
+    }
+
+    .m-categories-content {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .m-panel-section-head {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--maroon-2);
+    }
+
+    .m-avail-pills-row, .m-col-pills-row {
+      display: flex;
+      gap: 0.4rem;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 0.2rem;
+    }
+
+    .m-avail-pills-row::-webkit-scrollbar, .m-col-pills-row::-webkit-scrollbar {
+      display: none !important;
+    }
+
+    .m-sub-pill {
+      flex: 0 0 auto;
+      scroll-snap-align: start;
+      white-space: nowrap;
+      background: #ffffff;
+      border: 1px solid var(--line);
+      color: var(--ink);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .m-sub-pill.active {
+      background: var(--maroon);
+      border-color: var(--maroon);
+      color: #ffffff;
+    }
+
+    .m-sort-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.4rem;
+    }
+
+    .m-sort-item {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      color: var(--ink);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.45rem 0.65rem;
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s ease;
+    }
+
+    .m-sort-item.active {
+      background: var(--maroon);
+      border-color: var(--maroon);
+      color: #ffffff;
+    }
+
+    /* Hide duplicate desktop / vertical controls on mobile when mobile-accordion-bar is active */
     .sh .r {
-      width: 100%;
-      flex-wrap: wrap;
-      gap: 0.6rem;
+      display: none !important;
+    }
+    .availability-filter-tabs {
+      display: none !important;
+    }
+    .online-subcategories-bar {
+      display: none !important;
+    }
+    .mobile-taxonomy-filters {
+      display: none !important;
     }
 
-    .sh .r .field {
-      flex: 1 1 auto;
-      min-width: 130px;
-    }
-
-    .sh .r .field input {
-      width: 100%;
-    }
-
+    /* 3. Layout Container & Sidebar */
     .catalogue-layout-container {
       grid-template-columns: 1fr;
+      gap: 0;
+      margin-top: 0.2rem;
     }
 
     .desktop-taxonomy-sidebar {
-      display: none;
+      display: none !important;
     }
 
-    .mobile-taxonomy-filters {
+    /* 4. Collection Heading & Count Banner */
+    .collection-header-banner {
       display: flex;
-      margin-inline: calc(var(--pad) * -1);
-      padding-inline: var(--pad);
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.4rem;
+      margin-top: 0.2rem;
+      margin-bottom: 0.6rem;
+      padding-bottom: 0.45rem;
+      border-bottom: 1px solid var(--line);
+      flex-wrap: nowrap;
     }
-    
-    .tab-pill {
-      min-height: 44px;
-      padding: 0.5rem 1rem;
+
+    .col-head-txt-group {
+      display: flex;
+      align-items: baseline;
+      gap: 0.4rem;
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+
+    .active-collection-title {
+      font-size: 0.938rem;
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .active-collection-count {
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .mobile-sort-wrapper {
+      display: none !important;
+    }
+
+    /* 5. 2-Column Mobile Product Grid */
+    .grid {
+      display: grid !important;
+      grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+      gap: 0.75rem 0.6rem !important;
+      width: 100%;
+    }
+
+    /* Active Chips Bar */
+    .active-chips-bar {
+      padding: 0.35rem 0.65rem;
+      margin-bottom: 0.6rem;
+      font-size: 0.75rem;
     }
   }
 </style>
-

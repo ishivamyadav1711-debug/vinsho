@@ -1,4 +1,6 @@
 ---
+export const prerender = true;
+
 import Base from '../../layouts/Base.astro';
 import Nav from '../../components/Nav.astro';
 import Footer from '../../components/Footer.astro';
@@ -11,28 +13,33 @@ const pageTitle = "Terms & Conditions — VINSHO";
   <main class="wrap policy-page-container">
     <header class="policy-header">
       <h1>Terms &amp; Conditions</h1>
-      <p class="policy-meta">Last Updated: August 2026 &middot; VINSHO (Established 1997)</p>
+      <p class="policy-meta">Last Updated: August 2026 &middot; VINSHO</p>
     </header>
 
     <article class="policy-content">
-      <section class="policy-section">
-        <h2>1. Overview &amp; Acceptance</h2>
-        <p>This website is operated by VINSHO, located at India Expo Plaza, Greater Noida, Delhi NCR (201310). By browsing or purchasing from this site, you agree to these Terms and Conditions.</p>
-      </section>
+      <p class="intro-p">Welcome to VINSHO. By accessing or using our website, you agree to the following terms:</p>
 
       <section class="policy-section">
-        <h2>2. Product Representation &amp; Pricing</h2>
-        <p>Prices are listed in INR inclusive of applicable GST taxes. In Enquiry Mode, prices are provided upon request via custom quotation. Product colors may vary slightly due to screen resolutions and natural craft materials.</p>
-      </section>
-
-      <section class="policy-section">
-        <h2>3. Orders &amp; Payment Processing</h2>
-        <p>All online payments and checkout transactions are processed securely via our commerce partner (Shopify Hosted Checkout). VINSHO does not store card credentials or sensitive financial details on local servers.</p>
-      </section>
-
-      <section class="policy-section">
-        <h2>4. Governing Law &amp; Jurisdiction</h2>
-        <p>These terms are governed by the laws of India. Any legal disputes shall be subject to the exclusive jurisdiction of the courts in Gautam Buddha Nagar / Greater Noida, Uttar Pradesh.</p>
+        <ol class="terms-list">
+          <li>
+            <strong>Products &amp; Services</strong> – We strive to display accurate details, but product colors, sizes, or availability may vary.
+          </li>
+          <li>
+            <strong>Orders &amp; Payments</strong> – All orders are subject to acceptance and availability. Payments must be made through approved methods.
+          </li>
+          <li>
+            <strong>Returns &amp; Refunds</strong> – Customers can return products within 30 days if unused and in original packaging (see <a href="/policies/returns">Return Policy</a>).
+          </li>
+          <li>
+            <strong>Intellectual Property</strong> – All content, logos, and images on this site belong to VINSHO and cannot be used without permission.
+          </li>
+          <li>
+            <strong>Liability</strong> – VINSHO is not responsible for delays or damages beyond our control (e.g., courier delays).
+          </li>
+          <li>
+            <strong>Changes</strong> – We reserve the right to update these terms anytime, and continued use of our site means acceptance of changes.
+          </li>
+        </ol>
       </section>
     </article>
   </main>
@@ -42,8 +49,13 @@ const pageTitle = "Terms & Conditions — VINSHO";
 <style>
   .policy-page-container { padding-block: clamp(2.5rem, 5vw, 5rem); max-width: 52rem; }
   .policy-header h1 { font-family: var(--display); font-size: clamp(2rem, 4vw, 3rem); color: var(--maroon-2); margin: 0 0 0.5rem 0; }
-  .policy-meta { font-size: 0.813rem; color: var(--ink-soft); margin-bottom: 2.5rem; }
+  .policy-meta { font-size: 0.813rem; color: var(--ink-soft); margin-bottom: 2rem; }
+  .intro-p { font-size: 1.05rem; line-height: 1.7; color: var(--ink); margin-bottom: 1.5rem; font-weight: 500; }
   .policy-content { font-size: 0.95rem; line-height: 1.7; color: var(--ink); }
   .policy-section { margin-bottom: 2rem; }
-  .policy-section h2 { font-family: var(--display); font-size: 1.35rem; color: var(--maroon); margin-bottom: 0.75rem; }
+  .terms-list { padding-left: 1.25rem; margin: 0; display: flex; flex-direction: column; gap: 1.25rem; }
+  .terms-list li { line-height: 1.7; }
+  .terms-list a { color: var(--maroon); text-decoration: underline; font-weight: 500; }
+  .terms-list a:hover { color: var(--pink); }
 </style>
+

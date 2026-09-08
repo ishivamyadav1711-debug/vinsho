@@ -1,35 +1,46 @@
 ---
 import TextReveal from './motion/TextReveal.astro';
-import { getCollections, getCollectionProductCount } from '../utils/taxonomy';
+import { getCollections, getCollectionProductCount, getActiveProducts } from '../utils/taxonomy';
 
 const collections = getCollections();
+const activeProducts = getActiveProducts();
 
-const collectionItems = collections.map((col, idx) => ({
-  num: `0${idx + 1}`,
-  key: col.key,
-  name: col.name,
-  count: `${getCollectionProductCount(col.key)} pieces`,
-  blurb: col.blurb,
-  image: col.key === 'home-decor' 
-    ? 'https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2025-12-30-at-13.52.37-2.jpeg'
-    : col.key === 'home-furnishing' || col.key === 'home-furnishings'
-    ? 'https://vinsho.in/wp-content/uploads/2025/10/Bedsheet1.jpeg'
-    : 'https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-21-at-10.23.07-1.jpeg'
-}));
+const collectionItems = collections.map((col, idx) => {
+  const colProducts = activeProducts.filter(p => p.collectionKey === col.key);
+  const images = colProducts.map(p => ({
+    url: p.image || '/placeholder.png',
+    title: p.name,
+    price: p.sellingPrice || p.price || 0,
+    slug: p.slug
+  })).filter(i => i.url);
+
+  const primaryImage = images[0]?.url || '/placeholder.png';
+
+  return {
+    num: `0${idx + 1}`,
+    key: col.key,
+    name: col.name,
+    count: `${getCollectionProductCount(col.key)} pieces`,
+    blurb: col.blurb,
+    image: primaryImage,
+    productImages: images.slice(0, 6), // Top 6 product images
+    totalProducts: colProducts.length
+  };
+});
 ---
 
 <section class="wrap collections-editorial-section" id="collections">
   <div class="sh">
     <div>
       <TextReveal as="h2">Curated Collections</TextReveal>
-      <p>Explore our three distinct craft disciplines designed to bring unity to your space.</p>
+      <p>Explore our distinct craft disciplines designed to bring unity and elegance to your space.</p>
     </div>
   </div>
 
   <div class="collections-split-layout">
-    <!-- Left Column: Minimalist Editorial Directory Rows -->
+    <!-- Left Column: Editorial Directory Rows -->
     <div class="collections-rows-list">
-      {collectionItems.map((item, idx) => (
+      {collectionItems.map((item) => (
         <div class="collection-row-item" data-col-target={item.key}>
           <a href={`/collections/${item.key}`} class="row-header-link">
             <div class="row-left">
@@ -49,20 +60,25 @@ const collectionItems = collections.map((col, idx) => ({
             </div>
           </a>
 
-          <!-- Touch inline preview image -->
-          <div class="row-touch-preview">
-            <img src={item.image} alt={item.name} loading="lazy" />
-          </div>
         </div>
       ))}
     </div>
 
-    <!-- Right Column: Minimalist Preview Showcase (Fine Pointer Desktop) -->
+    <!-- Right Column: Desktop Dynamic Product Image Showcase -->
     <div class="collections-right-showcase" aria-hidden="true">
       <div class="showcase-frame">
         {collectionItems.map((item, idx) => (
           <div class={`showcase-slide ${idx === 0 ? 'active' : ''}`} data-col-slide={item.key}>
-            <img src={item.image} alt={item.name} loading="lazy" />
+            <div class="showcase-grid-preview">
+              {item.productImages.slice(0, 4).map((prod, pIdx) => (
+                <div class={`showcase-img-box img-box-${pIdx + 1}`}>
+                  <img src={prod.url} alt={prod.title} loading="lazy" />
+                  <div class="img-box-overlay">
+                    <span class="box-prod-title">{prod.title}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
             <div class="showcase-caption">
               <span>{item.name}</span>
               <span class="caption-count">{item.count}</span>
@@ -80,56 +96,39 @@ const collectionItems = collections.map((col, idx) => ({
     const slides = document.querySelectorAll<HTMLElement>('.showcase-slide');
     const isTouch = window.matchMedia('(hover: none), (pointer: coarse)').matches;
 
-    if (!rowItems.length) return;
+    if (!rowItems.length || isTouch) return;
 
-    if (!isTouch) {
-      // Desktop fine-pointer hover logic
-      rowItems.forEach((row) => {
-        row.addEventListener('mouseenter', () => {
-          const key = row.dataset.colTarget;
-          if (!key) return;
+    rowItems.forEach((row) => {
+      row.addEventListener('mouseenter', () => {
+        const key = row.dataset.colTarget;
+        if (!key) return;
 
-          rowItems.forEach(r => r.classList.remove('active'));
-          row.classList.add('active');
+        rowItems.forEach(r => r.classList.remove('active'));
+        row.classList.add('active');
 
-          slides.forEach((slide) => {
-            if (slide.dataset.colSlide === key) {
-              slide.classList.add('active');
-            } else {
-              slide.classList.remove('active');
-            }
-          });
-        });
-      });
-    } else {
-      // Touch accordion-style inline expansion
-      rowItems.forEach((row) => {
-        const link = row.querySelector('.row-header-link');
-        link?.addEventListener('click', (e) => {
-          const isExpanded = row.classList.contains('expanded');
-          if (!isExpanded) {
-            // Expand inline image on first tap
-            e.preventDefault();
-            rowItems.forEach(r => r.classList.remove('expanded'));
-            row.classList.add('expanded');
+        slides.forEach((slide) => {
+          if (slide.dataset.colSlide === key) {
+            slide.classList.add('active');
+          } else {
+            slide.classList.remove('active');
           }
         });
       });
-    }
+    });
   });
 </script>
 
 <style>
   .collections-editorial-section {
-    padding-block: clamp(3.5rem, 6vw, 6.5rem);
+    padding-block: clamp(3rem, 5vw, 6rem);
   }
 
   .collections-split-layout {
     display: grid;
-    grid-template-columns: 1.25fr 1fr;
-    gap: clamp(2rem, 4vw, 4.5rem);
+    grid-template-columns: 1.1fr 1fr;
+    gap: clamp(2rem, 4vw, 4rem);
     align-items: center;
-    margin-top: 2.5rem;
+    margin-top: 2rem;
   }
 
   .collections-rows-list {
@@ -138,7 +137,7 @@ const collectionItems = collections.map((col, idx) => ({
   }
 
   .collection-row-item {
-    padding-block: 1.6rem;
+    padding-block: 1.5rem;
     border-bottom: 1px solid var(--line);
     position: relative;
     transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
@@ -152,7 +151,7 @@ const collectionItems = collections.map((col, idx) => ({
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 1.5rem;
+    gap: 1.25rem;
     text-decoration: none;
     color: var(--ink);
     width: 100%;
@@ -161,7 +160,7 @@ const collectionItems = collections.map((col, idx) => ({
   .row-left {
     display: flex;
     align-items: baseline;
-    gap: 1.5rem;
+    gap: 1.25rem;
     flex: 1;
   }
 
@@ -176,39 +175,39 @@ const collectionItems = collections.map((col, idx) => ({
 
   .row-name {
     font-family: var(--display);
-    font-size: clamp(1.3rem, 2.2vw, 2rem);
-    font-weight: 500;
+    font-size: clamp(1.25rem, 2vw, 1.85rem);
+    font-weight: 600;
     color: var(--maroon-2);
-    margin: 0 0 0.35rem 0;
+    margin: 0 0 0.3rem 0;
     transition: color 0.3s ease, transform 0.3s ease;
   }
 
   .row-blurb {
-    font-size: 0.86rem;
+    font-size: 0.85rem;
     color: var(--ink-soft);
     margin: 0;
-    line-height: 1.5;
-    max-width: 28rem;
+    line-height: 1.45;
+    max-width: 26rem;
   }
 
   .row-right {
     display: flex;
     align-items: center;
-    gap: 1.25rem;
+    gap: 1rem;
     flex-shrink: 0;
   }
 
   .row-count {
     font-size: 0.781rem;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
     color: var(--ink-soft);
     font-weight: 500;
   }
 
   .arrow-circle {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
     border: 1px solid var(--line);
     display: grid;
@@ -219,23 +218,145 @@ const collectionItems = collections.map((col, idx) => ({
 
   .row-touch-preview {
     display: none;
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    overflow: hidden;
-    border-radius: 4px;
     margin-top: 1rem;
   }
 
-  .row-touch-preview img {
+  .touch-gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+  }
+
+  .touch-img-card {
+    display: flex;
+    flex-direction: column;
+    text-decoration: none;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .touch-img-card img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+  }
+
+  .touch-card-title {
+    font-size: 0.7rem;
+    color: var(--maroon-2);
+    padding: 0.3rem 0.4rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 500;
+  }
+
+  /* Right Column Showcase Frame */
+  .collections-right-showcase {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4 / 3.5;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+  }
+
+  .showcase-frame {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  .showcase-slide {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+  }
+
+  .showcase-slide.active {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .showcase-grid-preview {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 0.75rem;
+    flex: 1;
+  }
+
+  .showcase-img-box {
+    position: relative;
+    overflow: hidden;
+    border-radius: 6px;
+    background: var(--paper-3);
+  }
+
+  .showcase-img-box img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    display: block;
+    transition: transform 0.4s ease;
+  }
+
+  .showcase-img-box:hover img {
+    transform: scale(1.06);
+  }
+
+  .img-box-overlay {
+    position: absolute;
+    bottom: 0;
+    inset-inline: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.65), transparent);
+    padding: 0.6rem 0.5rem 0.4rem;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  .showcase-img-box:hover .img-box-overlay {
+    opacity: 1;
+  }
+
+  .box-prod-title {
+    font-size: 0.72rem;
+    color: #fff;
+    font-weight: 500;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .showcase-caption {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.75rem;
+    font-family: var(--sans);
+    font-size: 0.813rem;
+    font-weight: 600;
+    color: var(--maroon-2);
+  }
+
+  .caption-count {
+    color: var(--ink-soft);
+    font-size: 0.75rem;
   }
 
   /* Desktop Fine Pointer Hover Effects */
   @media (hover: hover) and (pointer: fine) {
     .collection-row-item:hover, .collection-row-item.active {
-      padding-left: 0.75rem;
+      padding-left: 0.5rem;
     }
 
     .collection-row-item:hover .row-name, .collection-row-item.active .row-name {

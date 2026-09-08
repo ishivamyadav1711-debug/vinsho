@@ -1,5 +1,6 @@
 import { db } from './db.js';
 import { logCrmActivity } from './crm.js';
+import { getComboComponents } from './combos.js';
 
 export interface RequestReturnParams {
   orderId: number;
@@ -33,7 +34,7 @@ export function requestReturn(params: RequestReturnParams): { success: boolean; 
     return { success: false, error: 'Order line item not found.' };
   }
 
-  // 2. Section 1 Rule: Made-to-order and bulky products are non-returnable. Enforced at request time!
+  // 2. Made-to-order and bulky products are non-returnable. Enforced at request time!
   if (orderItem.shipping_class === 'made-to-order' || orderItem.shipping_class === 'bulky' || orderItem.returnable === 0) {
     return {
       success: false,
@@ -88,7 +89,8 @@ export function requestReturn(params: RequestReturnParams): { success: boolean; 
 }
 
 /**
- * Execute Return Goods Inspection (§1 Rule: Stock is restored ONLY IF inspection passes!)
+ * Execute Return Goods Inspection (Stock is restored ONLY IF inspection passes!)
+ * Supports component restoration for returned combo bundles.
  */
 export function inspectAndProcessReturn(params: ReturnInspectionParams): { success: boolean; returnRecord?: any; error?: string } {
   const returnRow = db.prepare('SELECT * FROM returns WHERE id = ?').get(params.returnId) as any;
@@ -103,22 +105,49 @@ export function inspectAndProcessReturn(params: ReturnInspectionParams): { succe
     if (params.result === 'PASS') {
       // Restore Stock to sellable inventory
       for (const item of returnItems) {
-        db.prepare('UPDATE product_variants SET stock = stock + ? WHERE id = ?').run(item.qty, item.variant_id);
-        const variant = db.prepare('SELECT stock FROM product_variants WHERE id = ?').get(item.variant_id) as any;
+        const comboComponents = getComboComponents(item.variant_id);
+        if (comboComponents.length > 0) {
+          // Restore component inventory for combos
+          for (const comp of comboComponents) {
+            const restoreQty = comp.quantity * item.qty;
+            db.prepare('UPDATE product_variants SET stock = stock + ? WHERE id = ?').run(restoreQty, comp.component_variant_id);
+            const variant = db.prepare('SELECT stock FROM product_variants WHERE id = ?').get(comp.component_variant_id) as any;
 
-        db.prepare(`
-          INSERT INTO inventory_txns (variant_id, delta, reason, order_id, actor_id, balance_after, created_at)
-          VALUES (?, ?, 'RESTOCK', ?, ?, ?, ?)
-        `).run(item.variant_id, item.qty, returnRow.order_id, params.inspectedBy, variant ? variant.stock : 0, now);
+            db.prepare(`
+              INSERT INTO inventory_txns (variant_id, delta, reason, order_id, actor_id, balance_after, created_at)
+              VALUES (?, ?, 'RESTOCK', ?, ?, ?, ?)
+            `).run(comp.component_variant_id, restoreQty, returnRow.order_id, params.inspectedBy, variant ? variant.stock : 0, now);
+          }
+        } else {
+          // Restore standalone product stock
+          db.prepare('UPDATE product_variants SET stock = stock + ? WHERE id = ?').run(item.qty, item.variant_id);
+          const variant = db.prepare('SELECT stock FROM product_variants WHERE id = ?').get(item.variant_id) as any;
+
+          db.prepare(`
+            INSERT INTO inventory_txns (variant_id, delta, reason, order_id, actor_id, balance_after, created_at)
+            VALUES (?, ?, 'RESTOCK', ?, ?, ?, ?)
+          `).run(item.variant_id, item.qty, returnRow.order_id, params.inspectedBy, variant ? variant.stock : 0, now);
+        }
       }
     } else {
       // Inspection FAIL: Log Damaged Return Write-off (Do NOT restore sellable stock!)
       for (const item of returnItems) {
-        const variant = db.prepare('SELECT stock FROM product_variants WHERE id = ?').get(item.variant_id) as any;
-        db.prepare(`
-          INSERT INTO inventory_txns (variant_id, delta, reason, order_id, actor_id, balance_after, created_at)
-          VALUES (?, 0, 'WRITE_OFF_DAMAGED_RETURN', ?, ?, ?, ?)
-        `).run(item.variant_id, returnRow.order_id, params.inspectedBy, variant ? variant.stock : 0, now);
+        const comboComponents = getComboComponents(item.variant_id);
+        if (comboComponents.length > 0) {
+          for (const comp of comboComponents) {
+            const variant = db.prepare('SELECT stock FROM product_variants WHERE id = ?').get(comp.component_variant_id) as any;
+            db.prepare(`
+              INSERT INTO inventory_txns (variant_id, delta, reason, order_id, actor_id, balance_after, created_at)
+              VALUES (?, 0, 'WRITE_OFF_DAMAGED_RETURN', ?, ?, ?, ?)
+            `).run(comp.component_variant_id, returnRow.order_id, params.inspectedBy, variant ? variant.stock : 0, now);
+          }
+        } else {
+          const variant = db.prepare('SELECT stock FROM product_variants WHERE id = ?').get(item.variant_id) as any;
+          db.prepare(`
+            INSERT INTO inventory_txns (variant_id, delta, reason, order_id, actor_id, balance_after, created_at)
+            VALUES (?, 0, 'WRITE_OFF_DAMAGED_RETURN', ?, ?, ?, ?)
+          `).run(item.variant_id, returnRow.order_id, params.inspectedBy, variant ? variant.stock : 0, now);
+        }
       }
     }
 
@@ -134,7 +163,7 @@ export function inspectAndProcessReturn(params: ReturnInspectionParams): { succe
     `).run(params.inspectedBy, params.result, params.notes || '', now, params.returnId);
 
     // Update Order Status
-    db.prepare('UPDATE orders SET status = "Returned", updated_at = ? WHERE id = ?').run(now, returnRow.order_id);
+    db.prepare("UPDATE orders SET status = 'Returned', updated_at = ? WHERE id = ?").run(now, returnRow.order_id);
 
     logCrmActivity({
       entityType: 'customer',

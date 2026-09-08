@@ -1,7 +1,9 @@
 @import './tokens.css';
 
 *{box-sizing:border-box}
-html{scroll-behavior:smooth}
+html{scroll-behavior:smooth;overflow-x:hidden;max-width:100%}
+[hidden]{display:none !important}
+astro-dev-toolbar, .astro-dev-toolbar-host {display:none !important}
 body{
   margin:0;
   background:var(--paper);
@@ -28,6 +30,33 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;touch-
   padding-inline:var(--pad);
 }
 section{padding-block:clamp(2rem,4vw,4.5rem)}
+
+/* ---------- SKELETON LOADING UTILITY ---------- */
+.sk-item {
+  background: var(--paper-2, #F9F4F0);
+  background-image: linear-gradient(
+    90deg,
+    var(--paper-2, #F9F4F0) 0%,
+    var(--paper-3, #F5EBE8) 50%,
+    var(--paper-2, #F9F4F0) 100%
+  );
+  background-size: 200% 100%;
+  animation: sk-shimmer 1.8s infinite ease-in-out;
+  border-radius: 4px;
+  display: block;
+}
+
+@keyframes sk-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sk-item {
+    animation: none;
+    background: var(--paper-3, #F5EBE8);
+  }
+}
 
 /* ---------- LOGOTYPE ---------- */
 .mark{font-family:var(--display);font-weight:600;letter-spacing:.34em;text-indent:.34em}
@@ -116,7 +145,7 @@ header.bar.main-navbar {
   background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  border-bottom: 1px solid rgba(103, 8, 50, 0.08);
+  border-bottom: 1px solid rgba(138, 23, 75, 0.08);
   color: var(--ink);
   display: flex;
   align-items: center;
@@ -232,7 +261,7 @@ header.bar.main-navbar {
   border-radius: 999px;
   transition: background 0.25s, transform 0.25s;
   text-decoration: none;
-  box-shadow: 0 2px 8px rgba(103, 8, 50, 0.2);
+  box-shadow: 0 2px 8px rgba(138, 23, 75, 0.2);
 }
 
 .nav-cta-btn:hover {
@@ -283,6 +312,38 @@ header.bar.main-navbar {
   }
   .util-text {
     display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .wrap {
+    padding-inline: 16px;
+  }
+  .top-announcement-bar {
+    padding-block: 0.35rem;
+    padding-inline: 16px;
+  }
+  .top-bar-center {
+    font-size: 0.7rem;
+    line-height: 1.25;
+  }
+  header.bar.main-navbar {
+    height: 52px;
+    padding-inline: 16px;
+  }
+  .nav-logo-img {
+    height: 34px;
+  }
+  .bar .util {
+    gap: 0.4rem;
+  }
+  .util-link {
+    min-height: 40px;
+    padding: 0.2rem;
+  }
+  .mobile-hamburger-btn {
+    width: 40px;
+    height: 40px;
   }
 }
 
@@ -377,7 +438,7 @@ header.bar.main-navbar {
   text-decoration: none;
   padding-block: 0.45rem;
   display: block;
-  border-bottom: 1px solid rgba(103, 8, 50, 0.05);
+  border-bottom: 1px solid rgba(138, 23, 75, 0.05);
 }
 
 .drawer-divider {
@@ -470,7 +531,7 @@ header.bar.main-navbar {
   border-radius: 999px;
   text-decoration: none;
   margin-top: 1rem;
-  box-shadow: 0 4px 12px rgba(103, 8, 50, 0.2);
+  box-shadow: 0 4px 12px rgba(138, 23, 75, 0.2);
 }
 
 .drawer-contact-note {
@@ -530,7 +591,7 @@ header.bar.main-navbar {
 .sticky-wa {
   background: var(--maroon);
   color: #ffffff;
-  box-shadow: 0 2px 8px rgba(103, 8, 50, 0.2);
+  box-shadow: 0 2px 8px rgba(138, 23, 75, 0.2);
 }
 
 /* ---------- HERO ---------- */
@@ -578,7 +639,7 @@ header.bar.main-navbar {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(103,8,50,.30), rgba(205,120,143,.42) 45%, rgba(103,8,50,.55)),
+  background: linear-gradient(180deg, rgba(138, 23, 75,.30), rgba(205,120,143,.42) 45%, rgba(138, 23, 75,.55)),
               radial-gradient(90% 70% at 50% 30%, rgba(251,243,240,.10), transparent 70%);
 }
 
@@ -601,7 +662,7 @@ header.bar.main-navbar {
   line-height: 1.16;
   letter-spacing: -.025em;
   margin: 0 0 1.6rem;
-  text-shadow: 0 2px 30px rgba(103,8,50,.35);
+  text-shadow: 0 2px 30px rgba(138, 23, 75,.35);
   max-width: 90vw;
 }
 
@@ -755,26 +816,35 @@ header.bar.main-navbar {
   display: block;
   position: relative;
   overflow: hidden;
-  aspect-ratio: var(--card-aspect, 4 / 5);
+  aspect-ratio: 1 / 1;
   max-height: 380px;
-  background: var(--paper-3);
+  background: var(--paper-2);
   border-radius: 4px;
-  border: 0;
-  padding: 0;
+  border: 1px solid var(--line);
+  padding: 6px;
   width: 100%;
   cursor: pointer;
 }
-.pc-img>img {
+.pc-img-link {
+  display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+}
+.pc-img img,
+.pc-img-link img,
+.pc-img > img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
   transition: transform .9s var(--ease);
 }
-.pc:hover .pc-img>img { transform: scale(1.06); }
+.pc:hover .pc-img img,
+.pc:hover .pc-img-link img { transform: scale(1.06); }
 .pc-ov {
   position: absolute;
   inset: 0;
-  background: rgba(103,8,50,.24);
+  background: rgba(138, 23, 75,.24);
   opacity: 0;
   transition: opacity .35s var(--ease);
   display: grid;
@@ -815,10 +885,10 @@ header.bar.main-navbar {
   color: var(--maroon-2);
   border-radius: 999px;
   padding: .4rem .85rem;
-  min-height: 38px;
+  min-height: 44px;
   font-size: .688rem;
   cursor: pointer;
-  box-shadow: 0 2px 10px rgba(103,8,50,.14);
+  box-shadow: 0 2px 10px rgba(138, 23, 75,.14);
 }
 .pc-acts button:hover { background: #fff; }
 
@@ -833,7 +903,7 @@ header.bar.main-navbar {
 }
 .pc-name {
   font-family: var(--display);
-  font-size: clamp(0.9rem, 2.5cqi, 1.05rem);
+  font-size: clamp(0.85rem, 2.5cqi, 1.05rem);
   font-weight: 600;
   color: var(--maroon-2);
   margin: 0 0 .3rem;
@@ -879,6 +949,35 @@ header.bar.main-navbar {
 }
 .pc-q:hover { color: var(--maroon); }
 
+@media (max-width: 480px) {
+  .pc-foot {
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    align-items: flex-end;
+  }
+  .pc-price {
+    font-size: 0.72rem;
+    line-height: 1.25;
+  }
+  .pc-q {
+    font-size: 0.72rem;
+    padding: 0.2rem 0;
+    min-height: 38px;
+  }
+}
+
+@media (max-width: 768px) {
+  input[type="text"],
+  input[type="search"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="number"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 /* ---------- RAIL (DREAM DÉCOR) ---------- */
 .rail {
   display: flex;
@@ -908,29 +1007,36 @@ header.bar.main-navbar {
   .sh .r .arw { display: none; }
 }
 
-/* ---------- CATALOGUE GRID ---------- */
+/* ---------- REUSABLE RESPONSIVE CATALOGUE GRID ---------- */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 160px), 1fr));
-  gap: var(--gap);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: clamp(1rem, 2vw, 1.75rem);
   align-items: stretch;
+  width: 100%;
 }
-@media (min-width: 480px) {
-  .grid { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); }
-}
-@media (min-width: 768px) {
-  .grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
-}
-@media (min-width: 1280px) {
+@media (max-width: 1199px) {
   .grid {
-    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-    gap: calc(var(--gap) * 1.4) var(--gap);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(0.75rem, 1.8vw, 1.25rem);
+  }
+}
+@media (max-width: 860px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+  }
+}
+@media (max-width: 480px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem 0.6rem;
   }
 }
 .grid > .pc {
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity .65s var(--ease), transform .65s var(--ease);
+  opacity: 1;
+  transform: none;
+  transition: opacity .4s var(--ease), transform .4s var(--ease);
 }
 .grid > .pc.in { opacity: 1; transform: none; }
 
@@ -1031,7 +1137,7 @@ header.bar.main-navbar {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(transparent 45%, rgba(103,8,50,.55));
+  background: linear-gradient(transparent 45%, rgba(138, 23, 75,.55));
   opacity: .85;
   transition: opacity .35s;
 }
@@ -1354,7 +1460,7 @@ footer li a:hover { opacity: 1; color: #fff; }
   display: grid;
   place-items: center;
   cursor: pointer;
-  box-shadow: 0 2px 10px rgba(103,8,50,.16);
+  box-shadow: 0 2px 10px rgba(138, 23, 75,.16);
   border: 0;
   touch-action: manipulation;
 }

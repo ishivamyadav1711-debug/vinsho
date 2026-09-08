@@ -9,7 +9,7 @@ if (!authCheck.allowed) {
 }
 const user = authCheck.user!;
 
-const users = db.prepare('SELECT id, email, name, role, created_at FROM users ORDER BY name ASC').all() as any[];
+const users = db.prepare('SELECT id, email, name, role, created_at FROM admin_users ORDER BY name ASC').all() as any[];
 ---
 
 <AdminLayout title="Team Settings & Permissions" activeNav="settings">
@@ -31,7 +31,7 @@ const users = db.prepare('SELECT id, email, name, role, created_at FROM users OR
 
           <div class="f-group">
             <label>Email Address *</label>
-            <input type="email" name="email" placeholder="kavita@vinsho.com" required />
+            <input type="email" name="email" placeholder="vinvks@gmail.com" required />
           </div>
 
           <div class="f-group">

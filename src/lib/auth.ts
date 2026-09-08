@@ -2,6 +2,7 @@ import { db, logAuditAction } from './db.js';
 export { logAuditAction };
 import crypto from 'node:crypto';
 import bcrypt from 'bcryptjs';
+import { getEnvConfig } from './env.js';
 
 export interface AdminUser {
   id: number;
@@ -46,8 +47,9 @@ export function ensureDefaultAdminUser(): AdminUser {
   }
 
   const now = new Date().toISOString();
-  const defaultPassword = process.env.ADMIN_PASSWORD || 'VinshoAdmin2026!';
-  const defaultEmail = process.env.ADMIN_EMAIL || 'admin@vinsho.com';
+  const envConfig = getEnvConfig();
+  const defaultPassword = envConfig.adminPassword;
+  const defaultEmail = envConfig.adminEmail;
   const passwordHash = bcrypt.hashSync(defaultPassword, 10);
 
   const res = db.prepare(`
@@ -227,9 +229,13 @@ export function destroySession(request: Request) {
 
 export function getSessionCookieHeader(token: string, expiresAt: number): string {
   const expiresDate = new Date(expiresAt).toUTCString();
-  return `${SESSION_COOKIE_NAME}=${encodeURIComponent(token)}; Path=/; HttpOnly; SameSite=Strict; Expires=${expiresDate}`;
+  // Add Secure flag in production so the cookie is only sent over HTTPS.
+  // Omit in development so local HTTP servers remain usable.
+  const secure = getEnvConfig().isProduction ? '; Secure' : '';
+  return `${SESSION_COOKIE_NAME}=${encodeURIComponent(token)}; Path=/; HttpOnly${secure}; SameSite=Strict; Expires=${expiresDate}`;
 }
 
 export function getLogoutCookieHeader(): string {
-  return `${SESSION_COOKIE_NAME}=; Path=/; HttpOnly; SameSite=Strict; Expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+  const secure = getEnvConfig().isProduction ? '; Secure' : '';
+  return `${SESSION_COOKIE_NAME}=; Path=/; HttpOnly${secure}; SameSite=Strict; Expires=Thu, 01 Jan 1970 00:00:00 GMT`;
 }

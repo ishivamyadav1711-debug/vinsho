@@ -1,12 +1,19 @@
 import { db, getNextSequenceNumber } from './db.js';
-import { getCartItems } from './cart.js';
 import { calculateShipping } from './shipping.js';
 import { calculateLineTax } from './tax.js';
 import { atomicDecrementStock } from './inventory.js';
+import { logNotification } from './notifications.js';
+import { validateAndCalculateCoupon } from './coupons.js';
+import { getComboAvailability, getComboComponents } from './combos.js';
 
 export interface CreateOrderParams {
-  sessionToken: string;
+  sessionToken?: string;
   customerId: number;
+  couponCode?: string | null;
+  items?: Array<{
+    variantId: number;
+    qty: number;
+  }>;
   shippingAddress: {
     name: string;
     phone: string;
@@ -29,26 +36,61 @@ export interface OrderCreationResult {
 export function createOrder(params: CreateOrderParams): OrderCreationResult {
   const cleanIdempotencyKey = params.idempotencyKey.trim();
 
-  // Idempotency check: Double-submitted checkout must produce 1 order, not 2 (§5)
+  // Idempotency check: Double-submitted checkout must produce 1 order, not 2
   const existingOrder = db.prepare('SELECT * FROM orders WHERE idempotency_key = ?').get(cleanIdempotencyKey) as any;
   if (existingOrder) {
     const items = db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(existingOrder.id);
     return { success: true, order: { ...existingOrder, items } };
   }
 
-  // 1. Fetch Cart Items & Server-Side Pre-Checkout Verification (§5)
-  const cartItems = getCartItems(params.sessionToken);
-  if (cartItems.length === 0) {
-    return { success: false, error: 'Your cart is empty.' };
+  const rawItems = params.items || [];
+  if (rawItems.length === 0) {
+    return { success: false, error: 'No items provided for order creation.' };
   }
 
-  // Re-verify purchasability gate & live stock for every line item
+  // Load variant details directly from DB
+  const cartItems: any[] = [];
+  for (const raw of rawItems) {
+    const v = db.prepare(`
+      SELECT v.*, p.slug as product_slug, p.name as product_name, p.shipping_class, p.launch_phase, p.sellable_online, p.is_purchasable
+      FROM product_variants v
+      JOIN products p ON v.product_id = p.id
+      WHERE v.id = ? AND p.deleted_at IS NULL
+    `).get(raw.variantId) as any;
+    if (!v) {
+      return { success: false, error: `Variant ID ${raw.variantId} not found in database.` };
+    }
+    cartItems.push({
+      variantId: v.id,
+      productSlug: v.product_slug,
+      productName: v.product_name,
+      shippingClass: v.shipping_class,
+      packedWeightKg: v.packed_weight_kg,
+      packedL: v.packed_l_cm,
+      packedB: v.packed_b_cm,
+      packedH: v.packed_h_cm,
+      qty: raw.qty,
+      sellingPrice: v.selling_price,
+      stock: v.stock !== null && v.stock !== undefined ? v.stock : 100,
+      isPurchasable: v.is_purchasable
+    });
+  }
+
+  // Re-verify purchasability gate & live stock (including combo component availability)
   for (const item of cartItems) {
     if (!item.isPurchasable) {
-      return { success: false, error: `Checkout blocked: Item '${item.productName}' fails Legal Metrology purchasability gate or is Made-to-Order (${item.gateReason}).` };
+      return { success: false, error: `Checkout blocked: Item '${item.productName}' fails Legal Metrology purchasability gate or is Made-to-Order.` };
     }
-    if (item.stock < item.qty) {
-      return { success: false, error: `Checkout blocked: Item '${item.productName}' has insufficient stock (Requested: ${item.qty}, Available: ${item.stock}).` };
+
+    const comboAvail = getComboAvailability(item.variantId);
+    if (comboAvail.isBundle) {
+      if (comboAvail.maxSellableCombos < item.qty) {
+        return { success: false, error: `Checkout blocked: Item '${item.productName}' has insufficient component stock balance (Requested: ${item.qty}, Available: ${comboAvail.maxSellableCombos}).` };
+      }
+    } else {
+      if (item.stock < item.qty) {
+        return { success: false, error: `Checkout blocked: Item '${item.productName}' has insufficient stock (Requested: ${item.qty}, Available: ${item.stock}).` };
+      }
     }
   }
 
@@ -98,7 +140,6 @@ export function createOrder(params: CreateOrderParams): OrderCreationResult {
   const buyerState = params.shippingAddress.state;
 
   for (const item of cartItems) {
-    // Query exact variant data from DB to ensure prices are server-recomputed (§3)
     const variantRow = db.prepare(`
       SELECT v.*, p.name as product_name
       FROM product_variants v JOIN products p ON v.product_id = p.id
@@ -121,7 +162,7 @@ export function createOrder(params: CreateOrderParams): OrderCreationResult {
       variantId: item.variantId,
       productNameSnapshot: variantRow.product_name,
       variantLabelSnapshot: variantLabel,
-      skuSnapshot: variantRow.sku,
+      skuSnapshot: variantRow.sku || `SKU-${item.variantId}`,
       hsnSnapshot: hsnCode,
       gstRateSnapshot: gstRate,
       unitPriceSnapshot: unitPrice,
@@ -131,8 +172,24 @@ export function createOrder(params: CreateOrderParams): OrderCreationResult {
     });
   }
 
+  // 5. Server-Authoritative Coupon Discount Calculation
+  let discountTotal = 0;
+  let appliedCouponCode: string | null = null;
+
+  if (params.couponCode && params.couponCode.trim() !== '') {
+    const couponRes = validateAndCalculateCoupon(params.couponCode, subtotal);
+    if (!couponRes.valid) {
+      return { success: false, error: couponRes.error || 'Invalid coupon code.' };
+    }
+    discountTotal = couponRes.discountAmount;
+    appliedCouponCode = couponRes.code || params.couponCode.trim().toUpperCase();
+  }
+
+  // Guard against discount exceeding subtotal or being negative
+  discountTotal = Math.max(0, Math.min(discountTotal, subtotal));
+
   const shippingTotal = shipResult.shippingFee;
-  const grandTotal = Number((subtotal + taxTotal + shippingTotal).toFixed(2));
+  const grandTotal = Number(Math.max(0, subtotal - discountTotal + taxTotal + shippingTotal).toFixed(2));
   const isInterstate = shipResult.serviceable ? (buyerState.toLowerCase() !== 'haryana' ? 1 : 0) : 0;
 
   // Generate Gapless Order Number (VIN-2026-000001)
@@ -142,15 +199,17 @@ export function createOrder(params: CreateOrderParams): OrderCreationResult {
     // Insert Order Record
     const orderRes = db.prepare(`
       INSERT INTO orders (
-        order_number, customer_id, status, payment_status, subtotal, tax_total, shipping_total, discount_total,
+        order_number, customer_id, status, payment_status, subtotal, tax_total, shipping_total, discount_total, coupon_code,
         grand_total, currency, shipping_address_id, billing_address_id, is_interstate, placed_at, idempotency_key, created_at, updated_at
-      ) VALUES (?, ?, 'Pending', 'pending', ?, ?, ?, 0, ?, 'INR', ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, 'Pending', 'pending', ?, ?, ?, ?, ?, ?, 'INR', ?, ?, ?, ?, ?, ?, ?)
     `).run(
       orderNumber,
       params.customerId,
       subtotal,
       taxTotal,
       shippingTotal,
+      discountTotal,
+      appliedCouponCode,
       grandTotal,
       addressId,
       addressId,
@@ -163,7 +222,7 @@ export function createOrder(params: CreateOrderParams): OrderCreationResult {
 
     const orderId = orderRes.lastInsertRowid as number;
 
-    // Insert Snapshotted Order Items (§1)
+    // Insert Snapshotted Order Items & Deduct Component/Standalone Inventory
     for (const oi of processedOrderItems) {
       db.prepare(`
         INSERT INTO order_items (
@@ -183,11 +242,81 @@ export function createOrder(params: CreateOrderParams): OrderCreationResult {
         oi.taxAmount,
         oi.lineTotal
       );
+
+      const comboComponents = getComboComponents(oi.variantId);
+      if (comboComponents.length > 0) {
+        // Atomic component stock deduction for bundles
+        for (const comp of comboComponents) {
+          const totalCompQty = comp.quantity * oi.qty;
+          const stockRes = atomicDecrementStock({
+            variantId: comp.component_variant_id,
+            delta: -totalCompQty,
+            reason: 'SALE',
+            orderId
+          });
+          if (!stockRes.success) {
+            throw new Error(`Stock deduction failed for component '${comp.component_name}' (ID ${comp.component_variant_id}): ${stockRes.error}`);
+          }
+        }
+      } else {
+        // Atomic stock deduction for standalone variants
+        const stockRes = atomicDecrementStock({
+          variantId: oi.variantId,
+          delta: -oi.qty,
+          reason: 'SALE',
+          orderId
+        });
+        if (!stockRes.success) {
+          throw new Error(stockRes.error || `Stock deduction failed for variant ID ${oi.variantId}`);
+        }
+      }
     }
 
     const createdOrder = db.prepare('SELECT * FROM orders WHERE id = ?').get(orderId) as any;
-    const items = db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(orderId);
+    const items = db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(orderId) as any[];
 
     return { success: true, order: { ...createdOrder, items } };
   })();
+}
+
+/**
+ * Fires order confirmation emails after a successful createOrder().
+ */
+export function sendOrderNotifications(order: any, customer: { name: string; email?: string | null }, adminEmail: string): void {
+  const items = db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(order.id) as any[];
+  const addr = db.prepare('SELECT * FROM addresses WHERE id = ?').get(order.shipping_address_id) as any;
+
+  if (customer.email) {
+    logNotification({
+      channel: 'EMAIL',
+      template: 'ORDER_CONFIRMATION',
+      recipient: customer.email,
+      entityType: 'order',
+      entityId: order.id,
+      data: {
+        customerName: customer.name,
+        orderNumber: order.order_number,
+        grandTotal: order.grand_total,
+        discountTotal: order.discount_total || 0,
+        couponCode: order.coupon_code || '',
+        items,
+        shippingAddress: addr || {},
+      },
+    });
+  }
+
+  logNotification({
+    channel: 'EMAIL',
+    template: 'NEW_ENQUIRY_STAFF',
+    recipient: adminEmail,
+    entityType: 'order',
+    entityId: order.id,
+    data: {
+      enquiryId: order.id,
+      customerName: customer.name,
+      phone: addr?.phone || '',
+      subject: `Order ${order.order_number} — ₹${order.grand_total}${order.coupon_code ? ' (Coupon: ' + order.coupon_code + ')' : ''}`,
+      source: 'Checkout',
+    },
+  });
 }

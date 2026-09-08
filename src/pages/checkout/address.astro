@@ -1,0 +1,201 @@
+---
+import Base from '../../layouts/Base.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+import Modal from '../../components/Modal.astro';
+import CustomCursor from '../../components/motion/CustomCursor.astro';
+import { getCustomerFromSession } from '../../lib/customerAuth';
+
+// Server-side Authentication Gate for Purchase (§2)
+const customer = getCustomerFromSession(Astro.request);
+if (!customer) {
+  return Astro.redirect('/login?redirect=/checkout/address');
+}
+---
+
+<Base 
+  title="Checkout &mdash; Delivery Address | VINSHO" 
+  description="Enter your shipping address for VINSHO luxury home décor & gifting items."
+>
+  <CustomCursor />
+  <Nav />
+
+  <main id="main-content" class="v-checkout-page">
+    <div class="v-checkout-container">
+      <h1 class="v-checkout-title">SHIPPING DETAILS</h1>
+
+      <form id="v-address-form" class="v-address-card">
+        <div class="v-form-grid">
+          <div class="v-field-group">
+            <label for="v-name">Full Name *</label>
+            <input type="text" id="v-name" name="name" required placeholder="Ananya Sharma" value={customer.name || ''} class="v-input" />
+          </div>
+
+          <div class="v-field-group">
+            <label for="v-phone">Mobile Phone (10 Digits) *</label>
+            <input type="tel" id="v-phone" name="phone" required pattern="\d{10}" maxlength="10" placeholder="9876543210" value={customer.phone || ''} class="v-input" />
+          </div>
+
+          <div class="v-field-group">
+            <label for="v-email">Email Address *</label>
+            <input type="email" id="v-email" name="email" required placeholder="ananya@example.com" value={customer.email || ''} class="v-input" />
+          </div>
+
+          <div class="v-field-group full">
+            <label for="v-line1">Flat, House no., Building, Street Address *</label>
+            <input type="text" id="v-line1" name="line1" required placeholder="Flat 402, Lotus Apartments, Sector 18" class="v-input" />
+          </div>
+
+          <div class="v-field-group">
+            <label for="v-city">City *</label>
+            <input type="text" id="v-city" name="city" required placeholder="Greater Noida" class="v-input" />
+          </div>
+
+          <div class="v-field-group">
+            <label for="v-state">State *</label>
+            <input type="text" id="v-state" name="state" required placeholder="Uttar Pradesh" class="v-input" />
+          </div>
+
+          <div class="v-field-group">
+            <label for="v-pincode">PIN Code (6 Digits) *</label>
+            <input type="text" id="v-pincode" name="pincode" required pattern="\d{6}" maxlength="6" placeholder="201310" class="v-input" />
+          </div>
+        </div>
+
+        <div id="v-addr-error" class="v-error-banner" hidden></div>
+
+        <button type="submit" class="v-btn-continue">CONTINUE TO ORDER SUMMARY &rarr;</button>
+      </form>
+    </div>
+  </main>
+
+  <Footer />
+  <Modal />
+</Base>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('v-address-form') as HTMLFormElement | null;
+    const errorBanner = document.getElementById('v-addr-error');
+
+    form?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const formData = new FormData(form);
+      const name = (formData.get('name') || '').toString().trim();
+      const phone = (formData.get('phone') || '').toString().trim();
+      const email = (formData.get('email') || '').toString().trim();
+      const line1 = (formData.get('line1') || '').toString().trim();
+      const city = (formData.get('city') || '').toString().trim();
+      const state = (formData.get('state') || '').toString().trim();
+      const pincode = (formData.get('pincode') || '').toString().trim();
+
+      if (!/^\d{10}$/.test(phone)) {
+        if (errorBanner) {
+          errorBanner.hidden = false;
+          errorBanner.textContent = 'Please enter a valid 10-digit Indian mobile number.';
+        }
+        return;
+      }
+
+      if (!/^\d{6}$/.test(pincode)) {
+        if (errorBanner) {
+          errorBanner.hidden = false;
+          errorBanner.textContent = 'Please enter a valid 6-digit Indian PIN code.';
+        }
+        return;
+      }
+
+      const addressData = { name, phone, email, line1, city, state, pincode, country: 'India' };
+      sessionStorage.setItem('vinsho_shipping_address', JSON.stringify(addressData));
+
+      window.location.href = '/checkout/payment';
+    });
+  });
+</script>
+
+<style>
+  .v-checkout-page {
+    background-color: #FAF6F0;
+    color: #3E3336;
+    padding-block: clamp(2rem, 4vw, 4.5rem);
+    min-height: 80vh;
+  }
+
+  .v-checkout-container {
+    max-width: 700px;
+    margin-inline: auto;
+    padding-inline: clamp(1rem, 4vw, 2.5rem);
+  }
+
+  .v-checkout-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    color: #8A174B;
+    margin-bottom: 1.5rem;
+  }
+
+  .v-address-card {
+    background: #ffffff;
+    border: 1px solid rgba(138, 23, 75, 0.12);
+    border-radius: 12px;
+    padding: 2rem;
+  }
+
+  .v-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+
+  @media (max-width: 640px) {
+    .v-form-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .v-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .v-field-group.full {
+    grid-column: 1 / -1;
+  }
+
+  .v-field-group label {
+    font-size: 0.813rem;
+    font-weight: 700;
+    color: #3E3336;
+  }
+
+  .v-input {
+    padding: 0.75rem;
+    border: 1px solid rgba(138, 23, 75, 0.2);
+    border-radius: 6px;
+    font-size: 0.9rem;
+  }
+
+  .v-error-banner {
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 0.75rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    margin-top: 1rem;
+  }
+
+  .v-btn-continue {
+    width: 100%;
+    margin-top: 1.5rem;
+    padding: 0.95rem;
+    background: #8A174B;
+    color: #ffffff;
+    border: none;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+  }
+</style>

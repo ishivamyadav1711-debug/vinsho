@@ -27,6 +27,11 @@ export interface Variant {
   image?: string;
 }
 
+export interface ProductFeature {
+  title: string;
+  description: string;
+}
+
 export interface ProductCommerce {
   slug: string;
   name: string;
@@ -38,6 +43,10 @@ export interface ProductCommerce {
   material: string;
   description: string;
   descriptionSource: string;
+  tagline?: string;
+  features?: ProductFeature[];
+  closingLine?: string;
+  closing_line?: string;
   shippingClass: 'standard' | 'fragile' | 'bulky' | 'made-to-order';
   launchPhase: number;
   sellableOnline: boolean;

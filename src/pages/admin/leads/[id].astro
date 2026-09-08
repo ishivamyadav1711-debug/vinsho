@@ -18,7 +18,7 @@ if (!lead) return Astro.redirect('/admin/leads');
 const activities = db.prepare('SELECT * FROM lead_activities WHERE lead_id = ? ORDER BY created_at DESC').all(id) as any[];
 const notes = db.prepare('SELECT * FROM lead_notes WHERE lead_id = ? ORDER BY created_at DESC').all(id) as any[];
 const followUps = db.prepare('SELECT * FROM follow_ups WHERE lead_id = ? ORDER BY scheduled_at ASC').all(id) as any[];
-const users = db.prepare('SELECT id, name FROM users ORDER BY name ASC').all() as any[];
+const users = db.prepare('SELECT id, name FROM admin_users ORDER BY name ASC').all() as any[];
 
 // Duplicate check
 let duplicateLead: any = null;

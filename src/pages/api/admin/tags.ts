@@ -29,7 +29,7 @@ export const POST: APIRoute = async ({ request }) => {
       INSERT INTO tags (name, colour, created_at)
       VALUES (?, ?, ?)
       ON CONFLICT(name) DO UPDATE SET colour = excluded.colour
-    `).run(name.trim(), colour || '#670832', now);
+    `).run(name.trim(), colour || '#8A174B', now);
 
     const tag = db.prepare('SELECT * FROM tags WHERE name = ?').get(name.trim());
     return new Response(JSON.stringify({ success: true, tag }), { status: 201 });

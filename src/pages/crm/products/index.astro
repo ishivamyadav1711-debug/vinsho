@@ -1,0 +1,276 @@
+---
+import Base from '../../../layouts/Base.astro';
+import { getSessionUser } from '../../../lib/auth';
+import { db } from '../../../lib/db';
+import { evaluatePurchasability, COMMERCE_MODE } from '../../../lib/purchasability';
+
+const user = getSessionUser(Astro.request);
+if (!user) {
+  return Astro.redirect('/crm/login');
+}
+
+const collections = db.prepare('SELECT * FROM collections WHERE deleted_at IS NULL ORDER BY name ASC').all() as any[];
+const products = db.prepare(`
+  SELECT 
+    p.*,
+    c.name as collection_name,
+    s.name as subcategory_name,
+    (SELECT url FROM product_images WHERE product_id = p.id AND is_primary = 1 LIMIT 1) as image_url,
+    (SELECT COUNT(*) FROM product_variants WHERE product_id = p.id) as variant_count
+  FROM products p
+  JOIN collections c ON p.collection_id = c.id
+  JOIN subcategories s ON p.subcategory_id = s.id
+  WHERE p.deleted_at IS NULL
+  ORDER BY p.name ASC
+`).all() as any[];
+
+const productsWithEval = products.map((p) => {
+  const variants = db.prepare('SELECT * FROM product_variants WHERE product_id = ?').all(p.id) as any[];
+  const evalRes = evaluatePurchasability(p, variants);
+  return {
+    ...p,
+    purchasability: evalRes
+  };
+});
+---
+
+<Base title="Product Management — VINSHO Admin">
+  <div class="admin-dashboard-wrap">
+    <aside class="admin-sidebar">
+      <div class="sidebar-brand">
+        <strong>VINSHO ADMIN</strong>
+        <small>Backoffice System v1.0</small>
+      </div>
+      <nav class="admin-nav">
+        <a href="/crm/products" class="nav-item active">Products Catalogue</a>
+        <a href="/crm/dashboard" class="nav-item">Leads &amp; CRM</a>
+        <a href="/crm/analytics" class="nav-item">Analytics</a>
+        <a href="/crm/settings" class="nav-item">Settings</a>
+      </nav>
+      <div class="sidebar-user">
+        <span>Logged in as: <b>{user.name}</b></span>
+        <button id="admin-logout-btn" class="logout-link-btn">Logout</button>
+      </div>
+    </aside>
+
+    <main class="admin-content-area">
+      <header class="admin-page-header">
+        <div>
+          <h1>Product Catalogue Management</h1>
+          <p class="header-sub">Manage products, Legal Metrology declarations, variants, and purchasability statuses.</p>
+        </div>
+        <div class="header-right-meta">
+          <span class="mode-badge" data-mode={COMMERCE_MODE}>
+            COMMERCE_MODE: <strong>{COMMERCE_MODE.toUpperCase()}</strong>
+          </span>
+        </div>
+      </header>
+
+      <!-- Search & Filters Toolbar -->
+      <div class="admin-filter-bar">
+        <div class="filter-input-wrap">
+          <input type="text" id="admin-search-input" placeholder="Search by name, slug, material..." class="admin-input" />
+        </div>
+        <select id="filter-collection" class="admin-select">
+          <option value="">All Collections</option>
+          {collections.map(c => (
+            <option value={c.id}>{c.name}</option>
+          ))}
+        </select>
+        <select id="filter-phase" class="admin-select">
+          <option value="">All Launch Phases</option>
+          <option value="1">Phase 1 (Soft Launch - Standard)</option>
+          <option value="2">Phase 2 (Fragile)</option>
+          <option value="3">Phase 3 (Bulky)</option>
+          <option value="0">Phase 0 (Made-to-Order Only)</option>
+        </select>
+        <select id="filter-class" class="admin-select">
+          <option value="">All Shipping Classes</option>
+          <option value="standard">Standard</option>
+          <option value="fragile">Fragile</option>
+          <option value="bulky">Bulky</option>
+          <option value="made-to-order">Made-to-Order</option>
+        </select>
+      </div>
+
+      <!-- Dense Data Entry Product Table -->
+      <div class="table-card">
+        <table class="admin-table" id="products-table">
+          <thead>
+            <tr>
+              <th style="width: 50px;">Img</th>
+              <th>Product Name &amp; Slug</th>
+              <th>Collection / Subcategory</th>
+              <th>Shipping Class</th>
+              <th>Phase</th>
+              <th>Variants</th>
+              <th>Purchasability Status &amp; Missing Data</th>
+              <th style="text-align: right;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {productsWithEval.map((p) => {
+              const missingCount = p.purchasability.missingProductFields.length + p.purchasability.missingVariantFields.length;
+              return (
+                <tr data-col={p.collection_id} data-phase={p.launch_phase} data-class={p.shipping_class}>
+                  <td>
+                    <img src={p.image_url || '/placeholder.png'} alt="" class="table-thumb" />
+                  </td>
+                  <td>
+                    <strong>{p.name}</strong>
+                    <code class="slug-code">/{p.slug}</code>
+                    {p.description_source === 'placeholder' && (
+                      <span class="placeholder-tag" title="Description is placeholder copy">Placeholder Copy</span>
+                    )}
+                  </td>
+                  <td>
+                    <span class="col-tag">{p.collection_name}</span>
+                    <span class="sub-tag">{p.subcategory_name}</span>
+                  </td>
+                  <td>
+                    <span class="class-badge" data-class={p.shipping_class}>{p.shipping_class}</span>
+                  </td>
+                  <td>Phase {p.launch_phase}</td>
+                  <td>
+                    <span class={`variant-badge ${p.variant_count === 0 ? 'zero' : ''}`}>
+                      {p.variant_count} Variants
+                    </span>
+                  </td>
+                  <td>
+                    {p.purchasability.isPurchasable ? (
+                      <span class="status-pill pass">✓ Eligible for Sale</span>
+                    ) : (
+                      <div class="missing-summary-box">
+                        <span class="status-pill fail">Enquiry Fallback</span>
+                        <small class="missing-count">
+                          {p.shipping_class === 'made-to-order' 
+                            ? 'Made to Order (Permanent Enquiry)' 
+                            : `${missingCount} missing fields`}
+                        </small>
+                      </div>
+                    )}
+                  </td>
+                  <td style="text-align: right;">
+                    <a href={`/crm/products/${p.id}`} class="btn-edit">Edit Product &rarr;</a>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</Base>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('admin-search-input') as HTMLInputElement | null;
+    const colSelect = document.getElementById('filter-collection') as HTMLSelectElement | null;
+    const phaseSelect = document.getElementById('filter-phase') as HTMLSelectElement | null;
+    const classSelect = document.getElementById('filter-class') as HTMLSelectElement | null;
+    const tableRows = document.querySelectorAll<HTMLTableRowElement>('#products-table tbody tr');
+
+    function filterTable() {
+      const q = searchInput?.value.toLowerCase().trim() || '';
+      const col = colSelect?.value || '';
+      const phase = phaseSelect?.value || '';
+      const sClass = classSelect?.value || '';
+
+      tableRows.forEach(row => {
+        const text = row.textContent?.toLowerCase() || '';
+        const matchQ = !q || text.includes(q);
+        const matchCol = !col || row.dataset.col === col;
+        const matchPhase = !phase || row.dataset.phase === phase;
+        const matchClass = !sClass || row.dataset.class === sClass;
+
+        if (matchQ && matchCol && matchPhase && matchClass) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
+    searchInput?.addEventListener('input', filterTable);
+    colSelect?.addEventListener('change', filterTable);
+    phaseSelect?.addEventListener('change', filterTable);
+    classSelect?.addEventListener('change', filterTable);
+
+    // Logout button
+    document.getElementById('admin-logout-btn')?.addEventListener('click', async () => {
+      await fetch('/api/admin/logout', { method: 'POST' });
+      window.location.href = '/crm/login';
+    });
+  });
+</script>
+
+<style>
+  .admin-dashboard-wrap {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: #f4f6f8;
+    color: #1a1a1a;
+  }
+
+  .admin-sidebar {
+    background: #1e293b;
+    color: #f8fafc;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .sidebar-brand strong { display: block; font-size: 1.15rem; letter-spacing: 0.05em; color: #fff; }
+  .sidebar-brand small { font-size: 0.75rem; color: #94a3b8; }
+
+  .admin-nav { margin-top: 2rem; display: flex; flex-direction: column; gap: 0.4rem; }
+  .nav-item { color: #cbd5e1; padding: 0.6rem 0.85rem; border-radius: 4px; text-decoration: none; font-size: 0.88rem; font-weight: 500; }
+  .nav-item:hover, .nav-item.active { background: #334155; color: #fff; }
+
+  .sidebar-user { font-size: 0.781rem; color: #94a3b8; border-top: 1px solid #334155; padding-top: 1rem; }
+  .logout-link-btn { background: none; border: none; color: #ef4444; font-size: 0.781rem; cursor: pointer; padding: 0; margin-top: 0.25rem; display: block; }
+
+  .admin-content-area { padding: 2rem; }
+  .admin-page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+  .admin-page-header h1 { font-size: 1.6rem; font-weight: 700; margin: 0 0 0.25rem 0; color: #0f172a; }
+  .header-sub { font-size: 0.88rem; color: #64748b; margin: 0; }
+
+  .mode-badge { background: #e2e8f0; padding: 0.35rem 0.75rem; border-radius: 4px; font-size: 0.75rem; color: #334155; }
+  .mode-badge[data-mode="enquiry"] { background: #fef3c7; color: #92400e; }
+
+  .admin-filter-bar { display: flex; gap: 0.75rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+  .filter-input-wrap { flex: 1; min-width: 240px; }
+  .admin-input, .admin-select { width: 100%; padding: 0.55rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.85rem; background: #fff; }
+
+  .table-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden; }
+  .admin-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .admin-table th { background: #f8fafc; text-align: left; padding: 0.75rem 1rem; font-weight: 600; color: #475569; border-bottom: 1px solid #e2e8f0; }
+  .admin-table td { padding: 0.75rem 1rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+  .admin-table tr:hover { background: #f8fafc; }
+
+  .table-thumb { width: 42px; height: 42px; object-fit: cover; border-radius: 4px; border: 1px solid #e2e8f0; }
+  .slug-code { display: block; font-size: 0.72rem; color: #64748b; font-family: monospace; }
+  .placeholder-tag { background: #fef3c7; color: #92400e; font-size: 0.65rem; padding: 0.1rem 0.4rem; border-radius: 2px; margin-top: 0.2rem; display: inline-block; }
+
+  .col-tag { font-weight: 600; color: #1e293b; display: block; }
+  .sub-tag { font-size: 0.75rem; color: #64748b; }
+
+  .class-badge { font-size: 0.72rem; text-transform: uppercase; font-weight: 600; padding: 0.2rem 0.5rem; border-radius: 3px; background: #e2e8f0; color: #334155; }
+  .class-badge[data-class="made-to-order"] { background: #fae8ff; color: #86198f; }
+
+  .variant-badge { font-size: 0.75rem; background: #e0f2fe; color: #0369a1; padding: 0.2rem 0.5rem; border-radius: 999px; }
+  .variant-badge.zero { background: #fee2e2; color: #b91c1c; }
+
+  .status-pill { font-size: 0.72rem; font-weight: 600; padding: 0.25rem 0.5rem; border-radius: 4px; }
+  .status-pill.pass { background: #dcfce7; color: #15803d; }
+  .status-pill.fail { background: #fef3c7; color: #b45309; }
+  .missing-summary-box { display: flex; flex-direction: column; gap: 0.15rem; }
+  .missing-count { font-size: 0.72rem; color: #dc2626; }
+
+  .btn-edit { display: inline-block; background: #0f172a; color: #fff; padding: 0.35rem 0.75rem; border-radius: 4px; text-decoration: none; font-weight: 500; font-size: 0.781rem; }
+  .btn-edit:hover { background: #334155; }
+</style>

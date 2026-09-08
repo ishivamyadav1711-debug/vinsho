@@ -1,0 +1,398 @@
+---
+import Base from '../layouts/Base.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+import { getCustomerFromSession } from '../lib/customerAuth';
+
+// If already logged in, redirect to /account or redirect param
+const customer = getCustomerFromSession(Astro.request);
+const redirectUrl = Astro.url.searchParams.get('redirect') || '/account';
+
+if (customer) {
+  return Astro.redirect(redirectUrl);
+}
+---
+
+<Base title="Customer Login | VINSHO" description="Log in to your VINSHO account to complete purchase, track orders and manage your profile.">
+  <Nav />
+
+  <main class="auth-page-wrapper">
+    <div class="auth-card-container wrap">
+      <div class="auth-card">
+        
+        <div class="auth-header-group">
+          <span class="auth-eyebrow">WELCOME BACK</span>
+          <h1 class="auth-title">Log In to Your Account</h1>
+          <p class="auth-sub">Access your cart, order history, and saved addresses.</p>
+        </div>
+
+        <!-- Alert box for errors / notifications -->
+        <div id="auth-alert" class="auth-alert-box" hidden></div>
+
+        <form id="login-form" class="auth-form" novalidate>
+          <div class="form-field">
+            <label for="email" class="field-label">Email Address or Phone Number</label>
+            <div class="input-wrapper">
+              <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+              <input 
+                type="text" 
+                id="email" 
+                name="email" 
+                placeholder="name@example.com or Phone" 
+                required 
+                autocomplete="username"
+              />
+            </div>
+          </div>
+
+          <div class="form-field">
+            <div class="field-label-row">
+              <label for="password" class="field-label">Password</label>
+              <a href="/forgot-password" class="forgot-pass-link">Forgot password?</a>
+            </div>
+            <div class="input-wrapper">
+              <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+              <input 
+                type="password" 
+                id="password" 
+                name="password" 
+                placeholder="Enter your password" 
+                required 
+                autocomplete="current-password"
+              />
+            </div>
+          </div>
+
+          <button type="submit" id="login-btn" class="auth-submit-btn">
+            LOG IN
+          </button>
+        </form>
+
+        <div class="auth-divider">
+          <span>OR</span>
+        </div>
+
+        <div class="auth-footer-prompt">
+          <p>Don't have an account yet?</p>
+          <a href={`/signup${redirectUrl !== '/account' ? `?redirect=${encodeURIComponent(redirectUrl)}` : ''}`} class="auth-secondary-btn">
+            CREATE AN ACCOUNT &rarr;
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <Footer />
+</Base>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('login-form') as HTMLFormElement | null;
+    const alertBox = document.getElementById('auth-alert');
+    const submitBtn = document.getElementById('login-btn') as HTMLButtonElement | null;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const redirectTarget = urlParams.get('redirect') || '/account';
+
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const emailInput = document.getElementById('email') as HTMLInputElement;
+      const passwordInput = document.getElementById('password') as HTMLInputElement;
+
+      const emailVal = emailInput?.value.trim();
+      const passwordVal = passwordInput?.value.trim();
+
+      if (alertBox) {
+        alertBox.hidden = true;
+        alertBox.className = 'auth-alert-box';
+      }
+
+      if (!emailVal || !passwordVal) {
+        if (alertBox) {
+          alertBox.textContent = 'Please enter both your email/phone and password.';
+          alertBox.classList.add('error');
+          alertBox.hidden = false;
+        }
+        return;
+      }
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'LOGGING IN…';
+      }
+
+      try {
+        const res = await fetch('/api/account', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'login',
+            email: emailVal,
+            password: passwordVal
+          })
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          if (alertBox) {
+            alertBox.textContent = 'Login successful! Redirecting…';
+            alertBox.classList.add('success');
+            alertBox.hidden = false;
+          }
+          // Redirect to checkout or intended target while keeping cart intact
+          setTimeout(() => {
+            window.location.href = redirectTarget;
+          }, 400);
+        } else {
+          if (alertBox) {
+            alertBox.textContent = data.error || 'Login failed. Please check your credentials.';
+            alertBox.classList.add('error');
+            alertBox.hidden = false;
+          }
+        }
+      } catch (err) {
+        if (alertBox) {
+          alertBox.textContent = 'Network connection error. Please try again.';
+          alertBox.classList.add('error');
+          alertBox.hidden = false;
+        }
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'LOG IN';
+        }
+      }
+    });
+  });
+</script>
+
+<style>
+  .auth-page-wrapper {
+    background-color: #FAF6F0;
+    padding-block: clamp(2rem, 5vw, 4.5rem);
+    min-height: 75vh;
+    display: flex;
+    align-items: center;
+  }
+
+  .auth-card-container {
+    max-width: 480px;
+    margin-inline: auto;
+    width: 100%;
+  }
+
+  .auth-card {
+    background: #ffffff;
+    border: 1px solid rgba(138, 23, 75, 0.12);
+    border-radius: 16px;
+    padding: clamp(1.5rem, 4vw, 2.5rem);
+    box-shadow: 0 10px 35px rgba(138, 23, 75, 0.05);
+  }
+
+  .auth-header-group {
+    text-align: center;
+    margin-bottom: 1.75rem;
+  }
+
+  .auth-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: var(--pink, #CD788F);
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 0.35rem;
+  }
+
+  .auth-title {
+    font-family: var(--serif, serif);
+    font-size: clamp(1.5rem, 3.5vw, 1.95rem);
+    color: var(--maroon, #8A174B);
+    margin: 0 0 0.35rem;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .auth-sub {
+    font-size: 0.844rem;
+    color: var(--ink-soft, #7C6B6E);
+    margin: 0;
+  }
+
+  /* ALERT BOX */
+  .auth-alert-box {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-size: 0.844rem;
+    font-weight: 500;
+    margin-bottom: 1.25rem;
+    line-height: 1.4;
+  }
+
+  .auth-alert-box.error {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+  }
+
+  .auth-alert-box.success {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #166534;
+  }
+
+  /* FORM FIELDS */
+  .auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.15rem;
+  }
+
+  .form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .field-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .field-label {
+    font-size: 0.813rem;
+    font-weight: 600;
+    color: var(--ink, #3E3336);
+  }
+
+  .forgot-pass-link {
+    font-size: 0.781rem;
+    color: var(--maroon, #8A174B);
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .forgot-pass-link:hover {
+    text-decoration: underline;
+  }
+
+  .input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: #FAF6F0;
+    border: 1.5px solid rgba(138, 23, 75, 0.15);
+    border-radius: 8px;
+    padding-left: 0.85rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .input-wrapper:focus-within {
+    border-color: var(--maroon, #8A174B);
+    box-shadow: 0 0 0 3px rgba(138, 23, 75, 0.08);
+  }
+
+  .input-icon {
+    color: var(--ink-soft, #7C6B6E);
+    flex-shrink: 0;
+  }
+
+  .input-wrapper input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    outline: none;
+    padding: 0.75rem 0.85rem;
+    font-size: 16px !important; /* Prevents iOS auto-zoom */
+    color: var(--ink, #3E3336);
+    font-family: var(--sans, sans-serif);
+  }
+
+  .auth-submit-btn {
+    background: var(--maroon, #8A174B);
+    color: #ffffff;
+    border: 1.5px solid var(--maroon, #8A174B);
+    border-radius: 999px;
+    padding: 0.85rem 1.5rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    min-height: 46px;
+    transition: all 0.2s ease;
+    width: 100%;
+  }
+
+  .auth-submit-btn:hover:not(:disabled) {
+    background: var(--maroon-2, #6B0E38);
+    border-color: var(--maroon-2, #6B0E38);
+  }
+
+  .auth-submit-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  .auth-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin-block: 1.5rem;
+    color: var(--ink-soft, #7C6B6E);
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .auth-divider::before,
+  .auth-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid rgba(138, 23, 75, 0.12);
+  }
+
+  .auth-divider span {
+    padding-inline: 0.75rem;
+  }
+
+  .auth-footer-prompt {
+    text-align: center;
+  }
+
+  .auth-footer-prompt p {
+    font-size: 0.844rem;
+    color: var(--ink-soft, #7C6B6E);
+    margin: 0 0 0.75rem;
+  }
+
+  .auth-secondary-btn {
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+    background: transparent;
+    color: var(--maroon, #8A174B);
+    border: 1.5px solid var(--maroon, #8A174B);
+    padding: 0.75rem 1.25rem;
+    border-radius: 999px;
+    font-size: 0.813rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .auth-secondary-btn:hover {
+    background: var(--maroon, #8A174B);
+    color: #ffffff;
+  }
+</style>

@@ -1,4 +1,6 @@
 ---
+export const prerender = true;
+
 import Base from '../../layouts/Base.astro';
 import Nav from '../../components/Nav.astro';
 import Footer from '../../components/Footer.astro';
@@ -12,38 +14,53 @@ const pageTitle = "Return & Refund Policy — VINSHO";
   <main class="wrap policy-page-container">
     <header class="policy-header">
       <h1>Return &amp; Refund Policy</h1>
-      <p class="policy-meta">Last Updated: August 2026 &middot; VINSHO (Established 1997)</p>
+      <p class="policy-meta">Last Updated: August 2026 &middot; VINSHO</p>
     </header>
 
     <article class="policy-content">
-      <section class="policy-section">
-        <h2>1. 30-Day Free Return Policy</h2>
-        <p>VINSHO offers free returns within 30 days of delivery for eligible standard home decor and textile products, provided items are returned unused, unwashed, in original packaging with tags intact.</p>
-      </section>
+      <p class="intro-p">At VINSHO, your satisfaction matters to us. If something doesn’t meet your expectations, we’re here to assist you.</p>
 
       <section class="policy-section">
-        <h2>2. Category Exclusions (Non-Returnable Items)</h2>
-        <p>Per Indian e-commerce regulations and operational constraints, the following categories are strictly non-returnable:</p>
+        <h2>Returns</h2>
+        <p>We provide a 30-day return window, starting from the date you receive your order.</p>
+        <p><strong>Eligibility for returns:</strong></p>
         <ul>
-          <li><strong>Made-to-Order &amp; Customized Items:</strong> Custom wallpaper, wallpaper panels, made-to-measure blinds, and custom floral installations cannot be returned or exchanged once produced.</li>
-          <li><strong>Bulky &amp; Large Products:</strong> Mattresses, live plants (bonsai), and oversized carpets are non-returnable unless damaged in transit.</li>
-          <li><strong>Hygiene &amp; Used Textiles:</strong> Products that have been washed, altered, or used cannot be accepted.</li>
+          <li>The product must be unused and in the same condition as when delivered.</li>
+          <li>Original tags and packaging must be intact.</li>
+          <li>A valid proof of purchase (invoice/order confirmation) is required.</li>
         </ul>
+        <p>To initiate a return, please write to us at <a href="mailto:vinvks@gmail.com">vinvks@gmail.com</a>.</p>
+        <p>Once your request is verified and approved, we will share the return shipping instructions. Please note that returns sent without prior approval will not be accepted.</p>
+        <p>For any questions, feel free to contact us at <a href={`tel:${content.brand.phone}`}>{content.brand.phone}</a>.</p>
       </section>
 
       <section class="policy-section">
-        <h2>3. Transit Damage &amp; Defect Claims</h2>
-        <p>If your package arrives damaged or incomplete, notify us within 48 hours of delivery with photos/videos of the package. We will immediately arrange a replacement or full refund.</p>
+        <h2>Damaged or Incorrect Items</h2>
+        <p>Please check your order as soon as it arrives. If you receive a damaged, defective, or incorrect item, contact us right away. Our team will review the issue and arrange a quick resolution.</p>
       </section>
 
       <section class="policy-section">
-        <h2>4. Refund Process &amp; Timelines</h2>
-        <p>Once your returned item is received and inspected at our Greater Noida facility, approved refunds are processed within 5–7 business days back to your original payment method.</p>
+        <h2>Items Not Eligible for Return</h2>
+        <p>Certain products are non-returnable, such as:</p>
+        <ul>
+          <li>Customized or personalized items</li>
+          <li>Gift cards</li>
+          <li>Products bought during clearance or final sale events</li>
+        </ul>
+        <p>We encourage you to review product details carefully before placing your order.</p>
       </section>
 
       <section class="policy-section">
-        <h2>5. Initiate a Return</h2>
-        <p>To request a return, contact customer support at <a href={`mailto:${content.brand.email}`}>{content.brand.email}</a> or WhatsApp us at +91 8527406482 with your order number.</p>
+        <h2>Exchanges</h2>
+        <p>If you’d like a replacement, the quickest way is to place a fresh order once your return is approved.</p>
+      </section>
+
+      <section class="policy-section">
+        <h2>Refunds</h2>
+        <p>Once your returned item is received and inspected, we’ll notify you of the approval or denial.</p>
+        <p>Approved refunds will be processed back to your original payment method within 7–10 business days.</p>
+        <p>Depending on your bank or payment provider, it may take additional time for the amount to reflect.</p>
+        <p>If more than 15 business days have passed since your refund approval and you haven’t received it, please reach out to us at <a href="/contact">our Contact Page</a>.</p>
       </section>
     </article>
   </main>
@@ -53,10 +70,14 @@ const pageTitle = "Return & Refund Policy — VINSHO";
 <style>
   .policy-page-container { padding-block: clamp(2.5rem, 5vw, 5rem); max-width: 52rem; }
   .policy-header h1 { font-family: var(--display); font-size: clamp(2rem, 4vw, 3rem); color: var(--maroon-2); margin: 0 0 0.5rem 0; }
-  .policy-meta { font-size: 0.813rem; color: var(--ink-soft); margin-bottom: 2.5rem; }
+  .policy-meta { font-size: 0.813rem; color: var(--ink-soft); margin-bottom: 2rem; }
+  .intro-p { font-size: 1.05rem; line-height: 1.7; color: var(--ink); margin-bottom: 2rem; font-weight: 500; }
   .policy-content { font-size: 0.95rem; line-height: 1.7; color: var(--ink); }
   .policy-section { margin-bottom: 2rem; }
   .policy-section h2 { font-family: var(--display); font-size: 1.35rem; color: var(--maroon); margin-bottom: 0.75rem; }
-  .policy-section ul { padding-left: 1.25rem; }
+  .policy-section ul { padding-left: 1.25rem; margin-block: 0.5rem 1rem; }
   .policy-section li { margin-bottom: 0.5rem; }
+  .policy-section a { color: var(--maroon); text-decoration: underline; font-weight: 500; }
+  .policy-section a:hover { color: var(--pink); }
 </style>
+

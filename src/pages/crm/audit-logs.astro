@@ -1,0 +1,127 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { db } from '../../lib/db';
+import { getSessionUser } from '../../lib/auth';
+
+const user = getSessionUser(Astro.request);
+if (!user || (user.role !== 'SUPER_ADMIN' && user.role !== 'ADMIN')) {
+  return Astro.redirect('/crm/login');
+}
+
+const auditLogs = db.prepare(`
+  SELECT a.*, u.name as actor_name, u.email as actor_email
+  FROM audit_logs a
+  LEFT JOIN admin_users u ON a.actor_id = u.id
+  ORDER BY a.created_at DESC
+  LIMIT 100
+`).all() as any[];
+---
+
+<AdminLayout title="System Audit Logs" activeNav="audit">
+  <div class="audit-container">
+    <div class="dash-head">
+      <div>
+        <h1 class="dash-title">System Audit Logs</h1>
+        <p class="dash-sub">Searchable audit trail tracking system mutations, user administration, product edits &amp; DPDP compliance events.</p>
+      </div>
+    </div>
+
+    <!-- Filter & Search Bar -->
+    <div class="filter-card">
+      <input type="text" id="audit-search" placeholder="Search by actor, action, or entity ID..." class="audit-search-input" />
+    </div>
+
+    <!-- Audit Logs Table -->
+    <div class="content-card">
+      {auditLogs.length > 0 ? (
+        <table class="audit-table" id="audit-table">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Actor</th>
+              <th>Action</th>
+              <th>Entity</th>
+              <th>Entity ID</th>
+              <th>Details (Before / After)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {auditLogs.map(log => (
+              <tr class="audit-row" data-search={`${log.actor_name} ${log.action} ${log.entity} ${log.entity_id}`}>
+                <td>{new Date(log.created_at).toLocaleString()}</td>
+                <td>
+                  <strong>{log.actor_name || 'System / Guest'}</strong>
+                  <small>{log.ip}</small>
+                </td>
+                <td><span class="action-pill">{log.action}</span></td>
+                <td><span class="entity-pill">{log.entity}</span></td>
+                <td>#{log.entity_id}</td>
+                <td>
+                  <details class="diff-details">
+                    <summary>View JSON Diff</summary>
+                    <div class="json-box">
+                      {log.before && (
+                        <div>
+                          <strong>Before:</strong>
+                          <pre>{log.before}</pre>
+                        </div>
+                      )}
+                      {log.after && (
+                        <div>
+                          <strong>After:</strong>
+                          <pre>{log.after}</pre>
+                        </div>
+                      )}
+                    </div>
+                  </details>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <p class="empty-state-msg">No data available yet. System audit events will log here automatically.</p>
+      )}
+    </div>
+  </div>
+</AdminLayout>
+
+<script inline>
+  const searchInput = document.getElementById('audit-search');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase();
+      const rows = document.querySelectorAll('.audit-row');
+      rows.forEach(row => {
+        const text = row.getAttribute('data-search').toLowerCase();
+        row.style.display = text.includes(q) ? '' : 'none';
+      });
+    });
+  }
+</script>
+
+<style>
+  .audit-container { padding: 1.5rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  .dash-head { margin-bottom: 1.5rem; }
+  .dash-title { font-size: 1.6rem; font-weight: 700; color: #0f172a; margin: 0 0 0.25rem 0; }
+  .dash-sub { font-size: 0.88rem; color: #64748b; margin: 0; }
+
+  .filter-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 0.75rem 1rem; margin-bottom: 1rem; }
+  .audit-search-input { width: 100%; max-width: 450px; padding: 0.5rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.88rem; }
+
+  .content-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 1.25rem; }
+  .audit-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+  .audit-table th { text-align: left; padding: 0.6rem 0.75rem; background: #f8fafc; color: #475569; border-bottom: 1px solid #e2e8f0; font-weight: 600; }
+  .audit-table td { padding: 0.65rem 0.75rem; border-bottom: 1px solid #f1f5f9; vertical-align: top; }
+  .audit-table td strong { display: block; }
+  .audit-table td small { font-size: 0.75rem; color: #64748b; }
+
+  .action-pill { font-size: 0.72rem; font-weight: 700; background: #e0f2fe; color: #0369a1; padding: 0.2rem 0.5rem; border-radius: 3px; }
+  .entity-pill { font-size: 0.72rem; background: #f1f5f9; color: #475569; padding: 0.2rem 0.5rem; border-radius: 3px; }
+
+  .diff-details { cursor: pointer; color: #8A174B; font-weight: 600; }
+  .json-box { background: #0f172a; color: #f8fafc; padding: 0.75rem; border-radius: 4px; margin-top: 0.5rem; font-size: 0.75rem; max-width: 500px; overflow-x: auto; }
+  .json-box pre { margin: 0; white-space: pre-wrap; word-break: break-all; }
+
+  .empty-state-msg { text-align: center; color: #64748b; font-size: 0.88rem; padding: 2rem; background: #f8fafc; border-radius: 4px; border: 1px dashed #cbd5e1; }
+</style>

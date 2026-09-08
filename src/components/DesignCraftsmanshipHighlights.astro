@@ -1,0 +1,153 @@
+---
+export interface HighlightItem {
+  title: string;
+  description: string;
+}
+
+export interface Props {
+  highlights?: HighlightItem[] | null;
+  quote?: string | null;
+  class?: string;
+}
+
+const { highlights, quote, class: className = '' } = Astro.props;
+
+const hasHighlights = highlights && Array.isArray(highlights) && highlights.length > 0;
+const formattedQuote = quote && quote.trim() !== '' ? quote.trim() : null;
+---
+
+{hasHighlights && (
+  <aside class={`pdp-highlights-sidebar ${className}`} aria-label="Design and Craftsmanship Highlights">
+    <h2 class="highlights-heading">DESIGN &amp; CRAFTSMANSHIP<br />HIGHLIGHTS</h2>
+    
+    <div class="highlights-list">
+      {highlights.slice(0, 4).map((item, idx) => {
+        const num = String(idx + 1).padStart(2, '0');
+        return (
+          <div class="highlight-item">
+            <div class="hl-header">
+              <span class="hl-num">{num}</span>
+              <h3 class="hl-title">{item.title}</h3>
+            </div>
+            <p class="hl-desc">{item.description}</p>
+          </div>
+        );
+      })}
+    </div>
+
+    {formattedQuote && (
+      <div class="highlights-quote-wrap">
+        <blockquote class="highlights-quote">
+          &ldquo;{formattedQuote}&rdquo;
+        </blockquote>
+      </div>
+    )}
+  </aside>
+)}
+
+<style>
+  .pdp-highlights-sidebar {
+    background: #ffffff;
+    border: 1px solid rgba(138, 23, 75, 0.1);
+    border-radius: 20px;
+    padding: clamp(1.25rem, 2vw, 1.75rem);
+    box-shadow: 0 10px 30px rgba(138, 23, 75, 0.04);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    box-sizing: border-box;
+  }
+
+  .highlights-heading {
+    font-family: var(--sans, system-ui, sans-serif);
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--maroon, #8A174B);
+    margin: 0 0 1.25rem 0;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(138, 23, 75, 0.1);
+    line-height: 1.35;
+  }
+
+  .highlights-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    flex: 1;
+  }
+
+  .highlight-item {
+    padding-block: 1rem;
+    border-bottom: 1px dotted rgba(138, 23, 75, 0.18);
+  }
+
+  .highlight-item:first-child {
+    padding-top: 0.25rem;
+  }
+
+  .highlight-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0.75rem;
+  }
+
+  .hl-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .hl-num {
+    font-family: var(--serif, Georgia, serif);
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--maroon, #8A174B);
+    flex-shrink: 0;
+  }
+
+  .hl-title {
+    font-family: var(--serif, Georgia, serif);
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--maroon-2, #6B0E38);
+    margin: 0;
+    line-height: 1.25;
+  }
+
+  .hl-desc {
+    font-family: var(--sans, system-ui, sans-serif);
+    font-size: 0.813rem;
+    line-height: 1.45;
+    color: #555555;
+    margin: 0;
+    padding-left: 1.5rem;
+  }
+
+  .highlights-quote-wrap {
+    margin-top: auto;
+    padding-top: 1rem;
+  }
+
+  .highlights-quote {
+    margin: 0;
+    padding: 0;
+    font-family: var(--serif, Georgia, serif);
+    font-size: 0.9rem;
+    font-style: italic;
+    color: var(--maroon, #8A174B);
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  @media (max-width: 767px) {
+    .pdp-highlights-sidebar {
+      padding: 1.25rem;
+      border-radius: 16px;
+    }
+    .hl-desc {
+      padding-left: 1.4rem;
+    }
+  }
+</style>

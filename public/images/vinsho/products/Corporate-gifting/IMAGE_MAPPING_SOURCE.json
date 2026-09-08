@@ -1,0 +1,7 @@
+{
+  "productDataSource": "vinsho-commerce-seed.json",
+  "sourceType": "json",
+  "productCollection": "products",
+  "categoryIdentifier": "corporate-gifting",
+  "discoveredAt": "2026-09-01T10:06:35Z"
+}

@@ -1,0 +1,126 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { db } from '../../../lib/db';
+import { getSessionUser } from '../../../lib/auth';
+
+const user = getSessionUser(Astro.request);
+if (!user) {
+  return Astro.redirect('/crm/login');
+}
+
+const url = new URL(Astro.request.url);
+const q = (url.searchParams.get('q') || '').trim().toLowerCase();
+
+let sql = 'SELECT * FROM customers WHERE 1=1';
+const params: any[] = [];
+
+if (q) {
+  sql += ' AND (LOWER(name) LIKE ? OR LOWER(email) LIKE ? OR LOWER(phone) LIKE ? OR LOWER(company) LIKE ?)';
+  const term = `%${q}%`;
+  params.push(term, term, term, term);
+}
+
+sql += ' ORDER BY created_at DESC';
+
+const customers = db.prepare(sql).all(...params) as any[];
+---
+
+<AdminLayout title="Customer Database" activeNav="customers">
+  <div class="customers-page-container">
+    <div class="cust-head-row">
+      <div>
+        <h1 class="cust-page-title">Customer Database</h1>
+        <p class="cust-page-sub">Converted clients, order histories and billing profiles.</p>
+      </div>
+      <span class="total-cust-tag">{customers.length} Converted Clients</span>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls-card">
+      <form method="GET" class="search-form">
+        <div class="search-input-frame">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input type="search" name="q" value={q} placeholder="Search customer name, email, phone, company..." class="search-field" />
+        </div>
+        <button type="submit" class="apply-btn">Search</button>
+        {q && <a href="/crm/customers" class="reset-link">Reset</a>}
+      </form>
+    </div>
+
+    <!-- Customers Grid / Table -->
+    <div class="table-card">
+      <div class="table-scroll-container">
+        <table class="cust-master-table">
+          <thead>
+            <tr>
+              <th>Customer Name</th>
+              <th>Company</th>
+              <th>Phone</th>
+              <th>Email</th>
+              <th>Address / Location</th>
+              <th>Lead Source</th>
+              <th>Converted Date</th>
+              <th>Lead Reference</th>
+            </tr>
+          </thead>
+          <tbody>
+            {customers.length === 0 ? (
+              <tr>
+                <td colspan="8" class="empty-cell">No converted customers found.</td>
+              </tr>
+            ) : (
+              customers.map((cust) => (
+                <tr>
+                  <td>
+                    <span class="cust-name">{cust.name}</span>
+                  </td>
+                  <td>{cust.company || <span class="muted">&mdash;</span>}</td>
+                  <td><a href={`tel:${cust.phone}`} class="link">{cust.phone}</a></td>
+                  <td><a href={`mailto:${cust.email}`} class="link">{cust.email || '&mdash;'}</a></td>
+                  <td>{cust.address || <span class="muted">&mdash;</span>}</td>
+                  <td><span class="source-tag">{cust.source || 'Website'}</span></td>
+                  <td>{new Date(cust.converted_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                  <td>
+                    {cust.lead_id ? (
+                      <a href={`/crm/leads/${cust.lead_id}`} class="lead-ref-link">View Lead #{cust.lead_id} &rarr;</a>
+                    ) : (
+                      <span class="muted">&mdash;</span>
+                    )}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</AdminLayout>
+
+<style>
+  .customers-page-container { display: flex; flex-direction: column; gap: 1.5rem; }
+  .cust-head-row { display: flex; align-items: baseline; justify-content: space-between; }
+  .cust-page-title { font-family: var(--display); font-size: 2rem; color: var(--maroon-2); margin: 0; }
+  .cust-page-sub { font-size: 0.88rem; color: var(--ink-soft); margin-top: 0.2rem; }
+  .total-cust-tag { background: var(--maroon); color: #ffffff; font-weight: 700; font-size: 0.781rem; padding: 0.4rem 0.85rem; border-radius: 999px; }
+
+  .controls-card { background: var(--paper-2); border: 1px solid var(--line); border-radius: 8px; padding: 1rem 1.25rem; }
+  .search-form { display: flex; gap: 0.75rem; align-items: center; }
+  .search-input-frame { display: flex; align-items: center; gap: 0.5rem; background: #ffffff; border: 1px solid var(--line); border-radius: 6px; padding: 0.45rem 0.75rem; flex: 1; }
+  .search-field { border: none; outline: none; width: 100%; font-size: 0.875rem; background: transparent; }
+  .apply-btn { background: var(--maroon-2); color: #ffffff; border: none; padding: 0.45rem 1rem; border-radius: 6px; font-size: 0.813rem; font-weight: 600; cursor: pointer; }
+  .reset-link { font-size: 0.781rem; color: var(--maroon); text-decoration: underline; }
+
+  .table-card { background: var(--paper-2); border: 1px solid var(--line); border-radius: 8px; padding: 1rem; }
+  .table-scroll-container { overflow-x: auto; }
+  .cust-master-table { width: 100%; border-collapse: collapse; font-size: 0.844rem; text-align: left; }
+  .cust-master-table th { background: var(--paper-3); color: var(--maroon-2); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 0.75rem; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  .cust-master-table td { padding: 0.75rem; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  .cust-name { font-weight: 700; color: var(--maroon-2); }
+  .muted { color: var(--ink-soft); }
+  .link { color: var(--ink); text-decoration: none; }
+  .source-tag { font-size: 0.72rem; background: var(--paper-3); padding: 0.15rem 0.5rem; border-radius: 4px; }
+  .lead-ref-link { font-weight: 600; color: var(--maroon); text-decoration: none; font-size: 0.781rem; }
+</style>

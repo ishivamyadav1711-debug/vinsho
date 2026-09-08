@@ -1,0 +1,253 @@
+---
+import Base from '../../layouts/Base.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+import Modal from '../../components/Modal.astro';
+import CustomCursor from '../../components/motion/CustomCursor.astro';
+import { getCustomerFromSession } from '../../lib/customerAuth';
+
+// Server-side Authentication Gate for Payment & Order Review (§2)
+const customer = getCustomerFromSession(Astro.request);
+if (!customer) {
+  return Astro.redirect('/login?redirect=/checkout/payment');
+}
+---
+
+<Base 
+  title="Checkout &mdash; Place Order | VINSHO" 
+  description="Review order details and place your order with VINSHO."
+>
+  <CustomCursor />
+  <Nav />
+
+  <main id="main-content" class="v-checkout-page">
+    <div class="v-checkout-container">
+      <h1 class="v-checkout-title">REVIEW &amp; PLACE ORDER</h1>
+
+      <div class="v-checkout-grid">
+        <div class="v-checkout-left">
+          <div class="v-summary-box">
+            <h3>DELIVERY ADDRESS</h3>
+            <div id="v-address-summary" class="v-box-body"></div>
+          </div>
+
+          <div class="v-summary-box">
+            <h3>ORDER METHOD</h3>
+            <div class="v-box-body">
+              <strong>Direct WhatsApp Order (Order Placement &amp; Assistance)</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="v-checkout-right">
+          <div class="v-summary-card">
+            <h3>ORDER SUMMARY</h3>
+            <div id="v-items-list" class="v-items-list"></div>
+
+            <div class="v-divider"></div>
+
+            <div class="v-total-row">
+              <span>Total Amount:</span>
+              <strong id="v-grand-total">₹0</strong>
+            </div>
+
+            <div id="v-pay-error" class="v-error-banner" hidden></div>
+
+            <button type="button" id="v-place-order-btn" class="v-btn-place-order">Order on WhatsApp</button>
+            <p class="v-whatsapp-support-text" style="font-size: 0.813rem; color: #6b7280; text-align: center; margin-top: 0.5rem; margin-bottom: 0;">Complete your order directly with us on WhatsApp.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <Footer />
+  <Modal />
+</Base>
+
+<script>
+  import { getLocalCartState, buildWhatsAppOrderUrl } from '../../scripts/cart-store';
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const addrBox = document.getElementById('v-address-summary');
+    const itemsBox = document.getElementById('v-items-list');
+    const totalBox = document.getElementById('v-grand-total');
+    const placeOrderBtn = document.getElementById('v-place-order-btn') as HTMLButtonElement | null;
+    const errorBanner = document.getElementById('v-pay-error');
+
+    let addressData: any = null;
+    try {
+      const raw = sessionStorage.getItem('vinsho_shipping_address');
+      if (raw) addressData = JSON.parse(raw);
+    } catch {
+      addressData = null;
+    }
+
+    if (!addressData) {
+      window.location.href = '/checkout/address';
+      return;
+    }
+
+    if (addrBox) {
+      addrBox.innerHTML = `
+        <strong>${addressData.name}</strong> &middot; ${addressData.phone}<br/>
+        ${addressData.line1}${addressData.line2 ? ', ' + addressData.line2 : ''}<br/>
+        ${addressData.city}, ${addressData.state} — <strong>${addressData.pincode}</strong>
+      `;
+    }
+
+    const state = getLocalCartState();
+
+    if (state.items.length === 0) {
+      window.location.href = '/cart';
+      return;
+    }
+
+    if (itemsBox) {
+      itemsBox.innerHTML = state.items.map(item => `
+        <div class="v-item-row">
+          <span>${item.name} &times; ${item.quantity}</span>
+          <strong>₹${(item.price * item.quantity).toLocaleString('en-IN')}</strong>
+        </div>
+      `).join('');
+    }
+
+    if (totalBox) {
+      totalBox.textContent = `₹${state.subtotal.toLocaleString('en-IN')}`;
+    }
+
+    placeOrderBtn?.addEventListener('click', () => {
+      const currentState = getLocalCartState();
+      if (!currentState.items || currentState.items.length === 0) {
+        window.location.href = '/cart';
+        return;
+      }
+
+      const whatsappUrl = buildWhatsAppOrderUrl(currentState.items, currentState.subtotal);
+      const win = window.open(whatsappUrl, '_blank');
+      if (!win || win.closed || typeof win.closed === 'undefined') {
+        window.location.href = whatsappUrl;
+      }
+    });
+  });
+</script>
+
+<style>
+  .v-checkout-page {
+    background-color: #FAF6F0;
+    color: #3E3336;
+    padding-block: clamp(2rem, 4vw, 4.5rem);
+    min-height: 80vh;
+  }
+
+  .v-checkout-container {
+    max-width: 900px;
+    margin-inline: auto;
+    padding-inline: clamp(1rem, 4vw, 2.5rem);
+  }
+
+  .v-checkout-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    color: #8A174B;
+    margin-bottom: 1.5rem;
+  }
+
+  .v-checkout-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 2rem;
+  }
+
+  @media (max-width: 768px) {
+    .v-checkout-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .v-summary-box {
+    background: #ffffff;
+    border: 1px solid rgba(138, 23, 75, 0.12);
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .v-summary-box h3 {
+    font-size: 0.813rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: #8A174B;
+    margin: 0 0 0.75rem;
+  }
+
+  .v-box-body {
+    font-size: 0.88rem;
+    line-height: 1.6;
+  }
+
+  .v-summary-card {
+    background: #ffffff;
+    border: 1px solid rgba(138, 23, 75, 0.12);
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+
+  .v-summary-card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    color: #8A174B;
+    margin: 0 0 1rem;
+  }
+
+  .v-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .v-item-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+  }
+
+  .v-divider {
+    height: 1px;
+    background: rgba(138, 23, 75, 0.12);
+    margin-block: 1rem;
+  }
+
+  .v-total-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.05rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .v-total-row strong {
+    color: #8A174B;
+  }
+
+  .v-error-banner {
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 0.75rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+  }
+
+  .v-btn-place-order {
+    width: 100%;
+    padding: 0.95rem;
+    background: #8A174B;
+    color: #ffffff;
+    border: none;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+  }
+</style>

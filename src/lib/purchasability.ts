@@ -18,27 +18,17 @@ export interface PurchasableCheckItem {
  * All other products fall back to "Price on Request" -> "Get Quote".
  */
 export function isProductPurchasable(product: PurchasableCheckItem): boolean {
-  if (typeof product.isPurchasable === 'boolean') {
-    return product.isPurchasable;
-  }
+  const colKey = (product.collectionKey || product.collection || '').toLowerCase().trim();
+  const subcat = (product.subcategoryKey || product.subcategory || '').toLowerCase().trim();
 
-  const slug = (product.slug || '').toLowerCase();
-  const name = (product.name || '').toLowerCase();
-  const subcat = (product.subcategoryKey || product.subcategory || '').toLowerCase();
-  const material = (product.material || '').toLowerCase();
-
-  // 1. Candles (Home Decor -> Candles)
-  if (subcat.includes('candle') || slug.includes('candle') || name.includes('candle')) {
-    return true;
-  }
-
-  // 2. Cork Products
-  if (slug.includes('cork') || name.includes('cork') || material.includes('cork')) {
-    return true;
-  }
-
-  // 3. Gift Baskets
-  if (slug.includes('basket') || name.includes('basket')) {
+  // DYNAMIC SINGLE SOURCE OF TRUTH:
+  // IF product belongs to "Gifting Collection" -> AVAILABLE ONLINE (true)
+  // ELSE -> AVAILABLE AT STORE ONLY (false)
+  if (
+    colKey.includes('gifting') || 
+    colKey.includes('gift') ||
+    subcat.includes('gifting')
+  ) {
     return true;
   }
 

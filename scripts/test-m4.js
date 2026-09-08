@@ -96,9 +96,10 @@ function test(name, fn) {
 test('Return Inspection Gate: Stock restores ONLY IF inspection PASS; FAIL logs damaged write-off', () => {
   const now = new Date().toISOString();
 
-  // Setup variant stock = 10
+  const targetProduct = db.prepare('SELECT id FROM products LIMIT 1').get();
+  const prodId = targetProduct ? targetProduct.id : 1;
   db.prepare("DELETE FROM product_variants WHERE sku = 'M4_RETURN_TEST'").run();
-  const vRes = db.prepare("INSERT INTO product_variants (product_id, sku, stock, created_at, updated_at) VALUES (1, 'M4_RETURN_TEST', 10, ?, ?)").run(now, now);
+  const vRes = db.prepare("INSERT INTO product_variants (product_id, sku, stock, created_at, updated_at) VALUES (?, 'M4_RETURN_TEST', 10, ?, ?)").run(prodId, now, now);
   const varId = vRes.lastInsertRowid;
 
   // Insert Return 1: PASS

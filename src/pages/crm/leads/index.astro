@@ -1,0 +1,612 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { db } from '../../../lib/db';
+import { getSessionUser } from '../../../lib/auth';
+import taxonomyData from '../../../../vinsho-taxonomy.json';
+
+const user = getSessionUser(Astro.request);
+if (!user) {
+  return Astro.redirect('/crm/login');
+}
+
+const url = new URL(Astro.request.url);
+const q = (url.searchParams.get('q') || '').trim().toLowerCase();
+const statusFilter = url.searchParams.get('status') || '';
+const sourceFilter = url.searchParams.get('source') || '';
+const colFilter = url.searchParams.get('collectionKey') || '';
+const assignedFilter = url.searchParams.get('assignedTo') || '';
+const sortFilter = url.searchParams.get('sort') || 'newest';
+
+let sql = 'SELECT * FROM leads WHERE 1=1';
+const params: any[] = [];
+
+if (q) {
+  sql += ' AND (LOWER(name) LIKE ? OR LOWER(email) LIKE ? OR LOWER(phone) LIKE ? OR LOWER(company) LIKE ? OR LOWER(product_slug) LIKE ?)';
+  const term = `%${q}%`;
+  params.push(term, term, term, term, term);
+}
+if (statusFilter) {
+  sql += ' AND status = ?';
+  params.push(statusFilter);
+}
+if (sourceFilter) {
+  sql += ' AND source = ?';
+  params.push(sourceFilter);
+}
+if (colFilter) {
+  sql += ' AND collection_key = ?';
+  params.push(colFilter);
+}
+if (assignedFilter) {
+  sql += ' AND assigned_to = ?';
+  params.push(assignedFilter);
+}
+
+if (sortFilter === 'oldest') sql += ' ORDER BY created_at ASC';
+else if (sortFilter === 'name') sql += ' ORDER BY name ASC';
+else if (sortFilter === 'last_contact') sql += ' ORDER BY last_contact_at DESC';
+else if (sortFilter === 'next_follow_up') sql += ' ORDER BY next_follow_up_at ASC';
+else sql += ' ORDER BY created_at DESC';
+
+const leads = db.prepare(sql).all(...params) as any[];
+const users = db.prepare('SELECT id, name FROM admin_users ORDER BY name ASC').all() as any[];
+
+const collections = taxonomyData.collections;
+---
+
+<AdminLayout title="Lead Management" activeNav="leads">
+  <div class="leads-page-container">
+    <div class="leads-head-row">
+      <div>
+        <h1 class="leads-page-title">Lead Management</h1>
+        <p class="leads-page-sub">Track, filter, assign and convert inquiries into clients.</p>
+      </div>
+      <button class="primary-btn" id="open-add-lead-btn">+ Create Manual Lead</button>
+    </div>
+
+    <!-- Filter & Search Controls Bar -->
+    <div class="controls-card">
+      <form method="GET" class="filter-form">
+        <div class="search-input-frame">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input type="search" name="q" value={q} placeholder="Search name, email, phone, company, product..." class="search-field" />
+        </div>
+
+        <select name="status" class="filter-select">
+          <option value="">All Statuses</option>
+          <option value="NEW" selected={statusFilter === 'NEW'}>New</option>
+          <option value="CONTACTED" selected={statusFilter === 'CONTACTED'}>Contacted</option>
+          <option value="QUALIFIED" selected={statusFilter === 'QUALIFIED'}>Qualified</option>
+          <option value="FOLLOW-UP" selected={statusFilter === 'FOLLOW-UP'}>Follow-up</option>
+          <option value="PROPOSAL" selected={statusFilter === 'PROPOSAL'}>Proposal</option>
+          <option value="NEGOTIATION" selected={statusFilter === 'NEGOTIATION'}>Negotiation</option>
+          <option value="CONVERTED" selected={statusFilter === 'CONVERTED'}>Converted</option>
+          <option value="LOST" selected={statusFilter === 'LOST'}>Lost</option>
+        </select>
+
+        <select name="source" class="filter-select">
+          <option value="">All Sources</option>
+          <option value="Website" selected={sourceFilter === 'Website'}>Website</option>
+          <option value="Contact Form" selected={sourceFilter === 'Contact Form'}>Contact Form</option>
+          <option value="Product Page" selected={sourceFilter === 'Product Page'}>Product Page</option>
+          <option value="Collection Page" selected={sourceFilter === 'Collection Page'}>Collection Page</option>
+          <option value="Instagram" selected={sourceFilter === 'Instagram'}>Instagram</option>
+          <option value="Referral" selected={sourceFilter === 'Referral'}>Referral</option>
+          <option value="Manual Entry" selected={sourceFilter === 'Manual Entry'}>Manual Entry</option>
+        </select>
+
+        <select name="collectionKey" class="filter-select">
+          <option value="">All Collections</option>
+          {collections.map(c => (
+            <option value={c.key} selected={colFilter === c.key}>{c.name}</option>
+          ))}
+        </select>
+
+        <select name="assignedTo" class="filter-select">
+          <option value="">All Team Members</option>
+          {users.map(u => (
+            <option value={u.name} selected={assignedFilter === u.name}>{u.name}</option>
+          ))}
+        </select>
+
+        <select name="sort" class="filter-select">
+          <option value="newest" selected={sortFilter === 'newest'}>Newest First</option>
+          <option value="oldest" selected={sortFilter === 'oldest'}>Oldest First</option>
+          <option value="name" selected={sortFilter === 'name'}>Name A-Z</option>
+          <option value="last_contact" selected={sortFilter === 'last_contact'}>Recent Contact</option>
+          <option value="next_follow_up" selected={sortFilter === 'next_follow_up'}>Next Follow-up</option>
+        </select>
+
+        <button type="submit" class="apply-btn">Apply</button>
+        {(q || statusFilter || sourceFilter || colFilter || assignedFilter) && (
+          <a href="/crm/leads" class="reset-link">Reset</a>
+        )}
+      </form>
+    </div>
+
+    <!-- Active Filter Chips -->
+    {(q || statusFilter || sourceFilter || colFilter || assignedFilter) && (
+      <div class="active-chips-bar">
+        <span class="chips-label">Active Filters:</span>
+        {statusFilter && <span class="chip">Status: {statusFilter}</span>}
+        {sourceFilter && <span class="chip">Source: {sourceFilter}</span>}
+        {colFilter && <span class="chip">Collection: {colFilter}</span>}
+        {assignedFilter && <span class="chip">Assigned: {assignedFilter}</span>}
+        {q && <span class="chip">Search: "{q}"</span>}
+        <a href="/crm/leads" class="clear-chips">CLEAR ALL</a>
+      </div>
+    )}
+
+    <!-- Table -->
+    <div class="table-card">
+      <div class="table-meta-bar">
+        <span>Showing <b>{leads.length}</b> leads</span>
+      </div>
+
+      <div class="table-scroll-container">
+        <table class="leads-master-table">
+          <thead>
+            <tr>
+              <th>Customer Name</th>
+              <th>Company / Location</th>
+              <th>Phone</th>
+              <th>Email</th>
+              <th>Source</th>
+              <th>Interested Product / Collection</th>
+              <th>Status</th>
+              <th>Assigned To</th>
+              <th>Last Contact</th>
+              <th>Next Follow-up</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {leads.length === 0 ? (
+              <tr>
+                <td colspan="12" class="empty-cell">No leads match the selected criteria.</td>
+              </tr>
+            ) : (
+              leads.map((lead) => (
+                <tr>
+                  <td>
+                    <a href={`/crm/leads/${lead.id}`} class="lead-link">{lead.name}</a>
+                  </td>
+                  <td>
+                    {lead.company || lead.location ? (
+                      <span>{lead.company} {lead.location ? `(${lead.location})` : ''}</span>
+                    ) : (
+                      <span class="muted-dash">&mdash;</span>
+                    )}
+                  </td>
+                  <td><a href={`tel:${lead.phone}`} class="contact-sublink">{lead.phone}</a></td>
+                  <td><a href={`mailto:${lead.email}`} class="contact-sublink">{lead.email || '&mdash;'}</a></td>
+                  <td><span class="source-tag">{lead.source}</span></td>
+                  <td>
+                    {lead.product_slug ? (
+                      <span class="prod-tag">📦 {lead.product_slug}</span>
+                    ) : lead.collection_key ? (
+                      <span class="col-tag">🎨 {lead.collection_key}</span>
+                    ) : (
+                      <span class="muted-dash">&mdash;</span>
+                    )}
+                  </td>
+                  <td>
+                    <span class={`status-pill status-${lead.status.toLowerCase()}`}>{lead.status}</span>
+                  </td>
+                  <td>{lead.assigned_to || <span class="unassigned-text">Unassigned</span>}</td>
+                  <td>{lead.last_contact_at ? new Date(lead.last_contact_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' }) : '&mdash;'}</td>
+                  <td>
+                    {lead.next_follow_up_at ? (
+                      <span class="follow-date">{new Date(lead.next_follow_up_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</span>
+                    ) : (
+                      '&mdash;'
+                    )}
+                  </td>
+                  <td>{new Date(lead.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</td>
+                  <td>
+                    <a href={`/crm/leads/${lead.id}`} class="action-link">Open &rarr;</a>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Lead Modal -->
+  <div class="modal-backdrop" id="add-lead-modal" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>Create New Lead</h2>
+        <button class="close-btn" id="close-add-lead-btn">&times;</button>
+      </div>
+
+      <form id="create-lead-form" class="modal-form">
+        <div class="form-grid">
+          <div class="f-group">
+            <label>Customer Name *</label>
+            <input type="text" name="name" required placeholder="e.g. Anish Malhotra" />
+          </div>
+
+          <div class="f-group">
+            <label>Phone Number *</label>
+            <input type="tel" name="phone" required placeholder="+91 98123 45678" />
+          </div>
+
+          <div class="f-group">
+            <label>Email Address</label>
+            <input type="email" name="email" placeholder="customer@company.com" />
+          </div>
+
+          <div class="f-group">
+            <label>Company / Firm</label>
+            <input type="text" name="company" placeholder="e.g. Design Studio Inc." />
+          </div>
+
+          <div class="f-group">
+            <label>Location / City</label>
+            <input type="text" name="location" placeholder="e.g. Gurugram, Haryana" />
+          </div>
+
+          <div class="f-group">
+            <label>Lead Source</label>
+            <select name="source">
+              <option value="Manual Entry">Manual Entry / Phone</option>
+              <option value="Website">Website</option>
+              <option value="Instagram">Instagram</option>
+              <option value="Referral">Referral</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="f-group">
+            <label>Assign To</label>
+            <select name="assignedTo">
+              <option value={user.name}>Myself ({user.name})</option>
+              {users.map(u => (
+                <option value={u.name}>{u.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div class="f-group">
+            <label>Initial Status</label>
+            <select name="status">
+              <option value="NEW">NEW</option>
+              <option value="CONTACTED">CONTACTED</option>
+              <option value="QUALIFIED">QUALIFIED</option>
+            </select>
+          </div>
+
+          <div class="f-group full-width">
+            <label>Requirement Details / Notes</label>
+            <textarea name="requirement" rows="3" placeholder="Enter furnishing requirement details..."></textarea>
+          </div>
+        </div>
+
+        <p id="modal-error" class="error-msg" hidden></p>
+
+        <div class="modal-foot">
+          <button type="button" class="cancel-btn" id="cancel-add-lead-btn">Cancel</button>
+          <button type="submit" class="submit-btn">Create Lead</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  const modal = document.getElementById('add-lead-modal');
+  const openBtn = document.getElementById('open-add-lead-btn');
+  const closeBtn = document.getElementById('close-add-lead-btn');
+  const cancelBtn = document.getElementById('cancel-add-lead-btn');
+  const form = document.getElementById('create-lead-form') as HTMLFormElement | null;
+  const errEl = document.getElementById('modal-error');
+
+  openBtn?.addEventListener('click', () => modal && (modal.hidden = false));
+  closeBtn?.addEventListener('click', () => modal && (modal.hidden = true));
+  cancelBtn?.addEventListener('click', () => modal && (modal.hidden = true));
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (errEl) errEl.hidden = true;
+
+    const formData = new FormData(form);
+    const body = Object.fromEntries(formData.entries());
+
+    try {
+      const res = await fetch('/api/admin/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        if (errEl) {
+          errEl.hidden = false;
+          errEl.textContent = data.error || 'Failed to create lead.';
+        }
+        return;
+      }
+      window.location.reload();
+    } catch (err) {
+      if (errEl) {
+        errEl.hidden = false;
+        errEl.textContent = 'Server connection error.';
+      }
+    }
+  });
+</script>
+
+<style>
+  .leads-page-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .leads-head-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+  }
+
+  .leads-page-title {
+    font-family: var(--display);
+    font-size: 2rem;
+    color: var(--maroon-2);
+    margin: 0;
+  }
+
+  .leads-page-sub {
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+    margin-top: 0.2rem;
+  }
+
+  .primary-btn {
+    background: var(--maroon);
+    color: #ffffff;
+    font-size: 0.813rem;
+    font-weight: 600;
+    padding: 0.6rem 1.25rem;
+    border-radius: 999px;
+    border: none;
+    cursor: pointer;
+  }
+
+  .controls-card {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+  }
+
+  .filter-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .search-input-frame {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 0.45rem 0.75rem;
+    flex: 1;
+    min-width: 260px;
+  }
+
+  .search-field {
+    border: none;
+    outline: none;
+    width: 100%;
+    font-size: 0.875rem;
+    background: transparent;
+  }
+
+  .filter-select {
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.813rem;
+    color: var(--ink);
+    outline: none;
+  }
+
+  .apply-btn {
+    background: var(--maroon-2);
+    color: #ffffff;
+    border: none;
+    padding: 0.45rem 1rem;
+    border-radius: 6px;
+    font-size: 0.813rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .reset-link {
+    font-size: 0.781rem;
+    color: var(--maroon);
+    text-decoration: underline;
+  }
+
+  .active-chips-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    font-size: 0.813rem;
+  }
+
+  .chip {
+    background: var(--maroon);
+    color: #ffffff;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+  }
+
+  .clear-chips {
+    color: var(--maroon);
+    text-decoration: underline;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: auto;
+  }
+
+  .table-card {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 1rem;
+  }
+
+  .table-meta-bar {
+    font-size: 0.813rem;
+    color: var(--ink-soft);
+    margin-bottom: 0.75rem;
+  }
+
+  .table-scroll-container {
+    overflow-x: auto;
+  }
+
+  .leads-master-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.844rem;
+    text-align: left;
+  }
+
+  .leads-master-table th {
+    background: var(--paper-3);
+    color: var(--maroon-2);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+
+  .leads-master-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+
+  .lead-link {
+    font-weight: 700;
+    color: var(--maroon-2);
+    text-decoration: none;
+  }
+
+  .lead-link:hover {
+    text-decoration: underline;
+  }
+
+  .contact-sublink {
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .source-tag {
+    font-size: 0.72rem;
+    background: var(--paper-3);
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+  }
+
+  .status-pill {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+  }
+
+  .status-new { background: #fef3c7; color: #92400e; }
+  .status-contacted { background: #e0f2fe; color: #075985; }
+  .status-qualified { background: #dcfce7; color: #166534; }
+  .status-follow-up { background: #fae8ff; color: #86198f; }
+  .status-proposal { background: #ede9fe; color: #5b21b6; }
+  .status-converted { background: #bbf7d0; color: #14532d; }
+  .status-lost { background: #fee2e2; color: #991b1b; }
+
+  .unassigned-text { color: var(--ink-soft); font-style: italic; }
+  .action-link { font-weight: 600; color: var(--maroon); text-decoration: none; }
+
+  /* Modal */
+  .modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 200;
+    display: grid;
+    place-items: center;
+    padding: 1.5rem;
+  }
+
+  .modal-card {
+    background: var(--paper, #FBF3F0);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    width: 100%;
+    max-width: 580px;
+    padding: 1.75rem;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+  }
+
+  .modal-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 0.75rem;
+  }
+
+  .modal-head h2 { font-family: var(--display); margin: 0; color: var(--maroon-2); }
+  .close-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .f-group { display: flex; flex-direction: column; gap: 0.35rem; }
+  .f-group.full-width { grid-column: span 2; }
+  .f-group label { font-size: 0.781rem; font-weight: 600; color: var(--maroon-2); }
+  .f-group input, .f-group select, .f-group textarea {
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 0.55rem;
+    font-size: 0.844rem;
+    outline: none;
+  }
+
+  .error-msg { color: #b91c1c; font-size: 0.813rem; margin-top: 0.5rem; }
+
+  .modal-foot {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+
+  .cancel-btn { background: none; border: 1px solid var(--line); padding: 0.55rem 1.25rem; border-radius: 999px; cursor: pointer; }
+  .submit-btn { background: var(--maroon); color: #ffffff; border: none; padding: 0.55rem 1.25rem; border-radius: 999px; font-weight: 600; cursor: pointer; }
+</style>

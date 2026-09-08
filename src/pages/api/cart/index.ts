@@ -1,6 +1,5 @@
 import type { APIRoute } from 'astro';
-import { db } from '../../../lib/db.js';
-import { addItemToCart, getCartItems, getOrCreateCart } from '../../../lib/cart.js';
+import { addItemToCart, getCartItems } from '../../../lib/cart.js';
 
 export const GET: APIRoute = async ({ request, url }) => {
   const sessionToken = url.searchParams.get('sessionToken') || request.headers.get('x-session-token') || 'guest-session';
@@ -11,6 +10,7 @@ export const GET: APIRoute = async ({ request, url }) => {
 
   return new Response(JSON.stringify({
     success: true,
+    sessionToken,
     count: totalItems,
     subtotal,
     items
@@ -23,16 +23,23 @@ export const GET: APIRoute = async ({ request, url }) => {
 export const POST: APIRoute = async ({ request }) => {
   try {
     const body = await request.json();
-    const { sessionToken, variantId, qty } = body;
+    const { sessionToken, variantId, slug, productId, qty = 1 } = body;
 
-    if (!sessionToken || !variantId || !qty) {
-      return new Response(JSON.stringify({ error: 'sessionToken, variantId and qty are required.' }), { status: 400 });
+    if (!sessionToken || (!variantId && !slug && !productId)) {
+      return new Response(JSON.stringify({ error: 'sessionToken and variantId or slug are required.' }), { status: 400 });
+    }
+
+    const parsedQty = parseInt(qty, 10);
+    if (isNaN(parsedQty) || parsedQty <= 0 || parsedQty > 999) {
+      return new Response(JSON.stringify({ error: 'Quantity must be a positive integer between 1 and 999.' }), { status: 400 });
     }
 
     const res = addItemToCart({
       sessionToken,
-      variantId: parseInt(variantId, 10),
-      qty: parseInt(qty, 10)
+      variantId: variantId ? parseInt(variantId, 10) : undefined,
+      slug,
+      productId: productId ? parseInt(productId, 10) : undefined,
+      qty: parsedQty
     });
 
     if (!res.success) {
@@ -40,22 +47,18 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const items = getCartItems(sessionToken);
-    return new Response(JSON.stringify({ success: true, message: 'Item added to cart.', items }), { status: 200 });
+    const subtotal = items.reduce((sum, item) => sum + (item.sellingPrice * item.qty), 0);
+    const totalItems = items.reduce((sum, item) => sum + item.qty, 0);
+
+    return new Response(JSON.stringify({
+      success: true,
+      message: 'Item added to cart.',
+      count: totalItems,
+      subtotal,
+      items
+    }), { status: 200, headers: { 'Content-Type': 'application/json' } });
 
   } catch (err: any) {
     return new Response(JSON.stringify({ error: err.message || 'Failed to add item to cart.' }), { status: 500 });
   }
-};
-
-export const DELETE: APIRoute = async ({ request, url }) => {
-  const sessionToken = url.searchParams.get('sessionToken') || 'guest-session';
-  const cartItemId = parseInt(url.searchParams.get('cartItemId') || '0', 10);
-
-  const cart = db.prepare('SELECT id FROM carts WHERE session_token = ?').get(sessionToken) as any;
-  if (cart && cartItemId) {
-    db.prepare('DELETE FROM cart_items WHERE id = ? AND cart_id = ?').run(cartItemId, cart.id);
-  }
-
-  const items = getCartItems(sessionToken);
-  return new Response(JSON.stringify({ success: true, message: 'Item removed from cart.', items }), { status: 200 });
 };

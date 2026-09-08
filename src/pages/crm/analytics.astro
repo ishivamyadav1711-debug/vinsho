@@ -1,0 +1,154 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import { db } from '../../lib/db';
+import { getSessionUser } from '../../lib/auth';
+
+const user = getSessionUser(Astro.request);
+if (!user) {
+  return Astro.redirect('/crm/login');
+}
+
+const nowIso = new Date().toISOString();
+const currentMonth = nowIso.substring(0, 7); // 'YYYY-MM'
+
+// 1. Sales Analytics
+const totalRevenue = (db.prepare(`SELECT COALESCE(SUM(grand_total), 0) as val FROM orders WHERE payment_status = 'paid'`).get() as any).val;
+const monthRevenue = (db.prepare(`SELECT COALESCE(SUM(grand_total), 0) as val FROM orders WHERE payment_status = 'paid' AND strftime('%Y-%m', placed_at) = ?`).get(currentMonth) as any).val;
+const totalPaidOrders = (db.prepare(`SELECT COUNT(*) as cnt FROM orders WHERE payment_status = 'paid'`).get() as any).cnt;
+const aov = totalPaidOrders > 0 ? (totalRevenue / totalPaidOrders) : 0;
+
+// Revenue by Shipping Class
+const revenueByClass = db.prepare(`
+  SELECT p.shipping_class, COALESCE(SUM(oi.line_total), 0) as revenue
+  FROM order_items oi
+  JOIN product_variants v ON oi.variant_id = v.id
+  JOIN products p ON v.product_id = p.id
+  JOIN orders o ON oi.order_id = o.id
+  WHERE o.payment_status = 'paid'
+  GROUP BY p.shipping_class
+`).all() as any[];
+
+// 2. Operations Analytics
+const totalOrdersCount = (db.prepare('SELECT COUNT(*) as cnt FROM orders').get() as any).cnt;
+const totalReturnsCount = (db.prepare('SELECT COUNT(*) as cnt FROM returns').get() as any).cnt;
+const rtoCount = (db.prepare('SELECT COUNT(*) as cnt FROM returns WHERE is_rto = 1').get() as any).cnt;
+const returnRate = totalOrdersCount > 0 ? ((totalReturnsCount / totalOrdersCount) * 100) : 0;
+const rtoRate = totalOrdersCount > 0 ? ((rtoCount / totalOrdersCount) * 100) : 0;
+const lowStockCount = (db.prepare('SELECT COUNT(*) as cnt FROM product_variants WHERE stock <= 5').get() as any).cnt;
+
+// 3. CRM Analytics
+const totalCustomersCount = (db.prepare('SELECT COUNT(*) as cnt FROM customers WHERE deleted_at IS NULL').get() as any).cnt;
+const totalEnquiriesCount = (db.prepare('SELECT COUNT(*) as cnt FROM enquiries').get() as any).cnt;
+const convertedEnquiries = (db.prepare(`SELECT COUNT(*) as cnt FROM enquiries WHERE status = 'Converted'`).get() as any).cnt;
+const conversionRate = totalEnquiriesCount > 0 ? ((convertedEnquiries / totalEnquiriesCount) * 100) : 0;
+---
+
+<AdminLayout title="Operations & Sales Analytics" activeNav="analytics">
+  <div class="analytics-container">
+    <div class="dash-head">
+      <div>
+        <h1 class="dash-title">Operations &amp; Sales Analytics</h1>
+        <p class="dash-sub">Real-time revenue, order fulfillment, return rates, and e-commerce performance metrics.</p>
+      </div>
+    </div>
+
+    <!-- 1. Sales Performance Cards -->
+    <h2 class="sec-heading">💰 Sales Performance</h2>
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <span class="m-label">TOTAL REVENUE (PAID)</span>
+        <span class="m-val">₹{totalRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+        <span class="m-sub">{totalRevenue === 0 ? 'No data available yet' : 'All-time paid transactions'}</span>
+      </div>
+
+      <div class="metric-card highlight-new">
+        <span class="m-label">MONTH REVENUE ({currentMonth})</span>
+        <span class="m-val">₹{monthRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+        <span class="m-sub">{monthRevenue === 0 ? 'No data available yet' : `Current month paid orders`}</span>
+      </div>
+
+      <div class="metric-card">
+        <span class="m-label">AVERAGE ORDER VALUE (AOV)</span>
+        <span class="m-val">₹{aov.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+        <span class="m-sub">{aov === 0 ? 'No data available yet' : 'Per confirmed order'}</span>
+      </div>
+    </div>
+
+    <!-- 2. Revenue by Shipping Class -->
+    <div class="content-card margin-gap">
+      <h2>Revenue by Shipping Class</h2>
+      {revenueByClass.length > 0 ? (
+        <div class="class-revenue-list">
+          {revenueByClass.map(c => (
+            <div class="class-rev-item">
+              <strong style="text-transform: capitalize;">{c.shipping_class} Class</strong>
+              <span>₹{c.revenue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p class="empty-state-msg">No data available yet. Revenue breakdowns by shipping class will populate when paid orders exist.</p>
+      )}
+    </div>
+
+    <!-- 3. Operations & Returns Metrics -->
+    <h2 class="sec-heading">📦 Operations &amp; Fulfillment</h2>
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <span class="m-label">RETURN RATE</span>
+        <span class="m-val">{returnRate.toFixed(1)}%</span>
+        <span class="m-sub">{totalOrdersCount === 0 ? 'No data available yet' : `${totalReturnsCount} customer returns`}</span>
+      </div>
+
+      <div class="metric-card">
+        <span class="m-label">RTO RATE (UNDELIVERED)</span>
+        <span class="m-val">{rtoRate.toFixed(1)}%</span>
+        <span class="m-sub">{totalOrdersCount === 0 ? 'No data available yet' : `${rtoCount} courier RTO shipments`}</span>
+      </div>
+
+      <div class="metric-card highlight-alert">
+        <span class="m-label">LOW STOCK ALERTS</span>
+        <span class="m-val">{lowStockCount}</span>
+        <span class="m-sub">{lowStockCount === 0 ? 'No low stock alerts' : 'Variants with stock <= 5'}</span>
+      </div>
+    </div>
+
+    <!-- 4. CRM Metrics -->
+    <h2 class="sec-heading">👥 Lead &amp; CRM Conversion Rate</h2>
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <span class="m-label">TOTAL CUSTOMERS</span>
+        <span class="m-val">{totalCustomersCount}</span>
+        <span class="m-sub">{totalCustomersCount === 0 ? 'No data available yet' : 'Deduplicated customer profiles'}</span>
+      </div>
+
+      <div class="metric-card">
+        <span class="m-label">ENQUIRY CONVERSION RATE</span>
+        <span class="m-val">{conversionRate.toFixed(1)}%</span>
+        <span class="m-sub">{totalEnquiriesCount === 0 ? 'No data available yet' : `${convertedEnquiries} converted leads`}</span>
+      </div>
+    </div>
+  </div>
+</AdminLayout>
+
+<style>
+  .analytics-container { padding: 1.5rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  .dash-head { margin-bottom: 1.5rem; }
+  .dash-title { font-size: 1.6rem; font-weight: 700; color: #0f172a; margin: 0 0 0.25rem 0; }
+  .dash-sub { font-size: 0.88rem; color: #64748b; margin: 0; }
+
+  .sec-heading { font-size: 1.1rem; font-weight: 700; color: #0f172a; margin: 1.5rem 0 0.75rem 0; }
+  .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+  .metric-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 1.1rem; display: flex; flex-direction: column; }
+  .metric-card.highlight-new { border-left: 4px solid #0284c7; }
+  .metric-card.highlight-alert { border-left: 4px solid #ef4444; background: #fef2f2; }
+  .m-label { font-size: 0.72rem; font-weight: 700; color: #64748b; letter-spacing: 0.05em; }
+  .m-val { font-size: 1.8rem; font-weight: 800; color: #0f172a; margin-block: 0.25rem; }
+  .m-sub { font-size: 0.75rem; color: #94a3b8; }
+
+  .content-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 1.25rem; margin-bottom: 1rem; }
+  .class-revenue-list { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.75rem; }
+  .class-rev-item { display: flex; justify-content: space-between; padding: 0.5rem 0.75rem; background: #f8fafc; border-radius: 4px; font-size: 0.88rem; }
+
+  .empty-state-msg { text-align: center; color: #64748b; font-size: 0.88rem; padding: 2rem; background: #f8fafc; border-radius: 4px; border: 1px dashed #cbd5e1; }
+</style>

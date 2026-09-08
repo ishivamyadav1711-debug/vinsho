@@ -1,4 +1,6 @@
 ---
+export const prerender = true;
+
 import Base from '../../layouts/Base.astro';
 import Nav from '../../components/Nav.astro';
 import Footer from '../../components/Footer.astro';
@@ -12,7 +14,7 @@ const pageTitle = "Shipping & Delivery Policy — VINSHO";
   <main class="wrap policy-page-container">
     <header class="policy-header">
       <h1>Shipping &amp; Delivery Policy</h1>
-      <p class="policy-meta">Last Updated: August 2026 &middot; VINSHO (Established 1997)</p>
+      <p class="policy-meta">Last Updated: August 2026 &middot; VINSHO</p>
     </header>
 
     <article class="policy-content">
@@ -44,7 +46,7 @@ const pageTitle = "Shipping & Delivery Policy — VINSHO";
 
       <section class="policy-section">
         <h2>5. Inquiries &amp; Support</h2>
-        <p>For order status or delivery updates, contact our logistics team at <a href={`mailto:${content.brand.email}`}>{content.brand.email}</a> or WhatsApp us at +91 8527406482.</p>
+        <p>For order status or delivery updates, contact our logistics team at <a href={`mailto:${content.brand.email}`}>{content.brand.email}</a> or WhatsApp us at +91 9625515351.</p>
       </section>
     </article>
   </main>

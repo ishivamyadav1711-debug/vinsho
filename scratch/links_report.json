@@ -1,0 +1,1166 @@
+{
+  "HOST": "http://localhost:4321",
+  "verifiedMain": [
+    {
+      "path": "/",
+      "title": "Home Page",
+      "url": "http://localhost:4321/",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/products",
+      "title": "All Products Catalog",
+      "url": "http://localhost:4321/products",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/collections",
+      "title": "Collections Overview",
+      "url": "http://localhost:4321/collections",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/about",
+      "title": "About Us",
+      "url": "http://localhost:4321/about",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/contact",
+      "title": "Contact Us",
+      "url": "http://localhost:4321/contact",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/cart",
+      "title": "Shopping Cart",
+      "url": "http://localhost:4321/cart",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/grievance-officer",
+      "title": "Grievance Officer & Nodal Details",
+      "url": "http://localhost:4321/grievance-officer",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/blog",
+      "title": "Blog Index",
+      "url": "http://localhost:4321/blog",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/blog/transform-your-space-with-vinsho",
+      "title": "Blog Article: Transform Your Space",
+      "url": "http://localhost:4321/blog/transform-your-space-with-vinsho",
+      "status": 200,
+      "location": null
+    }
+  ],
+  "verifiedCollections": [
+    {
+      "path": "/collections/home-furnishing",
+      "title": "Collection: Home Furnishing",
+      "url": "http://localhost:4321/collections/home-furnishing",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/collections/home-decor",
+      "title": "Collection: Home Decor",
+      "url": "http://localhost:4321/collections/home-decor",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/collections/gifting-collection",
+      "title": "Collection: Gifting Collection",
+      "url": "http://localhost:4321/collections/gifting-collection",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/collections/table-living",
+      "title": "Collection: Table & Living",
+      "url": "http://localhost:4321/collections/table-living",
+      "status": 200,
+      "location": null
+    }
+  ],
+  "verifiedSubcategories": [
+    {
+      "path": "/collections/home-furnishing/bedsheet",
+      "title": "Home Furnishing > Bedsheet",
+      "url": "http://localhost:4321/collections/home-furnishing/bedsheet",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/collections/home-furnishing/blanket",
+      "title": "Home Furnishing > Blanket",
+      "url": "http://localhost:4321/collections/home-furnishing/blanket",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/collections/home-furnishing/curtains",
+      "title": "Home Furnishing > Curtains",
+      "url": "http://localhost:4321/collections/home-furnishing/curtains",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/collections/home-furnishing/bathmat",
+      "title": "Home Furnishing > Bathmat",
+      "url": "http://localhost:4321/collections/home-furnishing/bathmat",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/collections/home-furnishing/cushion",
+      "title": "Home Furnishing > Cushion",
+      "url": "http://localhost:4321/collections/home-furnishing/cushion",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/collections/home-decor/wall-art",
+      "title": "Home Decor > Wall Art",
+      "url": "http://localhost:4321/collections/home-decor/wall-art",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/collections/home-decor/wall-clock",
+      "title": "Home Decor > Wall Clock",
+      "url": "http://localhost:4321/collections/home-decor/wall-clock",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/collections/home-decor/artificial-flowers",
+      "title": "Home Decor > Artificial Flowers",
+      "url": "http://localhost:4321/collections/home-decor/artificial-flowers",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/collections/home-decor/showpiece",
+      "title": "Home Decor > Showpiece",
+      "url": "http://localhost:4321/collections/home-decor/showpiece",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/collections/home-decor/candles",
+      "title": "Home Decor > Candles",
+      "url": "http://localhost:4321/collections/home-decor/candles",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/collections/gifting-collection/corporate-gifting",
+      "title": "Gifting Collection > Corporate Gifting",
+      "url": "http://localhost:4321/collections/gifting-collection/corporate-gifting",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/collections/gifting-collection/festive-personal",
+      "title": "Gifting Collection > Festive & Personal",
+      "url": "http://localhost:4321/collections/gifting-collection/festive-personal",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/collections/table-living/placemats-napkins",
+      "title": "Table & Living > Placemats & Napkins",
+      "url": "http://localhost:4321/collections/table-living/placemats-napkins",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/collections/table-living/serveware",
+      "title": "Table & Living > Serveware",
+      "url": "http://localhost:4321/collections/table-living/serveware",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/collections/table-living/table-linen",
+      "title": "Table & Living > Table Linen",
+      "url": "http://localhost:4321/collections/table-living/table-linen",
+      "status": 200,
+      "location": null
+    }
+  ],
+  "verifiedProducts": [
+    {
+      "path": "/product/anti-skid-rubber-mat",
+      "title": "Anti skid rubber mat",
+      "url": "http://localhost:4321/product/anti-skid-rubber-mat",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/aprons",
+      "title": "Aprons",
+      "url": "http://localhost:4321/product/aprons",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/artificial-flowers",
+      "title": "Artificial Flowers",
+      "url": "http://localhost:4321/product/artificial-flowers",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/bathmats",
+      "title": "Bathmats",
+      "url": "http://localhost:4321/product/bathmats",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/bedcover",
+      "title": "Bedcover",
+      "url": "http://localhost:4321/product/bedcover",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/bedsheet",
+      "title": "Bedsheet",
+      "url": "http://localhost:4321/product/bedsheet",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/blanket",
+      "title": "Blanket",
+      "url": "http://localhost:4321/product/blanket",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/blinds",
+      "title": "Blinds",
+      "url": "http://localhost:4321/product/blinds",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/blinds-with-decor",
+      "title": "Blinds with decor",
+      "url": "http://localhost:4321/product/blinds-with-decor",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/bonsai-jade-plant",
+      "title": "Bonsai - Jade Plant",
+      "url": "http://localhost:4321/product/bonsai-jade-plant",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/buddha",
+      "title": "Buddha",
+      "url": "http://localhost:4321/product/buddha",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/candles",
+      "title": "Candles",
+      "url": "http://localhost:4321/product/candles",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/carpets",
+      "title": "Carpets",
+      "url": "http://localhost:4321/product/carpets",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/comforter-set",
+      "title": "Comforter set",
+      "url": "http://localhost:4321/product/comforter-set",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/curtains",
+      "title": "Curtains",
+      "url": "http://localhost:4321/product/curtains",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/cushions",
+      "title": "Cushions",
+      "url": "http://localhost:4321/product/cushions",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/customised-wall-paper",
+      "title": "Customised Wall Paper",
+      "url": "http://localhost:4321/product/customised-wall-paper",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/decorative-candles",
+      "title": "Decorative Candles",
+      "url": "http://localhost:4321/product/decorative-candles",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/diaries",
+      "title": "Diaries",
+      "url": "http://localhost:4321/product/diaries",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/doormat",
+      "title": "Doormat",
+      "url": "http://localhost:4321/product/doormat",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/floral-panels",
+      "title": "Floral panels",
+      "url": "http://localhost:4321/product/floral-panels",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/flower-vases",
+      "title": "Flower vases",
+      "url": "http://localhost:4321/product/flower-vases",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/flowers-bouquet",
+      "title": "Flowers bouquet",
+      "url": "http://localhost:4321/product/flowers-bouquet",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/fridge-covers",
+      "title": "Fridge covers",
+      "url": "http://localhost:4321/product/fridge-covers",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/jaguar",
+      "title": "Jaguar",
+      "url": "http://localhost:4321/product/jaguar",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/jute-placemat",
+      "title": "Jute placemat",
+      "url": "http://localhost:4321/product/jute-placemat",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/kitchen-ware",
+      "title": "Kitchen Ware",
+      "url": "http://localhost:4321/product/kitchen-ware",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/laughing-buddha",
+      "title": "Laughing Buddha",
+      "url": "http://localhost:4321/product/laughing-buddha",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/leafy-hangings",
+      "title": "Leafy hangings",
+      "url": "http://localhost:4321/product/leafy-hangings",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/mattresses",
+      "title": "Mattresses",
+      "url": "http://localhost:4321/product/mattresses",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/metal-tree",
+      "title": "Metal Tree",
+      "url": "http://localhost:4321/product/metal-tree",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/mirror",
+      "title": "Mirror",
+      "url": "http://localhost:4321/product/mirror",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/napkin-set",
+      "title": "Napkin set",
+      "url": "http://localhost:4321/product/napkin-set",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/pen",
+      "title": "Pen",
+      "url": "http://localhost:4321/product/pen",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/photo-frames",
+      "title": "Photo Frames",
+      "url": "http://localhost:4321/product/photo-frames",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/pillows",
+      "title": "Pillows",
+      "url": "http://localhost:4321/product/pillows",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/placemats-napkins",
+      "title": "Placemats Napkins",
+      "url": "http://localhost:4321/product/placemats-napkins",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/round-placemat",
+      "title": "Round placemat",
+      "url": "http://localhost:4321/product/round-placemat",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/runners",
+      "title": "Runners",
+      "url": "http://localhost:4321/product/runners",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/show-piece",
+      "title": "Show Piece",
+      "url": "http://localhost:4321/product/show-piece",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/show-pieces",
+      "title": "Show Pieces",
+      "url": "http://localhost:4321/product/show-pieces",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/shower-curtains",
+      "title": "Shower curtains",
+      "url": "http://localhost:4321/product/shower-curtains",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/washroom-solution-or-soap-dispenser-set",
+      "title": "Soap dispenser set",
+      "url": "http://localhost:4321/product/washroom-solution-or-soap-dispenser-set",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/table-cover",
+      "title": "Table cover",
+      "url": "http://localhost:4321/product/table-cover",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/throws",
+      "title": "Throws",
+      "url": "http://localhost:4321/product/throws",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/turbie-towel",
+      "title": "Turbie towel",
+      "url": "http://localhost:4321/product/turbie-towel",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/wall-art",
+      "title": "Wall art",
+      "url": "http://localhost:4321/product/wall-art",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/wall-art-2",
+      "title": "Wall art",
+      "url": "http://localhost:4321/product/wall-art-2",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/wall-clock",
+      "title": "Wall clock",
+      "url": "http://localhost:4321/product/wall-clock",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/wall-painting",
+      "title": "Wall Painting",
+      "url": "http://localhost:4321/product/wall-painting",
+      "status": 200,
+      "location": null
+    }
+  ],
+  "verifiedPolicies": [
+    {
+      "path": "/policies/cancellation",
+      "title": "Cancellation & Refund Policy",
+      "url": "http://localhost:4321/policies/cancellation",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/policies/privacy",
+      "title": "Privacy Policy",
+      "url": "http://localhost:4321/policies/privacy",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/policies/returns",
+      "title": "Return & Exchange Policy",
+      "url": "http://localhost:4321/policies/returns",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/policies/shipping",
+      "title": "Shipping & Delivery Policy",
+      "url": "http://localhost:4321/policies/shipping",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/policies/terms",
+      "title": "Terms & Conditions",
+      "url": "http://localhost:4321/policies/terms",
+      "status": 200,
+      "location": null
+    }
+  ],
+  "verifiedCheckout": [
+    {
+      "path": "/checkout/address",
+      "title": "Checkout - Address Step",
+      "url": "http://localhost:4321/checkout/address",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/checkout/payment",
+      "title": "Checkout - Payment Step",
+      "url": "http://localhost:4321/checkout/payment",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/checkout/confirmation",
+      "title": "Checkout - Order Confirmation",
+      "url": "http://localhost:4321/checkout/confirmation",
+      "status": 200,
+      "location": null
+    }
+  ],
+  "verifiedAdmin": [
+    {
+      "path": "/admin/login",
+      "title": "Admin Login",
+      "url": "http://localhost:4321/admin/login",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/admin",
+      "title": "Admin Dashboard (Requires Auth)",
+      "url": "http://localhost:4321/admin",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/analytics",
+      "title": "Admin Analytics",
+      "url": "http://localhost:4321/admin/analytics",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/audit-logs",
+      "title": "Admin Audit Logs",
+      "url": "http://localhost:4321/admin/audit-logs",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/crm",
+      "title": "Admin CRM Hub",
+      "url": "http://localhost:4321/admin/crm",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/customers",
+      "title": "Admin Customer Directory",
+      "url": "http://localhost:4321/admin/customers",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/leads",
+      "title": "Admin Sales Leads",
+      "url": "http://localhost:4321/admin/leads",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products",
+      "title": "Admin Product Inventory",
+      "url": "http://localhost:4321/admin/products",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/returns",
+      "title": "Admin Return Requests",
+      "url": "http://localhost:4321/admin/returns",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/settings",
+      "title": "Admin Settings",
+      "url": "http://localhost:4321/admin/settings",
+      "status": 302,
+      "location": "/admin/crm"
+    }
+  ],
+  "verifiedAdminProducts": [
+    {
+      "path": "/admin/products/551",
+      "title": "Admin View: Anti skid rubber mat (#551)",
+      "url": "http://localhost:4321/admin/products/551",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/552",
+      "title": "Admin View: Aprons (#552)",
+      "url": "http://localhost:4321/admin/products/552",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/553",
+      "title": "Admin View: Artificial Flowers (#553)",
+      "url": "http://localhost:4321/admin/products/553",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/554",
+      "title": "Admin View: Bathmats (#554)",
+      "url": "http://localhost:4321/admin/products/554",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/555",
+      "title": "Admin View: Bedcover (#555)",
+      "url": "http://localhost:4321/admin/products/555",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/556",
+      "title": "Admin View: Bedsheet (#556)",
+      "url": "http://localhost:4321/admin/products/556",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/557",
+      "title": "Admin View: Blanket (#557)",
+      "url": "http://localhost:4321/admin/products/557",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/558",
+      "title": "Admin View: Blinds (#558)",
+      "url": "http://localhost:4321/admin/products/558",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/559",
+      "title": "Admin View: Blinds with decor (#559)",
+      "url": "http://localhost:4321/admin/products/559",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/560",
+      "title": "Admin View: Bonsai - Jade Plant (#560)",
+      "url": "http://localhost:4321/admin/products/560",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/561",
+      "title": "Admin View: Buddha (#561)",
+      "url": "http://localhost:4321/admin/products/561",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/562",
+      "title": "Admin View: Candles (#562)",
+      "url": "http://localhost:4321/admin/products/562",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/563",
+      "title": "Admin View: Carpets (#563)",
+      "url": "http://localhost:4321/admin/products/563",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/564",
+      "title": "Admin View: Comforter set (#564)",
+      "url": "http://localhost:4321/admin/products/564",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/565",
+      "title": "Admin View: Curtains (#565)",
+      "url": "http://localhost:4321/admin/products/565",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/566",
+      "title": "Admin View: Cushions (#566)",
+      "url": "http://localhost:4321/admin/products/566",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/567",
+      "title": "Admin View: Customised Wall Paper (#567)",
+      "url": "http://localhost:4321/admin/products/567",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/568",
+      "title": "Admin View: Decorative Candles (#568)",
+      "url": "http://localhost:4321/admin/products/568",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/569",
+      "title": "Admin View: Diaries (#569)",
+      "url": "http://localhost:4321/admin/products/569",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/570",
+      "title": "Admin View: Doormat (#570)",
+      "url": "http://localhost:4321/admin/products/570",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/571",
+      "title": "Admin View: Floral panels (#571)",
+      "url": "http://localhost:4321/admin/products/571",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/572",
+      "title": "Admin View: Flower vases (#572)",
+      "url": "http://localhost:4321/admin/products/572",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/573",
+      "title": "Admin View: Flowers bouquet (#573)",
+      "url": "http://localhost:4321/admin/products/573",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/574",
+      "title": "Admin View: Fridge covers (#574)",
+      "url": "http://localhost:4321/admin/products/574",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/575",
+      "title": "Admin View: Jaguar (#575)",
+      "url": "http://localhost:4321/admin/products/575",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/576",
+      "title": "Admin View: Jute placemat (#576)",
+      "url": "http://localhost:4321/admin/products/576",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/577",
+      "title": "Admin View: Kitchen Ware (#577)",
+      "url": "http://localhost:4321/admin/products/577",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/578",
+      "title": "Admin View: Laughing Buddha (#578)",
+      "url": "http://localhost:4321/admin/products/578",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/579",
+      "title": "Admin View: Leafy hangings (#579)",
+      "url": "http://localhost:4321/admin/products/579",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/580",
+      "title": "Admin View: Mattresses (#580)",
+      "url": "http://localhost:4321/admin/products/580",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/581",
+      "title": "Admin View: Metal Tree (#581)",
+      "url": "http://localhost:4321/admin/products/581",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/582",
+      "title": "Admin View: Mirror (#582)",
+      "url": "http://localhost:4321/admin/products/582",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/583",
+      "title": "Admin View: Napkin set (#583)",
+      "url": "http://localhost:4321/admin/products/583",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/584",
+      "title": "Admin View: Pen (#584)",
+      "url": "http://localhost:4321/admin/products/584",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/585",
+      "title": "Admin View: Photo Frames (#585)",
+      "url": "http://localhost:4321/admin/products/585",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/586",
+      "title": "Admin View: Pillows (#586)",
+      "url": "http://localhost:4321/admin/products/586",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/587",
+      "title": "Admin View: Placemats Napkins (#587)",
+      "url": "http://localhost:4321/admin/products/587",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/588",
+      "title": "Admin View: Round placemat (#588)",
+      "url": "http://localhost:4321/admin/products/588",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/589",
+      "title": "Admin View: Runners (#589)",
+      "url": "http://localhost:4321/admin/products/589",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/590",
+      "title": "Admin View: Show Piece (#590)",
+      "url": "http://localhost:4321/admin/products/590",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/591",
+      "title": "Admin View: Show Pieces (#591)",
+      "url": "http://localhost:4321/admin/products/591",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/592",
+      "title": "Admin View: Shower curtains (#592)",
+      "url": "http://localhost:4321/admin/products/592",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/593",
+      "title": "Admin View: Soap dispenser set (#593)",
+      "url": "http://localhost:4321/admin/products/593",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/594",
+      "title": "Admin View: Table cover (#594)",
+      "url": "http://localhost:4321/admin/products/594",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/595",
+      "title": "Admin View: Throws (#595)",
+      "url": "http://localhost:4321/admin/products/595",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/596",
+      "title": "Admin View: Turbie towel (#596)",
+      "url": "http://localhost:4321/admin/products/596",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/597",
+      "title": "Admin View: Wall art (#597)",
+      "url": "http://localhost:4321/admin/products/597",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/598",
+      "title": "Admin View: Wall art (#598)",
+      "url": "http://localhost:4321/admin/products/598",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/599",
+      "title": "Admin View: Wall clock (#599)",
+      "url": "http://localhost:4321/admin/products/599",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/products/600",
+      "title": "Admin View: Wall Painting (#600)",
+      "url": "http://localhost:4321/admin/products/600",
+      "status": 302,
+      "location": "/admin/login"
+    }
+  ],
+  "verifiedAdminLeads": [
+    {
+      "path": "/admin/leads/40",
+      "title": "Admin Lead #40",
+      "url": "http://localhost:4321/admin/leads/40",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/leads/41",
+      "title": "Admin Lead #41",
+      "url": "http://localhost:4321/admin/leads/41",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/leads/6",
+      "title": "Admin Lead #6",
+      "url": "http://localhost:4321/admin/leads/6",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/leads/7",
+      "title": "Admin Lead #7",
+      "url": "http://localhost:4321/admin/leads/7",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/leads/5",
+      "title": "Admin Lead #5",
+      "url": "http://localhost:4321/admin/leads/5",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/leads/8",
+      "title": "Admin Lead #8",
+      "url": "http://localhost:4321/admin/leads/8",
+      "status": 302,
+      "location": "/admin/login"
+    },
+    {
+      "path": "/admin/leads/9",
+      "title": "Admin Lead #9",
+      "url": "http://localhost:4321/admin/leads/9",
+      "status": 302,
+      "location": "/admin/login"
+    }
+  ],
+  "verifiedRedirects": [
+    {
+      "path": "/about-us",
+      "target": "/about",
+      "title": "Legacy About Us",
+      "url": "http://localhost:4321/about-us",
+      "status": 301,
+      "location": "/about"
+    },
+    {
+      "path": "/product-category/special-collection",
+      "target": "/collections",
+      "title": "Legacy Special Collection",
+      "url": "http://localhost:4321/product-category/special-collection",
+      "status": 301,
+      "location": "/collections"
+    },
+    {
+      "path": "/product-category/home-decor",
+      "target": "/collections/home-decor",
+      "title": "Legacy Home Decor",
+      "url": "http://localhost:4321/product-category/home-decor",
+      "status": 301,
+      "location": "/collections/home-decor"
+    },
+    {
+      "path": "/product-category/home-furnishing",
+      "target": "/collections/home-furnishings",
+      "title": "Legacy Home Furnishings",
+      "url": "http://localhost:4321/product-category/home-furnishing",
+      "status": 301,
+      "location": "/collections/home-furnishings"
+    },
+    {
+      "path": "/product-category/gifting",
+      "target": "/collections/gifting",
+      "title": "Legacy Gifting",
+      "url": "http://localhost:4321/product-category/gifting",
+      "status": 301,
+      "location": "/collections/gifting"
+    },
+    {
+      "path": "/collections/gifting-collection",
+      "target": "/collections/gifting",
+      "title": "Legacy Gifting Collection",
+      "url": "http://localhost:4321/collections/gifting-collection",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/wall-art-2",
+      "target": "/product/wall-art",
+      "title": "Legacy Wall Art Alias",
+      "url": "http://localhost:4321/product/wall-art-2",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/show-piece",
+      "target": "/product/show-pieces",
+      "title": "Legacy Show Piece Alias",
+      "url": "http://localhost:4321/product/show-piece",
+      "status": 200,
+      "location": null
+    },
+    {
+      "path": "/product/show-peice",
+      "target": "/product/show-pieces",
+      "title": "Legacy Show Peice Typo Alias",
+      "url": "http://localhost:4321/product/show-peice",
+      "status": 301,
+      "location": "/product/show-pieces"
+    }
+  ]
+}

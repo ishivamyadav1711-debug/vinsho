@@ -71,15 +71,15 @@ export function generateInvoiceRecord(order: any, orderItems: any[], shippingAdd
       <title>TAX INVOICE ${invoiceNumber}</title>
       <style>
         body { font-family: sans-serif; margin: 40px; color: #1e293b; }
-        .inv-head { display: flex; justify-content: space-between; border-bottom: 2px solid #670832; padding-bottom: 15px; }
-        .brand-title { font-size: 24px; font-weight: bold; color: #670832; letter-spacing: 2px; }
+        .inv-head { display: flex; justify-content: space-between; border-bottom: 2px solid #8A174B; padding-bottom: 15px; }
+        .brand-title { font-size: 24px; font-weight: bold; color: #8A174B; letter-spacing: 2px; }
         .todo-notice { background: #fef3c7; color: #92400e; padding: 8px 12px; border-radius: 4px; margin-block: 15px; font-size: 12px; font-weight: bold; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 13px; }
         th, td { border: 1px solid #cbd5e1; padding: 8px 10px; text-align: left; }
         th { background: #f8fafc; }
         .totals { margin-top: 20px; float: right; width: 300px; }
         .totals-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; }
-        .totals-row.grand { font-size: 16px; font-weight: bold; border-top: 2px solid #0f172a; padding-top: 8px; color: #670832; }
+        .totals-row.grand { font-size: 16px; font-weight: bold; border-top: 2px solid #0f172a; padding-top: 8px; color: #8A174B; }
       </style>
     </head>
     <body>

@@ -1,0 +1,986 @@
+---
+export const prerender = true;
+
+import Base from '../../layouts/Base.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+import Modal from '../../components/Modal.astro';
+import CustomCursor from '../../components/motion/CustomCursor.astro';
+import TextReveal from '../../components/motion/TextReveal.astro';
+---
+
+<Base 
+  title="VINSHO Journal | Home Décor, Furnishing & Gifting Inspiration" 
+  description="Explore VINSHO's journal for home décor ideas, furnishing guides, interior inspiration, gifting ideas, and thoughtful ways to create beautiful living spaces."
+>
+  <CustomCursor />
+  <Nav />
+
+  <main id="main-content" class="vj-journal-page">
+    
+    <!-- ==================================================
+         1. HERO / BLOG INTRODUCTION
+    ================================================== -->
+    <header class="vj-hero wrap">
+      <span class="vj-eyebrow">EDITORIAL JOURNAL</span>
+      <TextReveal as="h1" class="vj-hero-title">VINSHO JOURNAL</TextReveal>
+      <p class="vj-hero-subtitle">
+        Ideas, inspiration, and thoughtful ways to make your spaces more beautiful.
+      </p>
+      <p class="vj-hero-supporting">
+        Explore home furnishing ideas, décor inspiration, styling guides, gifting ideas, and stories from VINSHO.
+      </p>
+    </header>
+
+    <div class="vj-divider wrap"></div>
+
+    <!-- ==================================================
+         2. FEATURED ARTICLE
+    ================================================== -->
+    <section class="vj-featured-section wrap">
+      <div class="vj-featured-card">
+        <div class="vj-featured-img-box">
+          <img 
+            src="/images/vinsho/products/WhatsApp-Image-2026-01-03-at-16.13.11.jpeg" 
+            alt="Luxury-Looking Bedroom" 
+            loading="eager"
+            class="vj-img"
+          />
+        </div>
+        <div class="vj-featured-content">
+          <span class="vj-cat-badge">INTERIOR INSPIRATION</span>
+          <h2 class="vj-featured-title">
+            <a href="/blog/how-to-create-a-luxury-looking-bedroom-without-overdoing-it">
+              How to Create a Luxury-Looking Bedroom Without Overdoing It
+            </a>
+          </h2>
+          
+          <div class="vj-prose">
+            <p>A luxurious bedroom does not need to be filled with expensive furniture or excessive decoration. The secret is creating balance between comfort, texture, colour, and space.</p>
+            <p>Start with the foundation. Choose bedding in calm, complementary tones and introduce texture through cushions, throws, and soft furnishings. Instead of using many different patterns, select one dominant pattern and keep the remaining elements subtle.</p>
+            <p>Lighting also plays an important role. Warm, soft lighting can make a bedroom feel more relaxed and inviting, while decorative elements such as vases, candles, or wall art can add personality without overwhelming the room.</p>
+            <p>The final step is restraint. Leave enough empty space around your decorative pieces so that each element has room to breathe.</p>
+            <p>A well-designed bedroom should feel comfortable first and beautiful second.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================================================
+         3. HOME FURNISHING SECTION
+    ================================================== -->
+    <section class="vj-section wrap">
+      <div class="vj-section-header">
+        <h2 class="vj-section-title">HOME FURNISHING</h2>
+        <p class="vj-section-intro">
+          The right furnishings can completely change the atmosphere of a room. From bedding and cushions to curtains and table textiles, thoughtful choices can add comfort, texture, and character to everyday spaces.
+        </p>
+      </div>
+
+      <div class="vj-grid-3">
+        <!-- Article 01 -->
+        <article class="vj-card">
+          <div class="vj-card-img-box">
+            <img 
+              src="/images/vinsho/products/WhatsApp-Image-2026-01-03-at-16.13.12.jpeg" 
+              alt="How to Choose the Right Bedsheet for Your Bedroom" 
+              loading="lazy" 
+              class="vj-img"
+            />
+          </div>
+          <div class="vj-card-body">
+            <span class="vj-cat-sm">HOME FURNISHING</span>
+            <h3 class="vj-card-title">
+              <a href="/blog/how-to-choose-the-right-bedsheet-for-your-bedroom">
+                How to Choose the Right Bedsheet for Your Bedroom
+              </a>
+            </h3>
+            <div class="vj-prose-sm">
+              <p>A bedsheet is one of the largest visual elements in a bedroom, which makes it an important part of the overall design.</p>
+              <p>Start by considering the colour palette of your room. Neutral shades create a calm and timeless atmosphere, while subtle patterns can introduce personality without becoming overwhelming.</p>
+              <p>Pay attention to fabric and texture as well. A comfortable bedsheet should feel pleasant against the skin while complementing the other textiles in the room.</p>
+              <p>For a more refined look, coordinate your bedsheet with cushions, pillows, curtains, or a bedcover rather than trying to match everything exactly.</p>
+              <p>The goal is not perfect matching. The goal is visual harmony.</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- Article 02 -->
+        <article class="vj-card">
+          <div class="vj-card-img-box">
+            <img 
+              src="/images/vinsho/products/Untitled-design-2-1.png" 
+              alt="How to Style Cushions Like an Interior Designer" 
+              loading="lazy" 
+              class="vj-img"
+            />
+          </div>
+          <div class="vj-card-body">
+            <span class="vj-cat-sm">HOME FURNISHING</span>
+            <h3 class="vj-card-title">
+              <a href="/blog/how-to-style-cushions-like-an-interior-designer">
+                How to Style Cushions Like an Interior Designer
+              </a>
+            </h3>
+            <div class="vj-prose-sm">
+              <p>Cushions are one of the easiest ways to refresh a living room or bedroom without changing the entire space.</p>
+              <p>Start with a simple base colour and introduce one or two complementary shades. Mix different sizes and textures to create depth, but avoid using too many patterns at once.</p>
+              <p>A combination of solid colours, subtle prints, and textured fabrics usually creates a more sophisticated result than using identical cushions throughout the room.</p>
+              <p>For a premium look, allow some breathing space between patterns and keep the overall colour palette consistent.</p>
+              <p>Small changes in cushions can make a surprisingly large difference to the character of a room.</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- Article 03 -->
+        <article class="vj-card">
+          <div class="vj-card-img-box">
+            <img 
+              src="/images/vinsho/products/Curtain.jpeg" 
+              alt="Curtains: The Finishing Touch That Changes a Room" 
+              loading="lazy" 
+              class="vj-img"
+            />
+          </div>
+          <div class="vj-card-body">
+            <span class="vj-cat-sm">HOME FURNISHING</span>
+            <h3 class="vj-card-title">
+              <a href="/blog/curtains-the-finishing-touch-that-changes-a-room">
+                Curtains: The Finishing Touch That Changes a Room
+              </a>
+            </h3>
+            <div class="vj-prose-sm">
+              <p>Curtains do much more than control light and privacy. They can influence how large, bright, warm, or elegant a room feels.</p>
+              <p>For a softer appearance, choose fabrics that fall naturally and complement the colours already present in the room.</p>
+              <p>Longer curtains can create a more dramatic appearance, while lighter fabrics can make a space feel open and airy.</p>
+              <p>When choosing curtains, consider the room's natural light, wall colours, furniture, and overall style.</p>
+              <p>The right curtains should feel like part of the room rather than an afterthought.</p>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ==================================================
+         4. HOME DÉCOR SECTION
+    ================================================== -->
+    <section class="vj-section wrap">
+      <div class="vj-section-header">
+        <h2 class="vj-section-title">HOME DÉCOR</h2>
+        <p class="vj-section-intro">
+          Décor gives a home its personality. The most successful spaces are not necessarily the ones with the most objects, but the ones where every piece has a purpose.
+        </p>
+      </div>
+
+      <div class="vj-grid-2">
+        <!-- Article 01 -->
+        <article class="vj-split-card">
+          <div class="vj-card-img-box">
+            <img 
+              src="/images/vinsho/products/WhatsApp-Image-2025-12-30-at-13.52.37.jpeg" 
+              alt="5 Simple Ways to Make Your Home Feel More Premium" 
+              loading="lazy" 
+              class="vj-img"
+            />
+          </div>
+          <div class="vj-card-body">
+            <span class="vj-cat-sm">HOME DÉCOR</span>
+            <h3 class="vj-card-title">
+              <a href="/blog/5-simple-ways-to-make-your-home-feel-more-premium">
+                5 Simple Ways to Make Your Home Feel More Premium
+              </a>
+            </h3>
+            <div class="vj-prose-sm">
+              <p>You do not need to completely redesign your home to make it feel more refined.</p>
+              <ol class="vj-numbered-list">
+                <li><strong>Create a consistent colour palette.</strong><br/>Choose a small group of complementary colours and repeat them throughout the room.</li>
+                <li><strong>Add texture.</strong><br/>Combine soft furnishings, rugs, curtains, cushions, and decorative objects to create visual depth.</li>
+                <li><strong>Introduce one statement piece.</strong><br/>A distinctive vase, artwork, showpiece, or decorative object can become the focal point of a room.</li>
+                <li><strong>Improve lighting.</strong><br/>Warm and layered lighting can dramatically change the atmosphere of an interior.</li>
+                <li><strong>Leave some empty space.</strong><br/>A premium interior is rarely overcrowded. Give important objects enough space to stand out.</li>
+              </ol>
+              <p>The result should feel intentional rather than over-decorated.</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- Article 02 -->
+        <article class="vj-split-card">
+          <div class="vj-card-img-box">
+            <img 
+              src="/images/vinsho/products/WhatsApp-Image-2026-01-07-at-18.48.12.jpeg" 
+              alt="How to Use Wall Art Without Making a Room Look Crowded" 
+              loading="lazy" 
+              class="vj-img"
+            />
+          </div>
+          <div class="vj-card-body">
+            <span class="vj-cat-sm">HOME DÉCOR</span>
+            <h3 class="vj-card-title">
+              <a href="/blog/how-to-use-wall-art-without-making-a-room-look-crowded">
+                How to Use Wall Art Without Making a Room Look Crowded
+              </a>
+            </h3>
+            <div class="vj-prose-sm">
+              <p>Wall art can transform an empty wall, but adding too many pieces can make a room feel visually heavy.</p>
+              <p>Start by identifying the main wall you want to highlight. Choose artwork that complements the existing furniture and colour palette rather than competing with it.</p>
+              <p>Large artwork can work well as a single statement piece, while smaller pieces can be arranged as a balanced group.</p>
+              <p>Keep the surrounding area relatively calm so the artwork remains the visual focus.</p>
+              <p>The best wall décor adds personality without taking attention away from the room itself.</p>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ==================================================
+         5. GIFTING SECTION
+    ================================================== -->
+    <section class="vj-section wrap">
+      <div class="vj-section-header">
+        <h2 class="vj-section-title">THOUGHTFUL GIFTING</h2>
+        <p class="vj-section-intro">
+          A meaningful gift is not only about what is inside the package. It is about choosing something that reflects the person, the occasion, and the feeling behind the gesture.
+        </p>
+      </div>
+
+      <div class="vj-grid-2">
+        <!-- Article 01 -->
+        <article class="vj-split-card">
+          <div class="vj-card-img-box">
+            <img 
+              src="/images/vinsho/products/WhatsApp-Image-2025-12-30-at-13.52.37-1.jpeg" 
+              alt="Housewarming Gift Ideas for a New Home" 
+              loading="lazy" 
+              class="vj-img"
+            />
+          </div>
+          <div class="vj-card-body">
+            <span class="vj-cat-sm">THOUGHTFUL GIFTING</span>
+            <h3 class="vj-card-title">
+              <a href="/blog/housewarming-gift-ideas-for-a-new-home">
+                Housewarming Gift Ideas for a New Home
+              </a>
+            </h3>
+            <div class="vj-prose-sm">
+              <p>A new home marks the beginning of a new chapter, which makes housewarming gifts especially meaningful.</p>
+              <p>Decorative pieces such as vases, candles, photo frames, wall décor, and thoughtful home accessories can add warmth and personality to a new space.</p>
+              <p>When choosing a housewarming gift, consider pieces that are elegant enough to complement different interior styles.</p>
+              <p>A useful gift can become part of someone's everyday surroundings, making it more memorable long after the occasion.</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- Article 02 -->
+        <article class="vj-split-card">
+          <div class="vj-card-img-box">
+            <img 
+              src="https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&q=80&w=1000" 
+              alt="How to Choose a Thoughtful Gift for Any Occasion" 
+              loading="lazy" 
+              class="vj-img"
+            />
+          </div>
+          <div class="vj-card-body">
+            <span class="vj-cat-sm">THOUGHTFUL GIFTING</span>
+            <h3 class="vj-card-title">
+              <a href="/blog/how-to-choose-a-thoughtful-gift-for-any-occasion">
+                How to Choose a Thoughtful Gift for Any Occasion
+              </a>
+            </h3>
+            <div class="vj-prose-sm">
+              <p>The best gifts usually begin with understanding the person rather than the occasion.</p>
+              <p>Think about their personality, interests, lifestyle, and the spaces they enjoy spending time in.</p>
+              <p>For someone who enjoys decorating, a beautiful home accessory may be more meaningful than a generic gift. For someone who values personal memories, photo frames or decorative pieces can carry a more personal feeling.</p>
+              <p>The goal is simple: choose something that feels considered.</p>
+              <p>Because a thoughtful gift is not just an object. It is a small expression of attention and care.</p>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ==================================================
+         6. INTERIOR INSPIRATION
+    ================================================== -->
+    <section class="vj-section wrap">
+      <div class="vj-section-header">
+        <h2 class="vj-section-title">INTERIOR INSPIRATION</h2>
+        <p class="vj-section-intro">
+          Every home has its own character. These ideas are designed to help you discover ways to make your space feel more comfortable, personal, and visually balanced.
+        </p>
+      </div>
+
+      <div class="vj-grid-2">
+        <!-- Article 01 -->
+        <article class="vj-split-card">
+          <div class="vj-card-img-box">
+            <img 
+              src="/images/vinsho/products/WhatsApp-Image-2026-01-20-at-22.59.56-1.jpeg" 
+              alt="Modern Minimalism vs Traditional Elegance" 
+              loading="lazy" 
+              class="vj-img"
+            />
+          </div>
+          <div class="vj-card-body">
+            <span class="vj-cat-sm">INTERIOR INSPIRATION</span>
+            <h3 class="vj-card-title">
+              <a href="/blog/modern-minimalism-vs-traditional-elegance">
+                Modern Minimalism vs Traditional Elegance
+              </a>
+            </h3>
+            <div class="vj-prose-sm">
+              <p>Modern minimalism focuses on simplicity, clean lines, restrained colours, and functional design.</p>
+              <p>Traditional interiors often embrace richer textures, decorative details, warm tones, and objects with a sense of history.</p>
+              <p>Neither approach is better than the other.</p>
+              <p>The most interesting interiors often combine elements of both. A clean modern room can gain warmth through traditional décor, while a more traditional space can feel contemporary through simpler furnishings.</p>
+              <p>Choose the elements that reflect your personality rather than following a style simply because it is trending.</p>
+            </div>
+          </div>
+        </article>
+
+        <!-- Article 02 -->
+        <article class="vj-split-card">
+          <div class="vj-card-img-box">
+            <img 
+              src="/images/vinsho/products/WhatsApp-Image-2025-10-14-at-17.29.34.jpeg" 
+              alt="How to Refresh Your Living Room Without Renovating" 
+              loading="lazy" 
+              class="vj-img"
+            />
+          </div>
+          <div class="vj-card-body">
+            <span class="vj-cat-sm">INTERIOR INSPIRATION</span>
+            <h3 class="vj-card-title">
+              <a href="/blog/how-to-refresh-your-living-room-without-renovating">
+                How to Refresh Your Living Room Without Renovating
+              </a>
+            </h3>
+            <div class="vj-prose-sm">
+              <p>Refreshing a living room does not always require new furniture or major changes.</p>
+              <p>Start with the soft furnishings. Changing cushions, curtains, rugs, or throws can immediately alter the atmosphere.</p>
+              <p>Next, introduce one or two decorative elements such as a vase, candle, artwork, or statement piece.</p>
+              <p>Finally, reconsider the arrangement of existing objects. Sometimes creating more space is enough to make a room feel completely different.</p>
+              <p>A thoughtful refresh can give your living room a new personality without a complete renovation.</p>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ==================================================
+         7. SEASONAL INSPIRATION
+    ================================================== -->
+    <section class="vj-section wrap">
+      <div class="vj-section-header">
+        <h2 class="vj-section-title">SEASONAL INSPIRATION</h2>
+        <p class="vj-section-intro">
+          Different seasons and celebrations bring different moods into our homes. Use décor, textiles, lighting, and thoughtful details to make every occasion feel special.
+        </p>
+      </div>
+
+      <div class="vj-banner-card">
+        <div class="vj-banner-img-box">
+          <img 
+            src="/images/vinsho/site/1-1.png" 
+            alt="Diwali Home Décor Ideas for a Warm and Elegant Celebration" 
+            loading="lazy" 
+            class="vj-img"
+          />
+        </div>
+        <div class="vj-banner-body">
+          <span class="vj-cat-badge">SEASONAL INSPIRATION</span>
+          <h3 class="vj-banner-title">
+            <a href="/blog/diwali-home-decor-ideas-for-a-warm-and-elegant-celebration">
+              Diwali Home Décor Ideas for a Warm and Elegant Celebration
+            </a>
+          </h3>
+          <div class="vj-prose">
+            <p>Diwali is a celebration of light, warmth, and togetherness, making it the perfect occasion to refresh your home décor.</p>
+            <p>Begin with the entrance. A simple rangoli arrangement, decorative toran, or carefully placed lighting can create a welcoming first impression.</p>
+            <p>Inside the home, use warm lighting, diyas, candles, decorative pieces, and subtle festive accents to create an inviting atmosphere.</p>
+            <p>Avoid overcrowding the space. A few well-placed elements can often create a stronger visual impact than decorating every available surface.</p>
+            <p>The aim is to create a home that feels festive while still feeling like your own.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================================================
+         8. VINSHO BRAND STORY
+    ================================================== -->
+    <section class="vj-brand-story-section">
+      <div class="wrap vj-brand-story-inner">
+        <span class="vj-brand-eyebrow">OUR PHILOSOPHY</span>
+        <h2 class="vj-brand-title">THE VINSHO STORY</h2>
+        <div class="vj-brand-prose">
+          <p>Your home is more than walls, furniture, and décor. It is a reflection of your personality, your comfort, and the moments you create there.</p>
+          <p>At VINSHO, we bring together home furnishings, décor, and gifting pieces designed to make everyday spaces feel more thoughtful and beautiful.</p>
+          <p>From soft furnishings and textiles to decorative objects and meaningful gifts, our collections combine comfort, functionality, and visual character.</p>
+          <p>We believe beautiful spaces do not need to be complicated. The right textures, colours, forms, and details can transform an ordinary room into a space that feels distinctly yours.</p>
+          <p>VINSHO is about creating those details &mdash; for everyday living, special occasions, and everything in between.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================================================
+         9. EXPLORE VINSHO CTA
+    ================================================== -->
+    <section class="vj-final-cta-section wrap">
+      <div class="vj-final-cta-card">
+        <h2 class="vj-final-title">MAKE YOUR SPACE YOURS</h2>
+        <p class="vj-final-text">
+          Discover furnishings, décor, and thoughtful gifts curated to bring comfort, character, and beauty into your everyday spaces.
+        </p>
+        <div class="vj-final-btn-group">
+          <a href="/products" class="vj-btn primary">EXPLORE PRODUCTS</a>
+          <a href="/collections" class="vj-btn secondary">EXPLORE COLLECTIONS</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <Footer />
+  <Modal />
+</Base>
+
+<style>
+  /* ==================================================
+     VINSHO JOURNAL CORE STYLING & TOKENS
+  ================================================== */
+  .vj-journal-page {
+    background-color: var(--paper, #FAF6F0);
+    color: var(--ink, #3E3336);
+    padding-bottom: clamp(3rem, 6vw, 6rem);
+    line-height: 1.6;
+  }
+
+  .wrap {
+    max-width: 1240px;
+    margin-inline: auto;
+    padding-inline: clamp(1rem, 3.5vw, 2.5rem);
+  }
+
+  .vj-divider {
+    height: 1px;
+    background: var(--line, rgba(138, 23, 75, 0.12));
+    margin-block: clamp(2rem, 4vw, 3.5rem);
+  }
+
+  /* Typography Helper Classes */
+  .vj-eyebrow, .vj-cat-badge, .vj-cat-sm, .vj-brand-eyebrow {
+    display: inline-block;
+    font-family: var(--sans, sans-serif);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--maroon, #8A174B);
+  }
+
+  .vj-cat-badge {
+    background: var(--paper-2, #F5EBE8);
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    margin-bottom: 1rem;
+    width: fit-content;
+  }
+
+  .vj-cat-sm {
+    font-size: 0.688rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .vj-cta-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--sans, sans-serif);
+    font-size: 0.844rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--maroon, #8A174B);
+    text-decoration: none;
+    margin-top: 1.25rem;
+    transition: color 0.2s ease, transform 0.2s ease;
+  }
+
+  .vj-cta-link:hover {
+    color: var(--maroon-2, #6B0E38);
+    transform: translateX(3px);
+  }
+
+  /* ==================================================
+     1. HERO SECTION
+  ================================================== */
+  .vj-hero {
+    padding-top: clamp(2.5rem, 5vw, 4.5rem);
+    text-align: center;
+    max-width: 840px;
+    margin-inline: auto;
+  }
+
+  .vj-hero-title {
+    font-family: var(--display, 'Playfair Display', serif);
+    font-size: clamp(2.4rem, 5.5vw, 4.2rem);
+    font-weight: 700;
+    color: var(--maroon-2, #6B0E38);
+    line-height: 1.1;
+    margin: 0.4rem 0 1rem;
+    letter-spacing: -0.01em;
+  }
+
+  .vj-hero-subtitle {
+    font-family: var(--display, 'Playfair Display', serif);
+    font-size: clamp(1.2rem, 2.2vw, 1.6rem);
+    font-style: italic;
+    color: var(--maroon, #8A174B);
+    margin: 0 0 0.85rem;
+    line-height: 1.35;
+  }
+
+  .vj-hero-supporting {
+    font-size: clamp(0.92rem, 1.5vw, 1.05rem);
+    color: var(--ink-soft, #6E5F62);
+    max-width: 36rem;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* ==================================================
+     2. FEATURED ARTICLE SECTION
+  ================================================== */
+  .vj-featured-section {
+    margin-bottom: clamp(3rem, 6vw, 5.5rem);
+  }
+
+  .vj-featured-card {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: clamp(1.5rem, 3vw, 2.5rem);
+    background: var(--paper-2, #F7F1E9);
+    border: 1px solid var(--line, rgba(138, 23, 75, 0.12));
+    border-radius: 8px;
+    overflow: hidden;
+    align-items: stretch;
+  }
+
+  .vj-featured-img-box {
+    width: 100%;
+    height: 100%;
+    min-height: 280px;
+    overflow: hidden;
+    background: var(--paper-3, #EFE6DC);
+    flex-shrink: 0;
+  }
+
+  .vj-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .vj-featured-card:hover .vj-img,
+  .vj-card:hover .vj-img,
+  .vj-split-card:hover .vj-img,
+  .vj-banner-card:hover .vj-img {
+    transform: scale(1.03);
+  }
+
+  .vj-featured-content {
+    padding: clamp(1.5rem, 3vw, 2.5rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .vj-featured-title {
+    font-family: var(--display, 'Playfair Display', serif);
+    font-size: clamp(1.4rem, 2.5vw, 2.1rem);
+    font-weight: 700;
+    color: var(--maroon-2, #6B0E38);
+    line-height: 1.25;
+    margin: 0 0 1rem;
+  }
+
+  .vj-featured-title a,
+  .vj-card-title a,
+  .vj-banner-title a {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .vj-featured-title a:hover,
+  .vj-card-title a:hover,
+  .vj-banner-title a:hover {
+    color: var(--maroon, #8A174B);
+  }
+
+  .vj-prose p {
+    font-size: 0.92rem;
+    color: var(--ink, #3E3336);
+    margin: 0 0 0.75rem;
+    line-height: 1.6;
+  }
+
+  .vj-prose p:last-child {
+    margin-bottom: 0;
+  }
+
+  /* ==================================================
+     SECTION HEADERS & GENERAL SECTIONS
+  ================================================== */
+  .vj-section {
+    margin-bottom: clamp(3.5rem, 7vw, 6rem);
+  }
+
+  .vj-section-header {
+    margin-bottom: clamp(1.75rem, 3.5vw, 2.5rem);
+    border-bottom: 1px solid var(--line, rgba(138, 23, 75, 0.12));
+    padding-bottom: 1.25rem;
+  }
+
+  .vj-section-title {
+    font-family: var(--display, 'Playfair Display', serif);
+    font-size: clamp(1.75rem, 3.2vw, 2.5rem);
+    font-weight: 700;
+    color: var(--maroon-2, #6B0E38);
+    margin: 0 0 0.6rem;
+    letter-spacing: 0.02em;
+  }
+
+  .vj-section-intro {
+    font-size: 0.98rem;
+    color: var(--ink-soft, #6E5F62);
+    max-width: 46rem;
+    margin: 0;
+    line-height: 1.6;
+  }
+
+  /* ==================================================
+     GRIDS (3-COL & 2-COL)
+  ================================================== */
+  .vj-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(1.25rem, 2.5vw, 2rem);
+    align-items: stretch;
+  }
+
+  .vj-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: clamp(1.5rem, 3vw, 2.5rem);
+    align-items: stretch;
+  }
+
+  /* 3-Col Article Card */
+  .vj-card {
+    background: var(--paper-2, #F7F1E9);
+    border: 1px solid var(--line, rgba(138, 23, 75, 0.12));
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+  }
+
+  .vj-card:hover, .vj-split-card:hover, .vj-banner-card:hover {
+    box-shadow: 0 12px 30px rgba(138, 23, 75, 0.08);
+    border-color: rgba(138, 23, 75, 0.25);
+  }
+
+  .vj-card-img-box {
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    max-height: 280px;
+    overflow: hidden;
+    background: var(--paper-3, #EFE6DC);
+    flex-shrink: 0;
+  }
+
+  .vj-grid-3 .vj-card-img-box {
+    aspect-ratio: 16 / 10;
+    max-height: 220px;
+  }
+
+  .vj-grid-2 .vj-card-img-box {
+    aspect-ratio: 16 / 9;
+    max-height: 280px;
+  }
+
+  .vj-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    display: block;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .vj-card-body {
+    padding: clamp(1.25rem, 2vw, 1.5rem);
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  .vj-card-title {
+    font-family: var(--display, 'Playfair Display', serif);
+    font-size: clamp(1.15rem, 1.6vw, 1.35rem);
+    font-weight: 700;
+    color: var(--maroon-2, #6B0E38);
+    line-height: 1.3;
+    margin: 0 0 0.75rem;
+  }
+
+  .vj-prose-sm {
+    font-size: 0.88rem;
+    color: var(--ink, #3E3336);
+    line-height: 1.6;
+    flex: 1;
+  }
+
+  .vj-prose-sm p {
+    margin: 0 0 0.65rem;
+  }
+
+  .vj-prose-sm p:last-child {
+    margin-bottom: 0;
+  }
+
+  .vj-numbered-list {
+    margin: 0 0 0.75rem;
+    padding-left: 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .vj-numbered-list li {
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  /* 2-Col Split Card */
+  .vj-split-card {
+    background: var(--paper-2, #F7F1E9);
+    border: 1px solid var(--line, rgba(138, 23, 75, 0.12));
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+  }
+
+  /* ==================================================
+     7. SEASONAL BANNER CARD
+  ================================================== */
+  .vj-banner-card {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: clamp(1.5rem, 3vw, 2.5rem);
+    background: var(--paper-2, #F7F1E9);
+    border: 1px solid var(--line, rgba(138, 23, 75, 0.12));
+    border-radius: 8px;
+    overflow: hidden;
+    align-items: stretch;
+  }
+
+  .vj-banner-img-box {
+    width: 100%;
+    height: 100%;
+    min-height: 260px;
+    overflow: hidden;
+    background: var(--paper-3, #EFE6DC);
+    flex-shrink: 0;
+  }
+
+  .vj-banner-body {
+    padding: clamp(1.5rem, 3vw, 2.5rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .vj-banner-title {
+    font-family: var(--display, 'Playfair Display', serif);
+    font-size: clamp(1.35rem, 2.2vw, 1.85rem);
+    font-weight: 700;
+    color: var(--maroon-2, #6B0E38);
+    line-height: 1.25;
+    margin: 0 0 0.85rem;
+  }
+
+  /* ==================================================
+     8. VINSHO BRAND STORY SECTION
+  ================================================== */
+  .vj-brand-story-section {
+    background: var(--maroon-2, #6B0E38);
+    color: #FAF6F0;
+    padding-block: clamp(3.5rem, 7vw, 6rem);
+    margin-block: clamp(3rem, 6vw, 5rem);
+  }
+
+  .vj-brand-story-inner {
+    max-width: 800px;
+    text-align: center;
+  }
+
+  .vj-brand-eyebrow {
+    color: #E2B5C3;
+  }
+
+  .vj-brand-title {
+    font-family: var(--display, 'Playfair Display', serif);
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0.5rem 0 1.5rem;
+    letter-spacing: 0.04em;
+  }
+
+  .vj-brand-prose {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    font-size: clamp(0.95rem, 1.5vw, 1.08rem);
+    line-height: 1.7;
+    color: rgba(250, 246, 240, 0.92);
+  }
+
+  .vj-brand-prose p {
+    margin: 0;
+  }
+
+  /* ==================================================
+     9. FINAL EXPLORE CTA SECTION
+  ================================================== */
+  .vj-final-cta-section {
+    margin-block: clamp(2.5rem, 5vw, 4.5rem);
+  }
+
+  .vj-final-cta-card {
+    background: var(--paper-2, #F7F1E9);
+    border: 1px solid var(--line, rgba(138, 23, 75, 0.15));
+    border-radius: 8px;
+    padding: clamp(2.5rem, 5vw, 4.5rem) 1.5rem;
+    text-align: center;
+    max-width: 880px;
+    margin-inline: auto;
+  }
+
+  .vj-final-title {
+    font-family: var(--display, 'Playfair Display', serif);
+    font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+    font-weight: 700;
+    color: var(--maroon-2, #6B0E38);
+    margin: 0 0 0.85rem;
+    letter-spacing: 0.04em;
+  }
+
+  .vj-final-text {
+    font-size: clamp(0.95rem, 1.5vw, 1.1rem);
+    color: var(--ink-soft, #6E5F62);
+    max-width: 38rem;
+    margin: 0 auto 2rem;
+    line-height: 1.6;
+  }
+
+  .vj-final-btn-group {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .vj-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--sans, sans-serif);
+    font-size: 0.813rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    padding: 0.85rem 1.85rem;
+    border-radius: 999px;
+    text-decoration: none;
+    transition: all 0.25s ease;
+    min-height: 48px;
+  }
+
+  .vj-btn.primary {
+    background: var(--maroon, #8A174B);
+    color: #ffffff;
+    border: 1px solid var(--maroon, #8A174B);
+  }
+
+  .vj-btn.primary:hover {
+    background: var(--maroon-2, #6B0E38);
+    border-color: var(--maroon-2, #6B0E38);
+    transform: translateY(-2px);
+  }
+
+  .vj-btn.secondary {
+    background: transparent;
+    color: var(--maroon, #8A174B);
+    border: 1px solid var(--maroon, #8A174B);
+  }
+
+  .vj-btn.secondary:hover {
+    background: var(--maroon, #8A174B);
+    color: #ffffff;
+    transform: translateY(-2px);
+  }
+
+  /* ==================================================
+     RESPONSIVE BREAKPOINTS
+  ================================================== */
+  @media (max-width: 1024px) {
+    .vj-grid-3 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .vj-featured-card,
+    .vj-banner-card {
+      grid-template-columns: 1fr;
+    }
+
+    .vj-featured-img-box,
+    .vj-banner-img-box {
+      height: 180px;
+      max-height: 190px;
+      aspect-ratio: 16 / 9;
+    }
+
+    .vj-card-img-box {
+      height: 160px;
+      max-height: 170px;
+    }
+
+    .vj-grid-3,
+    .vj-grid-2 {
+      grid-template-columns: 1fr;
+    }
+
+    .vj-hero {
+      text-align: left;
+    }
+
+    .vj-final-btn-group {
+      flex-direction: column;
+      width: 100%;
+    }
+
+    .vj-btn {
+      width: 100%;
+    }
+  }
+</style>

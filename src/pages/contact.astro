@@ -1,0 +1,1106 @@
+---
+export const prerender = true;
+
+import Base from '../layouts/Base.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+import Modal from '../components/Modal.astro';
+import CustomCursor from '../components/motion/CustomCursor.astro';
+import TextReveal from '../components/motion/TextReveal.astro';
+import Magnetic from '../components/motion/Magnetic.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import content from '../../vinsho-content.json';
+
+const breadcrumbItems = [
+  { label: 'Home', url: '/' },
+  { label: 'Contact Us' }
+];
+
+const lat = 28.457778;
+const lng = 77.499333;
+const coordString = `28°27'28.0"N 77°29'57.6"E`;
+const googleMapsEmbedUrl = `https://maps.google.com/maps?q=${lat},${lng}&hl=en&z=16&output=embed`;
+const googleMapsSearchUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+const getDirectionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+
+// ContactPage Structured Data (JSON-LD)
+const contactPageSchema = {
+  "@context": "https://schema.org",
+  "@type": "ContactPage",
+  "name": "Contact VINSHO",
+  "description": "Contact information and showroom location for VINSHO luxury home furnishings, decor, and gifting in Greater Noida.",
+  "url": "https://vinsho.in/contact",
+  "mainEntity": {
+    "@type": "HomeGoodsStore",
+    "name": "VINSHO",
+    "telephone": "+91-9625515351",
+    "email": "vinvks@gmail.com",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "India Expo Plaza First Floor, Plot No. C-03 & 04 Knowledge Park-II",
+      "addressLocality": "Greater Noida",
+      "addressRegion": "Uttar Pradesh",
+      "postalCode": "201310",
+      "addressCountry": "IN"
+    },
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": lat,
+      "longitude": lng
+    },
+    "openingHoursSpecification": {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+      "opens": "10:00",
+      "closes": "19:00"
+    }
+  }
+};
+---
+
+<Base 
+  title="Contact Us — VINSHO | Luxury Home Décor & Furnishings Greater Noida" 
+  description="Contact VINSHO in Greater Noida for luxury home furnishings, décor & gifting. Visit our showroom at India Expo Plaza or call +91 9625515351 / email vinvks@gmail.com."
+  canonicalUrl="https://vinsho.in/contact"
+>
+  <script type="application/ld+json" set:html={JSON.stringify(contactPageSchema)} />
+  <CustomCursor />
+  <Nav />
+
+  <main id="main-content" class="wrap contact-page">
+    <Breadcrumbs items={breadcrumbItems} />
+
+    <!-- Page Header -->
+    <header class="contact-header" id="contact-header">
+      <TextReveal as="h1" class="page-title">Contact Us</TextReveal>
+      <p class="page-intro">We would love to hear from you.</p>
+    </header>
+
+    <!-- Main Section Grid -->
+    <section class="contact-main-section" aria-labelledby="get-in-touch-heading">
+      <div class="section-meta-head" id="section-meta-head">
+        <span class="section-label">Get in touch</span>
+        <h2 id="get-in-touch-heading" class="section-heading">Whenever you need us, we’re here for you.</h2>
+      </div>
+
+      <div class="contact-grid">
+        <!-- Information Cards Column -->
+        <div class="contact-cards-col">
+          <!-- Phone Card -->
+          <div class="contact-card">
+            <div class="card-icon-box" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+              </svg>
+            </div>
+            <div class="card-body">
+              <span class="card-title">Phone &amp; WhatsApp</span>
+              <a href="tel:+919625515351" class="card-link main-val" aria-label="Call VINSHO customer service at +91 9625515351">+91 9625515351</a>
+              <p class="card-subtext">Mon &ndash; Sat from 10:00 AM to 7:00 PM IST</p>
+              <div class="card-action">
+                <a href={`https://wa.me/${content.brand.whatsapp}?text=Hi%20VINSHO,%20I%20would%20like%20to%20get%20in%20touch.`} target="_blank" rel="noopener noreferrer" class="wa-direct-btn" aria-label="Chat directly with VINSHO customer support on WhatsApp">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                  </svg>
+                  <span>Chat on WhatsApp</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Email Card -->
+          <div class="contact-card">
+            <div class="card-icon-box" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <rect width="20" height="16" x="2" y="4" rx="2"/>
+                <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/>
+              </svg>
+            </div>
+            <div class="card-body">
+              <span class="card-title">Email</span>
+              <a href="mailto:vinvks@gmail.com" class="card-link main-val" aria-label="Send an email to VINSHO at vinvks@gmail.com">vinvks@gmail.com</a>
+              <p class="card-subtext">We aim to respond to all inquiries within 24 hours.</p>
+            </div>
+          </div>
+
+          <!-- Location Card -->
+          <div class="contact-card">
+            <div class="card-icon-box" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+            </div>
+            <div class="card-body">
+              <span class="card-title">Showroom Location</span>
+              <a href={googleMapsSearchUrl} target="_blank" rel="noopener noreferrer" class="address-link-block" aria-label="Open VINSHO Greater Noida showroom address on Google Maps">
+                <address class="address-val">
+                  India Expo Plaza First Floor, Plot No. C-03 &amp; 04 Knowledge Park-II, Greater Noida (U.P.) 201310
+                </address>
+              </a>
+              <p class="card-subtext">Coordinates: <code>{coordString}</code></p>
+              <div class="card-action" style="margin-top: 0.6rem;">
+                <a href={getDirectionsUrl} target="_blank" rel="noopener noreferrer" class="directions-inline-link" aria-label="Get driving directions to VINSHO Showroom on Google Maps">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 0.25rem;" aria-hidden="true">
+                    <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+                  </svg>
+                  <span>Get Directions on Google Maps &rarr;</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contact Form Column -->
+        <div class="contact-form-col">
+          <div class="contact-form-card">
+            <h3 class="form-title" id="form-heading">Send Us a Message</h3>
+            <p class="form-subtext">Fill out the form below and our customer service team will reach out to you.</p>
+
+            <form class="contact-form" id="main-contact-form" aria-labelledby="form-heading" novalidate>
+              <input type="text" name="website_url" style="display:none !important;" tabindex="-1" autocomplete="off" aria-hidden="true" />
+
+              <!-- Row 1: Name & Company -->
+              <div class="field-row-2">
+                <div class="cfield" id="field-wrap-name">
+                  <label for="contact-name">
+                    Name <span class="req-asterisk" aria-hidden="true">*</span>
+                    <span class="sr-only">(required)</span>
+                  </label>
+                  <input 
+                    type="text" 
+                    id="contact-name" 
+                    name="name" 
+                    required 
+                    aria-required="true" 
+                    aria-describedby="err-name"
+                    placeholder="Enter your full name" 
+                    class="contact-input" 
+                  />
+                  <span class="err-text" id="err-name" role="alert" hidden>Name is required.</span>
+                </div>
+
+                <div class="cfield" id="field-wrap-company">
+                  <label for="contact-company">Company</label>
+                  <input 
+                    type="text" 
+                    id="contact-company" 
+                    name="company" 
+                    placeholder="Company / Organization" 
+                    class="contact-input" 
+                  />
+                </div>
+              </div>
+
+              <!-- Row 2: Phone & Email -->
+              <div class="field-row-2">
+                <div class="cfield" id="field-wrap-phone">
+                  <label for="contact-phone">Phone</label>
+                  <input 
+                    type="tel" 
+                    id="contact-phone" 
+                    name="phone" 
+                    aria-describedby="err-phone"
+                    placeholder="+91 XXXXX XXXXX" 
+                    class="contact-input" 
+                  />
+                  <span class="err-text" id="err-phone" role="alert" hidden>Please enter a valid phone number.</span>
+                </div>
+
+                <div class="cfield" id="field-wrap-email">
+                  <label for="contact-email">
+                    Email <span class="req-asterisk" aria-hidden="true">*</span>
+                    <span class="sr-only">(required)</span>
+                  </label>
+                  <input 
+                    type="email" 
+                    id="contact-email" 
+                    name="email" 
+                    required 
+                    aria-required="true" 
+                    aria-describedby="err-email"
+                    placeholder="you@example.com" 
+                    class="contact-input" 
+                  />
+                  <span class="err-text" id="err-email" role="alert" hidden>A valid email address is required.</span>
+                </div>
+              </div>
+
+              <!-- Row 3: Subject -->
+              <div class="cfield" id="field-wrap-subject">
+                <label for="contact-subject">
+                  Subject <span class="req-asterisk" aria-hidden="true">*</span>
+                  <span class="sr-only">(required)</span>
+                </label>
+                <input 
+                  type="text" 
+                  id="contact-subject" 
+                  name="subject" 
+                  required 
+                  aria-required="true" 
+                  aria-describedby="err-subject"
+                  placeholder="What is this inquiry regarding?" 
+                  class="contact-input" 
+                />
+                <span class="err-text" id="err-subject" role="alert" hidden>Subject is required.</span>
+              </div>
+
+              <!-- Row 4: Message -->
+              <div class="cfield" id="field-wrap-message">
+                <label for="contact-message">
+                  Message <span class="req-asterisk" aria-hidden="true">*</span>
+                  <span class="sr-only">(required)</span>
+                </label>
+                <textarea 
+                  id="contact-message" 
+                  name="message" 
+                  rows="6" 
+                  required 
+                  aria-required="true" 
+                  aria-describedby="err-message"
+                  placeholder="Tell us how we can assist you with your home furnishing, decor, or gifting requirements..." 
+                  class="contact-input"
+                ></textarea>
+                <span class="err-text" id="err-message" role="alert" hidden>Message is required.</span>
+              </div>
+
+
+
+              <!-- Primary Submit Button -->
+              <Magnetic strength={3}>
+                <button type="submit" class="contact-submit-btn" id="contact-submit-btn" aria-label="Send Message to VINSHO Customer Support">
+                  <svg id="btn-spinner" class="btn-spinner" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true" hidden>
+                    <circle cx="12" cy="12" r="9" stroke-dasharray="32" stroke-dashoffset="12" stroke-linecap="round" />
+                  </svg>
+                  <span id="btn-text">Send Message</span>
+                  <svg id="btn-icon" class="btn-icon-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+              </Magnetic>
+
+              <div class="form-feedback-msg" id="contact-form-feedback" role="status" aria-live="polite" hidden></div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Google Maps Location Section -->
+    <section class="contact-map-section" id="contact-map-section" aria-labelledby="map-heading">
+      <div class="map-head-row">
+        <div>
+          <h2 id="map-heading">Showroom Location Map</h2>
+          <p class="map-addr-text">
+            India Expo Plaza First Floor, Plot No. C-03 &amp; 04 Knowledge Park-II, Greater Noida (U.P.) 201310
+            <span class="coord-badge">{coordString}</span>
+          </p>
+        </div>
+        <Magnetic strength={3}>
+          <a 
+            href={getDirectionsUrl} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            class="get-directions-btn"
+            aria-label="Get driving directions to VINSHO Showroom on Google Maps"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="dir-icon-arrow" aria-hidden="true">
+              <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+            </svg>
+            <span>Get Directions</span>
+          </a>
+        </Magnetic>
+      </div>
+
+      <div class="map-frame">
+        <iframe 
+          title="Interactive Google Maps view showing VINSHO Showroom in Greater Noida at coordinates 28.457778, 77.499333" 
+          src={googleMapsEmbedUrl} 
+          width="100%" 
+          height="450" 
+          style="border:0;" 
+          allowfullscreen="" 
+          loading="lazy" 
+          referrerpolicy="no-referrer-when-downgrade"
+        ></iframe>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
+  <Modal />
+</Base>
+
+<script>
+  import { gsap, ScrollTrigger, isReducedMotion } from '../scripts/motion-engine';
+
+  document.addEventListener('DOMContentLoaded', () => {
+    // -----------------------------------------------------------------
+    // GSAP Motion & ScrollTrigger Entrance Animations
+    // -----------------------------------------------------------------
+    if (!isReducedMotion) {
+      const tl = gsap.timeline({ delay: 0.05 });
+      tl.fromTo('.contact-header', 
+        { opacity: 0, y: 22 }, 
+        { opacity: 1, y: 0, duration: 0.75, ease: 'power3.out' }
+      ).fromTo('.section-meta-head',
+        { opacity: 0, y: 16 },
+        { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' },
+        '-=0.45'
+      );
+
+      const cards = document.querySelectorAll('.contact-card');
+      if (cards.length > 0) {
+        gsap.fromTo(cards,
+          { opacity: 0, y: 28 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.7,
+            stagger: 0.08,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: '.contact-cards-col',
+              start: 'top 88%'
+            }
+          }
+        );
+      }
+
+      const formCard = document.querySelector('.contact-form-card');
+      if (formCard) {
+        gsap.fromTo(formCard,
+          { opacity: 0, y: 28 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.75,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: formCard,
+              start: 'top 88%'
+            }
+          }
+        );
+      }
+
+      const mapSection = document.querySelector('.contact-map-section');
+      if (mapSection) {
+        gsap.fromTo(mapSection,
+          { opacity: 0, y: 28 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.75,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: mapSection,
+              start: 'top 85%'
+            }
+          }
+        );
+      }
+    }
+
+    // -----------------------------------------------------------------
+    // Form Validation & Submission Handling with Dynamic ARIA
+    // -----------------------------------------------------------------
+    const form = document.getElementById('main-contact-form') as HTMLFormElement | null;
+    const submitBtn = document.getElementById('contact-submit-btn') as HTMLButtonElement | null;
+    const btnText = document.getElementById('btn-text');
+    const btnIcon = document.getElementById('btn-icon');
+    const btnSpinner = document.getElementById('btn-spinner');
+    const feedback = document.getElementById('contact-form-feedback');
+
+    // Input references
+    const nameInput = document.getElementById('contact-name') as HTMLInputElement | null;
+    const phoneInput = document.getElementById('contact-phone') as HTMLInputElement | null;
+    const emailInput = document.getElementById('contact-email') as HTMLInputElement | null;
+    const subjectInput = document.getElementById('contact-subject') as HTMLInputElement | null;
+    const messageInput = document.getElementById('contact-message') as HTMLTextAreaElement | null;
+
+    // Error text references
+    const errName = document.getElementById('err-name');
+    const errPhone = document.getElementById('err-phone');
+    const errEmail = document.getElementById('err-email');
+    const errSubject = document.getElementById('err-subject');
+    const errMessage = document.getElementById('err-message');
+
+    function clearValidationErrors() {
+      [errName, errPhone, errEmail, errSubject, errMessage].forEach(el => {
+        if (el) el.hidden = true;
+      });
+      [nameInput, phoneInput, emailInput, subjectInput, messageInput].forEach(input => {
+        if (input) {
+          input.classList.remove('has-error');
+          input.removeAttribute('aria-invalid');
+        }
+      });
+    }
+
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!form) return;
+
+      clearValidationErrors();
+      let hasError = false;
+
+      const nameVal = (nameInput?.value || '').trim();
+      const phoneVal = (phoneInput?.value || '').trim();
+      const emailVal = (emailInput?.value || '').trim();
+      const subjectVal = (subjectInput?.value || '').trim();
+      const messageVal = (messageInput?.value || '').trim();
+
+      // 1. Name validation
+      if (!nameVal) {
+        if (errName) errName.hidden = false;
+        nameInput?.classList.add('has-error');
+        nameInput?.setAttribute('aria-invalid', 'true');
+        hasError = true;
+      }
+
+      // 2. Email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailVal || !emailRegex.test(emailVal)) {
+        if (errEmail) errEmail.hidden = false;
+        emailInput?.classList.add('has-error');
+        emailInput?.setAttribute('aria-invalid', 'true');
+        hasError = true;
+      }
+
+      // 3. Phone validation (if entered)
+      if (phoneVal) {
+        const phoneRegex = /^[\+\d\s\-\(\)]{7,20}$/;
+        if (!phoneRegex.test(phoneVal)) {
+          if (errPhone) errPhone.hidden = false;
+          phoneInput?.classList.add('has-error');
+          phoneInput?.setAttribute('aria-invalid', 'true');
+          hasError = true;
+        }
+      }
+
+      // 4. Subject validation
+      if (!subjectVal) {
+        if (errSubject) errSubject.hidden = false;
+        subjectInput?.classList.add('has-error');
+        subjectInput?.setAttribute('aria-invalid', 'true');
+        hasError = true;
+      }
+
+      // 5. Message validation
+      if (!messageVal) {
+        if (errMessage) errMessage.hidden = false;
+        messageInput?.classList.add('has-error');
+        messageInput?.setAttribute('aria-invalid', 'true');
+        hasError = true;
+      }
+
+      if (hasError) {
+        if (feedback) {
+          feedback.hidden = false;
+          feedback.className = 'form-feedback-msg error';
+          feedback.textContent = 'Please fill out all required fields correctly before submitting.';
+        }
+        return;
+      }
+
+      // Submission loading state
+      if (submitBtn) submitBtn.disabled = true;
+      if (btnText) btnText.textContent = 'Sending...';
+      if (btnIcon) btnIcon.hidden = true;
+      if (btnSpinner) btnSpinner.hidden = false;
+
+      if (feedback) {
+        feedback.hidden = true;
+        feedback.className = 'form-feedback-msg';
+      }
+
+      const formData = new FormData(form);
+      const payload = {
+        name: nameVal,
+        company: (formData.get('company') as string || '').trim(),
+        phone: phoneVal,
+        email: emailVal,
+        subject: subjectVal,
+        message: messageVal,
+        website_url: formData.get('website_url'),
+        source: 'Contact Us Page'
+      };
+
+      try {
+        const res = await fetch('/api/enquiries', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          if (feedback) {
+            feedback.hidden = false;
+            feedback.className = 'form-feedback-msg success';
+            feedback.textContent = data.message || 'Thank you! Your message has been received. Our team will get back to you shortly.';
+          }
+          form.reset();
+        } else {
+          if (feedback) {
+            feedback.hidden = false;
+            feedback.className = 'form-feedback-msg error';
+            feedback.textContent = data.error || 'Failed to send message. Please try again.';
+          }
+        }
+      } catch (err) {
+        if (feedback) {
+          feedback.hidden = false;
+          feedback.className = 'form-feedback-msg error';
+          feedback.textContent = 'Server connection failed. Please check your internet connection or WhatsApp us directly.';
+        }
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+        if (btnText) btnText.textContent = 'Send Message';
+        if (btnIcon) btnIcon.hidden = false;
+        if (btnSpinner) btnSpinner.hidden = true;
+      }
+    });
+  });
+</script>
+
+<style>
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  .req-asterisk {
+    color: #dc2626;
+    font-weight: 700;
+  }
+
+  .contact-page {
+    padding-block: clamp(1.5rem, 3vw, 3.5rem);
+  }
+
+  .contact-header {
+    margin-bottom: clamp(2rem, 4vw, 3.5rem);
+  }
+
+  .page-title {
+    font-family: var(--display);
+    font-size: clamp(2.2rem, 5vw, 3.8rem);
+    color: var(--maroon-2);
+    margin: 0 0 0.5rem;
+    line-height: 1.1;
+  }
+
+  .page-intro {
+    font-size: clamp(1.05rem, 2vw, 1.25rem);
+    color: var(--ink-soft);
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  .contact-main-section {
+    margin-bottom: clamp(3rem, 6vw, 5rem);
+  }
+
+  .section-meta-head {
+    margin-bottom: 2rem;
+  }
+
+  .section-label {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--pink);
+    margin-bottom: 0.4rem;
+  }
+
+  .section-heading {
+    font-family: var(--display);
+    font-size: clamp(1.5rem, 3vw, 2.2rem);
+    color: var(--maroon-2);
+    margin: 0;
+    line-height: 1.25;
+  }
+
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.25fr;
+    gap: clamp(1.75rem, 4vw, 3rem);
+    align-items: start;
+  }
+
+  /* Cards Column */
+  .contact-cards-col {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .contact-card {
+    display: flex;
+    gap: 1.1rem;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: clamp(1.1rem, 2.5vw, 1.5rem);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .contact-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--pink);
+    box-shadow: 0 10px 28px rgba(138, 23, 75, 0.08);
+  }
+
+  .card-icon-box {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--paper-3);
+    color: var(--maroon);
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    transition: background 0.3s cubic-bezier(0.16, 1, 0.3, 1), color 0.3s ease;
+  }
+
+  .contact-card:hover .card-icon-box {
+    background: var(--maroon);
+    color: #ffffff;
+  }
+
+  .card-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  .card-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--pink);
+    margin-bottom: 0.25rem;
+  }
+
+  .main-val {
+    font-family: var(--display);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--maroon-2);
+    text-decoration: none;
+    transition: color 0.2s ease, transform 0.15s ease;
+    display: inline-block;
+    touch-action: manipulation;
+    min-height: 36px;
+    line-height: 36px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .main-val:hover {
+    color: var(--maroon);
+  }
+
+  .main-val:active {
+    transform: scale(0.98);
+    opacity: 0.85;
+  }
+
+  .address-link-block {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    touch-action: manipulation;
+    border-radius: 4px;
+    transition: opacity 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .address-link-block:active {
+    opacity: 0.85;
+  }
+
+  .address-val {
+    font-style: normal;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--maroon-2);
+    line-height: 1.45;
+    margin-bottom: 0.25rem;
+    transition: color 0.2s ease;
+  }
+
+  .address-link-block:hover .address-val {
+    color: var(--maroon);
+  }
+
+  .card-subtext {
+    font-size: 0.813rem;
+    color: var(--ink-soft);
+    margin: 0.35rem 0 0;
+    line-height: 1.45;
+  }
+
+  .card-subtext code {
+    font-size: 0.75rem;
+    background: var(--paper-3);
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+    color: var(--maroon-2);
+  }
+
+  .card-action {
+    margin-top: 0.75rem;
+  }
+
+  .wa-direct-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: var(--maroon);
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 0.55rem 1rem;
+    min-height: 40px;
+    border-radius: 999px;
+    text-decoration: none;
+    touch-action: manipulation;
+    transition: background 0.2s ease, transform 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .wa-direct-btn:hover {
+    background: var(--maroon-3);
+  }
+
+  .wa-direct-btn:active {
+    transform: scale(0.97);
+  }
+
+  .directions-inline-link {
+    font-size: 0.813rem;
+    font-weight: 600;
+    color: var(--maroon);
+    text-decoration: none;
+    touch-action: manipulation;
+    display: inline-block;
+    transition: color 0.2s ease;
+  }
+
+  .directions-inline-link:hover {
+    color: var(--maroon-3);
+    text-decoration: underline;
+  }
+
+  /* Form Column */
+  .contact-form-card {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: clamp(1.5rem, 3vw, 2.25rem);
+    transition: box-shadow 0.3s ease;
+  }
+
+  .form-title {
+    font-family: var(--display);
+    font-size: 1.4rem;
+    color: var(--maroon-2);
+    margin: 0 0 0.35rem;
+  }
+
+  .form-subtext {
+    font-size: 0.844rem;
+    color: var(--ink-soft);
+    margin: 0 0 1.5rem;
+    line-height: 1.5;
+  }
+
+  .contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  /* Contact form field wrapper — scoped to avoid global .field pill styles */
+  .cfield {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .cfield label,
+  .contact-form label {
+    display: block;
+    font-size: 0.813rem;
+    font-weight: 600;
+    color: var(--maroon-2);
+    margin-bottom: 0.5rem;
+  }
+
+  .contact-input {
+    appearance: none;
+    -webkit-appearance: none;
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 0 0.9rem;
+    height: 52px;
+    font-size: 0.88rem;
+    color: var(--ink);
+    font-family: var(--sans);
+    outline: none;
+    transition: border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+                background-color 0.2s ease;
+    touch-action: manipulation;
+    /* Ensure no extra borders from browser defaults */
+    box-shadow: none;
+  }
+
+  textarea.contact-input {
+    height: auto;
+    min-height: 156px;
+    padding: 0.85rem 0.9rem;
+    resize: vertical;
+    line-height: 1.6;
+  }
+
+  .contact-input:focus {
+    border-color: var(--maroon);
+    box-shadow: 0 0 0 3px rgba(138, 23, 75, 0.08);
+    background: #ffffff;
+    outline: none;
+  }
+
+  /* High-contrast focus-visible ring for accessibility */
+  .contact-input:focus-visible,
+  .contact-submit-btn:focus-visible,
+  .get-directions-btn:focus-visible,
+  .wa-direct-btn:focus-visible,
+  .address-link-block:focus-visible,
+  .main-val:focus-visible {
+    outline: 2px solid var(--maroon);
+    outline-offset: 2px;
+  }
+
+  .contact-input.has-error {
+    border-color: #dc2626;
+    background: #fff5f5;
+  }
+
+  .err-text {
+    font-size: 0.75rem;
+    color: #dc2626;
+    margin-top: 0.35rem;
+  }
+
+  .field-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+
+  .contact-submit-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: var(--maroon);
+    color: #ffffff;
+    border: none;
+    padding: 0.85rem 1.5rem;
+    min-height: 48px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: background 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.15s ease, box-shadow 0.25s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .contact-submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .contact-submit-btn:hover:not(:disabled) {
+    background: var(--maroon-3);
+    box-shadow: 0 4px 16px rgba(138, 23, 75, 0.18);
+  }
+
+  .contact-submit-btn:hover:not(:disabled) .btn-icon-arrow {
+    transform: translateX(4px);
+  }
+
+  .contact-submit-btn:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  .btn-icon-arrow {
+    transition: transform 0.25s ease;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .btn-spinner {
+    animation: spin 0.75s linear infinite;
+  }
+
+  .form-feedback-msg {
+    padding: 0.75rem 1rem;
+    border-radius: 4px;
+    font-size: 0.844rem;
+    margin-top: 0.5rem;
+    animation: fadeInMsg 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes fadeInMsg {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .form-feedback-msg.success {
+    background: #dcfce7;
+    color: #166534;
+    border: 1px solid #86efac;
+  }
+
+  .form-feedback-msg.error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fca5a5;
+  }
+
+  /* Map Section */
+  .contact-map-section {
+    margin-top: 2rem;
+  }
+
+  .map-head-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .map-head-row h2 {
+    font-family: var(--display);
+    font-size: 1.35rem;
+    color: var(--maroon-2);
+    margin: 0 0 0.25rem;
+  }
+
+  .map-addr-text {
+    font-size: 0.88rem;
+    color: var(--ink-soft);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .coord-badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: var(--paper-3);
+    color: var(--maroon);
+    padding: 0.15rem 0.5rem;
+    border-radius: 3px;
+  }
+
+  .get-directions-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    background: var(--maroon);
+    color: #ffffff;
+    font-size: 0.813rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    padding: 0.75rem 1.4rem;
+    min-height: 44px;
+    border-radius: 999px;
+    text-decoration: none;
+    touch-action: manipulation;
+    transition: background 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.15s ease, box-shadow 0.25s ease;
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .get-directions-btn:hover {
+    background: var(--maroon-3);
+    box-shadow: 0 4px 16px rgba(138, 23, 75, 0.18);
+  }
+
+  .get-directions-btn:hover .dir-icon-arrow {
+    transform: translate(3px, -3px);
+  }
+
+  .get-directions-btn:active {
+    transform: scale(0.97);
+  }
+
+  .dir-icon-arrow {
+    transition: transform 0.25s ease;
+  }
+
+  .map-frame {
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.3s ease;
+  }
+
+  .map-frame:hover {
+    box-shadow: 0 8px 24px rgba(138, 23, 75, 0.08);
+  }
+
+  @media (max-width: 860px) {
+    .contact-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 540px) {
+    .field-row-2 {
+      grid-template-columns: 1fr;
+    }
+    .map-head-row {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .get-directions-btn {
+      width: 100%;
+      justify-content: center;
+    }
+    .contact-input {
+      font-size: 1rem; /* prevent iOS zoom on focus */
+    }
+  }
+</style>

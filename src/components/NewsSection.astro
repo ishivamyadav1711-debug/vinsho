@@ -8,7 +8,7 @@ const articles = [
     date: 'October 2025',
     category: 'Design Philosophy',
     summary: 'Exploring how natural cottons, hand-finished metals, and architectural lighting ground contemporary interiors.',
-    image: 'https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-21-at-10.23.07.jpeg'
+    image: '/images/vinsho/site/WhatsApp-Image-2026-01-21-at-10.23.07.jpeg'
   }
 ];
 
@@ -40,3 +40,69 @@ const showSection = articles.length >= 3;
     </div>
   </section>
 )}
+
+<style>
+  .news-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.75rem;
+    margin-top: 2rem;
+  }
+
+  .news-card {
+    background: var(--paper-2, #F7F1E9);
+    border: 1px solid var(--line, rgba(138, 23, 75, 0.12));
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .news-img-frame {
+    width: 100%;
+    height: 180px;
+    max-height: 190px;
+    overflow: hidden;
+    background: var(--paper-3, #EFE6DC);
+    flex-shrink: 0;
+  }
+
+  .news-img-frame img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .news-body {
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+  .news-meta {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--maroon, #8A174B);
+    margin: 0 0 0.5rem;
+  }
+
+  .news-body h3 {
+    font-family: var(--display, 'Playfair Display', serif);
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--maroon-2, #6B0E38);
+    margin: 0 0 0.6rem;
+    line-height: 1.3;
+  }
+
+  .news-summary {
+    font-size: 0.88rem;
+    color: var(--ink, #3E3336);
+    line-height: 1.6;
+    margin: 0;
+  }
+</style>

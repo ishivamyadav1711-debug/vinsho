@@ -1,9 +1,10 @@
 import content from '../../vinsho-content.json';
+import { addLocalCartItem, openCartDrawer, initCartStore } from './cart-store';
 
 document.addEventListener('DOMContentLoaded', () => {
+
   const mask = document.getElementById('mask');
   const modal = document.getElementById('modal');
-  const cartBadge = document.getElementById('cartN');
   const toast = document.getElementById('toast');
 
   if (!mask || !modal) return;
@@ -13,14 +14,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const CATNAME: Record<string, string> = {
     decor: 'Home Décor',
     furnishing: 'Home Furnishings',
-    special: 'Table & Living',
     gifting: 'Gifting Collection'
   };
 
   const bySlug = Object.fromEntries(content.products.map(i => [i.slug, i]));
   const looks = content.lookbook;
 
-  let cartCount = 0;
   let currentQty = 1;
 
   function showToast(msg: string) {
@@ -51,11 +50,28 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function openProductModal(slug: string) {
-    const item = bySlug[slug];
-    if (!item) return;
+    let item = bySlug[slug];
+    if (!item) {
+      // Dynamic fallback for database/taxonomy products
+      const titleEl = document.querySelector('.pdp-title');
+      const imgEl = document.getElementById('pdp-main-image') as HTMLImageElement;
+      const catEl = document.querySelector('.lbl-cat');
+      const descEl = document.querySelector('.pdp-acc-body p');
+      const tagEl = document.querySelector('.pdp-tagline');
+      item = {
+        slug: slug,
+        name: titleEl?.textContent?.trim() || slug,
+        image: imgEl?.src || '',
+        collection: catEl?.textContent?.trim() || 'Home Décor',
+        collectionKey: 'home-decor',
+        subcategoryKey: 'showpiece',
+        material: 'Handcrafted Premium',
+        description: descEl?.textContent?.trim() || tagEl?.textContent?.trim() || ''
+      } as any;
+    }
 
     currentQty = 1;
-    const catLabel = item.collectionKey && CATNAME[item.collectionKey] ? CATNAME[item.collectionKey] : item.collection;
+    const catLabel = item.collectionKey && CATNAME[item.collectionKey] ? CATNAME[item.collectionKey] : (item.collection || 'Home Décor');
 
     const waMsg = encodeURIComponent(`Hi VINSHO, I would like a custom quote for ${item.name} (${catLabel}). Quantity: ${currentQty}`);
 
@@ -65,19 +81,16 @@ document.addEventListener('DOMContentLoaded', () => {
         <span class="m-tag">${catLabel}</span>
       </div>
       <div class="m-body">
-        <p class="m-eye">${catLabel} &middot; ${item.material}</p>
+        <p class="m-eye">${catLabel} &middot; ${item.material || 'Handcrafted'}</p>
         <h3>${item.name}</h3>
         <p class="m-price">Price on request</p>
-        <p>${item.description}</p>
-        <div class="m-box">
-          <b>Material &amp; Craftsmanship</b>
-          <span>${item.material}</span>
-        </div>
-        <div class="m-badges">
-          <span><i>✓</i>Verified craftsmanship</span>
-          <span><i>✓</i>Insured pan-India shipping</span>
-        </div>
-
+        ${item.description ? `<p>${item.description}</p>` : ''}
+        ${item.material ? `
+          <div class="m-box">
+            <b>Material &amp; Craftsmanship</b>
+            <span>${item.material}</span>
+          </div>
+        ` : ''}
         <div class="m-enquire-form-wrapper">
           <form class="m-enquire-form" id="m-modal-enquire-form">
             <input type="hidden" name="productSlug" value="${item.slug}" />
@@ -89,18 +102,12 @@ document.addEventListener('DOMContentLoaded', () => {
               <input type="tel" name="phone" placeholder="Phone Number *" required class="m-input" />
               <input type="email" name="email" placeholder="Email Address (Optional)" class="m-input" />
             </div>
-            <div class="dpdp-consent-row" style="margin-block: 0.5rem; font-size: 0.72rem; color: var(--ink-soft);">
-              <label style="display: flex; gap: 0.4rem; align-items: flex-start; cursor: pointer;">
-                <input type="checkbox" name="dpdp_consent" checked required style="margin-top: 0.15rem;" />
-                <span>I agree to be contacted by VINSHO regarding this product quotation under DPDP Act 2023.</span>
-              </label>
-            </div>
             <button type="submit" class="m-submit-btn" id="m-submit-btn">Submit Enquiry to VINSHO</button>
             <p class="m-form-msg" id="m-form-msg" style="display:none; margin-top:0.5rem; font-size:0.813rem; color:var(--maroon);"></p>
           </form>
         </div>
 
-        <div class="m-cta" style="margin-top: 1rem;">
+        <div class="m-cta" style="margin-top: 0.85rem;">
           <span class="qty">
             <button data-q="-1" aria-label="Decrease quantity">&minus;</button>
             <span id="qv">1</span>
@@ -134,7 +141,6 @@ document.addEventListener('DOMContentLoaded', () => {
           collectionKey: formData.get('collectionKey'),
           subcategoryKey: formData.get('subcategoryKey'),
           website_url: formData.get('website_url'),
-          dpdp_consent: formData.get('dpdp_consent') === 'on',
           source: 'Product Quick View Modal'
         };
 
@@ -188,16 +194,6 @@ document.addEventListener('DOMContentLoaded', () => {
     openModal(html);
   }
 
-  function addToCart(slug: string, qty = 1) {
-    const item = bySlug[slug];
-    const name = item ? item.name : 'Item';
-    cartCount += qty;
-    if (cartBadge) {
-      cartBadge.textContent = cartCount.toString();
-    }
-    showToast(`Added ${qty} × ${name} to enquiry`);
-  }
-
   // Delegated event listener on document for modal triggers and actions
   document.addEventListener('click', (e) => {
     const target = e.target as HTMLElement;
@@ -216,31 +212,67 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
+    // Add to Cart trigger
+    const addBtn = target.closest<HTMLElement>('[data-add], [data-add-modal]');
+    if (addBtn) {
+      const slug = addBtn.dataset.add || addBtn.dataset.addModal;
+      if (slug) {
+        const item = bySlug[slug];
+        const datasetName = addBtn.dataset.name;
+        const datasetPrice = addBtn.dataset.price ? parseFloat(addBtn.dataset.price) : null;
+        const datasetImage = addBtn.dataset.image;
+
+        const formattedSlugName = slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+        const name = datasetName || (item ? item.name : formattedSlugName);
+        const price = datasetPrice || (item ? item.price : 499);
+        const image = datasetImage || (item ? item.image : '/placeholder.png');
+
+        addLocalCartItem({
+          slug,
+          name,
+          price,
+          image,
+          quantity: currentQty || 1
+        });
+        window.location.href = '/cart';
+      }
+      return;
+    }
+
+    // Buy Now trigger
+    const buyNowBtn = target.closest<HTMLElement>('[data-buy-now]');
+    if (buyNowBtn) {
+      const slug = buyNowBtn.dataset.buyNow;
+      if (slug) {
+        const item = bySlug[slug];
+        const datasetName = buyNowBtn.dataset.name;
+        const datasetPrice = buyNowBtn.dataset.price ? parseFloat(buyNowBtn.dataset.price) : null;
+        const datasetImage = buyNowBtn.dataset.image;
+
+        const formattedSlugName = slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+
+        const name = datasetName || (item ? item.name : formattedSlugName);
+        const price = datasetPrice || (item ? item.price : 499);
+        const image = datasetImage || (item ? item.image : '/placeholder.png');
+
+        addLocalCartItem({
+          slug,
+          name,
+          price,
+          image,
+          quantity: 1
+        });
+        window.location.href = '/cart';
+      }
+      return;
+    }
+
     // Lookbook trigger
     const lookBtn = target.closest<HTMLElement>('[data-look]');
     if (lookBtn) {
       const idx = parseInt(lookBtn.dataset.look || '0', 10);
       openLookbookModal(idx);
-      return;
-    }
-
-    // Direct add button on product card
-    const addBtn = target.closest<HTMLElement>('[data-add]');
-    if (addBtn) {
-      e.stopPropagation();
-      const slug = addBtn.dataset.add;
-      if (slug) addToCart(slug, 1);
-      return;
-    }
-
-    // Add button inside product modal
-    const addModalBtn = target.closest<HTMLElement>('[data-add-modal]');
-    if (addModalBtn) {
-      const slug = addModalBtn.dataset.addModal;
-      if (slug) {
-        addToCart(slug, currentQty);
-        closeModal();
-      }
       return;
     }
 

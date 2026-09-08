@@ -1,0 +1,585 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { db } from '../../../lib/db';
+import { getSessionUser } from '../../../lib/auth';
+import { computeCustomerStatus } from '../../../lib/crm';
+
+const user = getSessionUser(Astro.request);
+if (!user) {
+  return Astro.redirect('/admin/login');
+}
+
+const { id } = Astro.params;
+if (!id) return Astro.redirect('/admin/customers');
+
+const customer = db.prepare('SELECT * FROM customers WHERE id = ? AND deleted_at IS NULL').get(id) as any;
+if (!customer) return Astro.redirect('/admin/customers');
+
+const computedStatus = computeCustomerStatus(customer);
+
+// Addresses
+const addresses = db.prepare('SELECT * FROM addresses WHERE customer_id = ? ORDER BY created_at DESC').all(id) as any[];
+const shippingAddr = addresses.find(a => a.type === 'SHIPPING') || addresses[0];
+const billingAddr = addresses.find(a => a.type === 'BILLING') || shippingAddr;
+
+// Enquiries
+const enquiries = db.prepare('SELECT * FROM enquiries WHERE customer_id = ? ORDER BY created_at DESC').all(id) as any[];
+const openEnquiries = enquiries.filter(e => e.status !== 'Converted' && e.status !== 'Lost');
+
+// Follow-ups
+const followups = db.prepare(`
+  SELECT f.*, u.name as assignee_name
+  FROM follow_ups f
+  LEFT JOIN admin_users u ON f.assigned_to = u.id
+  WHERE f.entity_type = 'customer' AND f.entity_id = ?
+  ORDER BY f.due_at DESC
+`).all(id) as any[];
+
+const nextFollowup = followups.find(f => f.status === 'PENDING');
+
+// Quotations
+const quotations = db.prepare('SELECT * FROM quotations WHERE customer_id = ? ORDER BY created_at DESC').all(id) as any[];
+const acceptedQuotes = quotations.filter(q => q.status === 'ACCEPTED');
+
+// Orders
+const orders = db.prepare('SELECT * FROM orders WHERE customer_id = ? ORDER BY created_at DESC').all(id) as any[];
+
+// Payments (Full Financial Breakdown)
+const payments = db.prepare(`
+  SELECT p.*, o.order_number, o.grand_total as order_total
+  FROM payments p
+  JOIN orders o ON p.order_id = o.id
+  WHERE o.customer_id = ?
+  ORDER BY p.created_at DESC
+`).all(id) as any[];
+
+// Financial calculations
+const totalSpent = customer.total_spend || 0;
+const totalOrdersCount = orders.length;
+const aov = totalOrdersCount > 0 ? Math.round(totalSpent / totalOrdersCount) : 0;
+
+let totalPaid = 0;
+let totalPending = 0;
+let totalRefunded = 0;
+
+orders.forEach(o => {
+  if (o.payment_status === 'paid') {
+    totalPaid += o.grand_total;
+  } else if (o.payment_status === 'pending') {
+    totalPending += o.grand_total;
+  }
+});
+
+payments.forEach(p => {
+  if (p.refund_amount) {
+    totalRefunded += p.refund_amount;
+  }
+});
+
+const balanceDue = Math.max(0, totalPending);
+
+// Unified Chronological Activity Timeline
+const rawActivities = db.prepare(`
+  SELECT a.*, u.name as actor_name
+  FROM crm_activities a
+  LEFT JOIN admin_users u ON a.actor_id = u.id
+  WHERE (a.entity_type = 'customer' AND a.entity_id = ?)
+  ORDER BY a.created_at DESC
+  LIMIT 20
+`).all(id) as any[];
+
+const products = db.prepare('SELECT v.id as variant_id, p.name as product_name, v.size, v.colour, v.selling_price FROM product_variants v JOIN products p ON v.product_id = p.id WHERE p.deleted_at IS NULL LIMIT 50').all() as any[];
+---
+
+<AdminLayout title={`Customer 360° Profile — ${customer.name}`} activeNav="customers">
+  <div class="cust-profile-360-container">
+    
+    <!-- Top Breadcrumb & Actions -->
+    <div class="profile-top-bar">
+      <div class="top-left">
+        <a href="/admin/customers" class="back-link">&larr; Back to Customer Registry</a>
+        <span class="cust-id-badge">Customer ID: #CUST-{customer.id}</span>
+      </div>
+      <div class="top-actions">
+        <button class="btn-sec" id="open-followup-modal">+ Schedule Follow-up</button>
+        <button class="btn-pri" id="open-quote-modal">+ Create Quotation</button>
+      </div>
+    </div>
+
+    <!-- 1. Customer Header & Overview Card -->
+    <div class="customer-hero-card">
+      <div class="cust-avatar-col">
+        <div class="avatar-circle">{customer.name.substring(0, 2).toUpperCase()}</div>
+      </div>
+      <div class="cust-meta-col">
+        <div class="name-status-row">
+          <h1 class="cust-name">{customer.name}</h1>
+          <span class={`status-pill status-${computedStatus.toLowerCase()}`}>{computedStatus}</span>
+          {customer.company && <span class="comp-badge">🏢 {customer.company}</span>}
+        </div>
+        <p class="cust-contacts">
+          <span>📞 <a href={`tel:${customer.phone}`}>{customer.phone}</a></span>
+          {customer.email && <span>&bull; ✉️ <a href={`mailto:${customer.email}`}>{customer.email}</a></span>}
+          <span>&bull; Source: <strong>{customer.source || 'Website'}</strong></span>
+          <span>&bull; Member Since: {new Date(customer.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- 2. Customer 360° Financial & KPI Summary Cards -->
+    <div class="financial-kpi-grid">
+      <div class="kpi-card">
+        <span class="kpi-lbl">TOTAL SPENT (LTV)</span>
+        <span class="kpi-val">₹{totalSpent.toLocaleString('en-IN')}</span>
+        <span class="kpi-sub">{totalOrdersCount} Orders (AOV: ₹{aov.toLocaleString('en-IN')})</span>
+      </div>
+
+      <div class="kpi-card highlight-paid">
+        <span class="kpi-lbl">TOTAL PAID</span>
+        <span class="kpi-val">₹{totalPaid.toLocaleString('en-IN')}</span>
+        <span class="kpi-sub">Verified Server Payments</span>
+      </div>
+
+      <div class={`kpi-card ${balanceDue > 0 ? 'highlight-due' : ''}`}>
+        <span class="kpi-lbl">BALANCE DUE</span>
+        <span class="kpi-val">₹{balanceDue.toLocaleString('en-IN')}</span>
+        <span class="kpi-sub">{totalPending > 0 ? 'Pending Checkout Payment' : 'Account Settled'}</span>
+      </div>
+
+      <div class="kpi-card">
+        <span class="kpi-lbl">ENQUIRIES &amp; QUOTES</span>
+        <span class="kpi-val">{enquiries.length} Enquiries</span>
+        <span class="kpi-sub">{openEnquiries.length} Open &bull; {quotations.length} Quotes ({acceptedQuotes.length} Accepted)</span>
+      </div>
+    </div>
+
+    <!-- 3. Main Multi-Tab Interface -->
+    <div class="portal-main-tabs">
+      <div class="tab-buttons">
+        <button class="tab-btn active" data-tab="timeline">Activity Timeline</button>
+        <button class="tab-btn" data-tab="orders">Orders ({orders.length})</button>
+        <button class="tab-btn" data-tab="payments">Payments &amp; Financials</button>
+        <button class="tab-btn" data-tab="quotations">Quotations ({quotations.length})</button>
+        <button class="tab-btn" data-tab="followups">Follow-ups ({followups.length})</button>
+        <button class="tab-btn" data-tab="addresses">Saved Addresses</button>
+      </div>
+
+      <!-- Tab Content 1: Timeline -->
+      <div class="tab-pane active" id="pane-timeline">
+        <div class="pane-split">
+          <div class="pane-left">
+            <h2>360° Customer Activity Feed</h2>
+            <div class="timeline-feed">
+              {rawActivities.length === 0 ? (
+                <p class="empty-state-msg">No recorded activity history yet.</p>
+              ) : (
+                rawActivities.map(act => (
+                  <div class="feed-item">
+                    <div class="feed-dot"></div>
+                    <div class="feed-content">
+                      <div class="feed-header">
+                        <span class="feed-type">{act.type}</span>
+                        <span class="feed-actor">by {act.actor_name || 'System'}</span>
+                        <span class="feed-time">{new Date(act.created_at).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                      </div>
+                      <p class="feed-summary">{act.summary}</p>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          <div class="pane-right">
+            <div class="side-card">
+              <h3>Quick Customer Note</h3>
+              <form id="quick-note-form" data-customer-id={customer.id}>
+                <textarea name="note" rows="3" placeholder="Add CRM note..." required class="side-textarea"></textarea>
+                <button type="submit" class="btn-sm">+ Save Note</button>
+              </form>
+            </div>
+            
+            {nextFollowup && (
+              <div class="side-card followup-next">
+                <h3>⏰ Next Scheduled Follow-up</h3>
+                <p><strong>Due:</strong> {new Date(nextFollowup.due_at).toLocaleString('en-IN')}</p>
+                <p><strong>Assignee:</strong> {nextFollowup.assignee_name || 'Staff'}</p>
+                <p>"{nextFollowup.outcome || 'Follow-up call/WhatsApp'}"</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Content 2: Orders -->
+      <div class="tab-pane" id="pane-orders">
+        <h2>Order History</h2>
+        {orders.length === 0 ? (
+          <p class="empty-state-msg">No orders placed by this customer yet.</p>
+        ) : (
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Order #</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th>Payment</th>
+                <th>Grand Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.map(o => (
+                <tr>
+                  <td><strong>{o.order_number}</strong></td>
+                  <td>{new Date(o.placed_at || o.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                  <td><span class="pill">{o.status}</span></td>
+                  <td><span class={`pill status-${o.payment_status}`}>{o.payment_status.toUpperCase()}</span></td>
+                  <td><strong>₹{o.grand_total.toLocaleString('en-IN')}</strong></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      <!-- Tab Content 3: Payments & Financials -->
+      <div class="tab-pane" id="pane-payments">
+        <h2>Payment &amp; Financial Audit Log</h2>
+        <div class="financial-summary-banner">
+          <div><span>Order Total:</span> <strong>₹{totalSpent.toLocaleString('en-IN')}</strong></div>
+          <div><span>Paid:</span> <strong style="color: #16a34a;">₹{totalPaid.toLocaleString('en-IN')}</strong></div>
+          <div><span>Pending:</span> <strong style="color: #d97706;">₹{totalPending.toLocaleString('en-IN')}</strong></div>
+          <div><span>Refunded:</span> <strong style="color: #dc2626;">₹{totalRefunded.toLocaleString('en-IN')}</strong></div>
+          <div><span>Balance Due:</span> <strong>₹{balanceDue.toLocaleString('en-IN')}</strong></div>
+        </div>
+
+        {payments.length === 0 ? (
+          <p class="empty-state-msg">No payment transactions recorded for this customer.</p>
+        ) : (
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Payment ID</th>
+                <th>Order #</th>
+                <th>Provider &amp; Method</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Date &amp; Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              {payments.map(p => (
+                <tr>
+                  <td><code>{p.provider_payment_id}</code></td>
+                  <td>{p.order_number}</td>
+                  <td>{p.provider} ({p.method})</td>
+                  <td><strong>₹{p.amount.toLocaleString('en-IN')}</strong></td>
+                  <td><span class={`pill status-${p.status.toLowerCase()}`}>{p.status.toUpperCase()}</span></td>
+                  <td>{new Date(p.created_at).toLocaleString('en-IN')}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      <!-- Tab Content 4: Quotations -->
+      <div class="tab-pane" id="pane-quotations">
+        <div class="pane-head-row">
+          <h2>Quotations</h2>
+          <button class="btn-sm" id="open-quote-modal-2">+ Create New Quote</button>
+        </div>
+        {quotations.length === 0 ? (
+          <p class="empty-state-msg">No quotations generated yet.</p>
+        ) : (
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Quote #</th>
+                <th>Status</th>
+                <th>Total Amount</th>
+                <th>Valid Until</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {quotations.map(q => (
+                <tr>
+                  <td><strong>{q.quote_number}</strong></td>
+                  <td><span class="pill">{q.status}</span></td>
+                  <td><strong>₹{q.grand_total.toLocaleString('en-IN')}</strong></td>
+                  <td>{new Date(q.valid_until).toLocaleDateString('en-IN')}</td>
+                  <td>
+                    {q.status !== 'ACCEPTED' && (
+                      <button class="btn-sm-action" onclick={`convertQuoteToOrder(${q.id})`}>Convert to Order &rarr;</button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      <!-- Tab Content 5: Follow-ups -->
+      <div class="tab-pane" id="pane-followups">
+        <h2>Follow-up Reminders</h2>
+        {followups.length === 0 ? (
+          <p class="empty-state-msg">No follow-ups recorded.</p>
+        ) : (
+          <div class="followup-grid">
+            {followups.map(f => (
+              <div class="fu-card">
+                <div class="fu-top">
+                  <span>📅 {new Date(f.due_at).toLocaleString('en-IN')}</span>
+                  <span class="pill">{f.status}</span>
+                </div>
+                <p>"{f.outcome || 'Customer follow-up'}"</p>
+                <small>Assigned: {f.assignee_name || 'Staff'}</small>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <!-- Tab Content 6: Addresses -->
+      <div class="tab-pane" id="pane-addresses">
+        <h2>Saved Customer Addresses</h2>
+        <div class="addr-grid">
+          <div class="addr-box">
+            <h3>Shipping Address</h3>
+            {shippingAddr ? (
+              <p>{shippingAddr.name}<br>{shippingAddr.line1}<br>{shippingAddr.line2}<br>{shippingAddr.city}, {shippingAddr.state} — {shippingAddr.pincode}<br>Phone: {shippingAddr.phone}</p>
+            ) : <p class="muted">No shipping address recorded.</p>}
+          </div>
+
+          <div class="addr-box">
+            <h3>Billing Address</h3>
+            {billingAddr ? (
+              <p>{billingAddr.name}<br>{billingAddr.line1}<br>{billingAddr.line2}<br>{billingAddr.city}, {billingAddr.state} — {billingAddr.pincode}<br>Phone: {billingAddr.phone}</p>
+            ) : <p class="muted">No billing address recorded.</p>}
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Create Quotation Modal -->
+  <div class="modal-backdrop" id="quote-modal" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>Create Official Quotation</h2>
+        <button class="close-btn" onclick="document.getElementById('quote-modal').hidden=true">&times;</button>
+      </div>
+      <form id="create-quote-form" data-customer-id={customer.id}>
+        <div class="f-group">
+          <label>Select Product Variant *</label>
+          <select name="variantId" required class="f-input">
+            {products.map(p => (
+              <option value={p.variant_id}>{p.product_name} ({p.size} / {p.colour}) — ₹{p.selling_price}</option>
+            ))}
+          </select>
+        </div>
+
+        <div class="f-group" style="margin-top: 0.75rem;">
+          <label>Quantity *</label>
+          <input type="number" name="qty" value="10" min="1" required class="f-input" />
+        </div>
+
+        <div class="f-group" style="margin-top: 0.75rem;">
+          <label>Quotation Notes / Customization Terms</label>
+          <textarea name="notes" rows="2" placeholder="e.g. Special corporate branding included." class="f-input"></textarea>
+        </div>
+
+        <div class="modal-foot">
+          <button type="button" class="cancel-btn" onclick="document.getElementById('quote-modal').hidden=true">Cancel</button>
+          <button type="submit" class="submit-btn">Generate &amp; Send Quotation</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Schedule Follow-up Modal -->
+  <div class="modal-backdrop" id="followup-modal" hidden>
+    <div class="modal-card">
+      <div class="modal-head">
+        <h2>Schedule Customer Follow-up</h2>
+        <button class="close-btn" onclick="document.getElementById('followup-modal').hidden=true">&times;</button>
+      </div>
+      <form id="create-followup-form" data-customer-id={customer.id}>
+        <div class="f-group">
+          <label>Date &amp; Time *</label>
+          <input type="datetime-local" name="dueAt" required class="f-input" />
+        </div>
+        <div class="f-group" style="margin-top:0.75rem;">
+          <label>Follow-up Action Note *</label>
+          <input type="text" name="outcome" placeholder="e.g. Call client regarding quotation feedback" required class="f-input" />
+        </div>
+        <div class="modal-foot">
+          <button type="button" class="cancel-btn" onclick="document.getElementById('followup-modal').hidden=true">Cancel</button>
+          <button type="submit" class="submit-btn">Save Follow-up</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</AdminLayout>
+
+<script inline>
+  // Tab Switching Logic
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      const tabId = btn.dataset.tab;
+      document.getElementById(`pane-${tabId}`).classList.add('active');
+    });
+  });
+
+  // Modal Triggers
+  document.getElementById('open-quote-modal')?.addEventListener('click', () => document.getElementById('quote-modal').hidden = false);
+  document.getElementById('open-quote-modal-2')?.addEventListener('click', () => document.getElementById('quote-modal').hidden = false);
+  document.getElementById('open-followup-modal')?.addEventListener('click', () => document.getElementById('followup-modal').hidden = false);
+
+  // Quick Note Form
+  document.getElementById('quick-note-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const custId = e.target.dataset.customerId;
+    const body = new FormData(e.target).get('note');
+    await fetch(`/api/admin/customers/${custId}/notes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ body })
+    });
+    window.location.reload();
+  });
+
+  // Create Quote Form
+  document.getElementById('create-quote-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const custId = e.target.dataset.customerId;
+    const formData = new FormData(e.target);
+    const variantId = parseInt(formData.get('variantId'), 10);
+    const qty = parseInt(formData.get('qty'), 10);
+    const notes = formData.get('notes');
+
+    const res = await fetch(`/api/admin/quotations`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ customerId: parseInt(custId, 10), items: [{ variantId, qty }], notes })
+    });
+    const json = await res.json();
+    if (json.success) {
+      alert('Quotation generated successfully!');
+      window.location.reload();
+    } else {
+      alert(`Error: ${json.error}`);
+    }
+  });
+
+  // Schedule Follow-up Form
+  document.getElementById('create-followup-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const custId = e.target.dataset.customerId;
+    const formData = new FormData(e.target);
+    const dueAt = formData.get('dueAt');
+    const outcome = formData.get('outcome');
+
+    await fetch(`/api/admin/follow-ups`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entityType: 'customer', entityId: parseInt(custId, 10), dueAt, outcome })
+    });
+    window.location.reload();
+  });
+
+  // Convert Quote to Order
+  async function convertQuoteToOrder(quoteId) {
+    if (!confirm('Convert this Quotation to a live Order?')) return;
+    const res = await fetch(`/api/admin/quotations/${quoteId}/convert`, { method: 'POST' });
+    const json = await res.json();
+    if (json.success) {
+      alert(`Quotation converted to Order #${json.order.order_number}!`);
+      window.location.reload();
+    } else {
+      alert(`Conversion failed: ${json.error}`);
+    }
+  }
+</script>
+
+<style>
+  .cust-profile-360-container { padding: 1.5rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; display: flex; flex-direction: column; gap: 1.25rem; }
+  .profile-top-bar { display: flex; justify-content: space-between; align-items: center; }
+  .back-link { color: #8A174B; font-weight: 600; text-decoration: none; font-size: 0.88rem; }
+  .cust-id-badge { background: #e2e8f0; color: #475569; font-weight: 700; font-size: 0.75rem; padding: 0.25rem 0.6rem; border-radius: 4px; margin-left: 1rem; }
+  .top-actions { display: flex; gap: 0.75rem; }
+  .btn-pri { background: #8A174B; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600; font-size: 0.813rem; cursor: pointer; }
+  .btn-sec { background: #fff; color: #8A174B; border: 1px solid #8A174B; padding: 0.5rem 1rem; border-radius: 6px; font-weight: 600; font-size: 0.813rem; cursor: pointer; }
+  .btn-sm { background: #0f172a; color: #fff; border: none; padding: 0.35rem 0.75rem; border-radius: 4px; font-size: 0.781rem; cursor: pointer; }
+
+  .customer-hero-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.25rem 1.5rem; display: flex; gap: 1.5rem; align-items: center; }
+  .avatar-circle { width: 56px; height: 56px; background: #8A174B; color: #fff; font-size: 1.5rem; font-weight: 700; display: grid; place-items: center; border-radius: 50%; }
+  .cust-name { font-size: 1.6rem; font-weight: 700; color: #0f172a; margin: 0; }
+  .name-status-row { display: flex; align-items: center; gap: 0.75rem; }
+  .cust-contacts { font-size: 0.844rem; color: #64748b; margin: 0.35rem 0 0; }
+  .cust-contacts a { color: #0f172a; font-weight: 600; text-decoration: none; }
+  .status-pill { font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.6rem; border-radius: 999px; text-transform: uppercase; background: #e0f2fe; color: #0369a1; }
+
+  .financial-kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+  .kpi-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 1rem; display: flex; flex-direction: column; }
+  .kpi-card.highlight-paid { border-left: 4px solid #16a34a; }
+  .kpi-card.highlight-due { border-left: 4px solid #ef4444; background: #fef2f2; }
+  .kpi-lbl { font-size: 0.72rem; font-weight: 700; color: #64748b; }
+  .kpi-val { font-size: 1.6rem; font-weight: 800; color: #0f172a; margin-block: 0.25rem; }
+  .kpi-sub { font-size: 0.75rem; color: #94a3b8; }
+
+  .portal-main-tabs { background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; }
+  .tab-buttons { display: flex; background: #f8fafc; border-bottom: 1px solid #e2e8f0; overflow-x: auto; }
+  .tab-btn { padding: 0.85rem 1.25rem; background: none; border: none; font-size: 0.844rem; font-weight: 600; color: #64748b; cursor: pointer; white-space: nowrap; border-bottom: 2px solid transparent; }
+  .tab-btn.active { color: #8A174B; border-bottom-color: #8A174B; background: #fff; }
+
+  .tab-pane { display: none; padding: 1.5rem; }
+  .tab-pane.active { display: block; }
+  .tab-pane h2 { font-size: 1.15rem; color: #0f172a; margin: 0 0 1rem 0; }
+
+  .pane-split { display: grid; grid-template-columns: 1fr 340px; gap: 1.5rem; }
+  .timeline-feed { display: flex; flex-direction: column; gap: 1rem; position: relative; }
+  .feed-item { display: flex; gap: 0.75rem; }
+  .feed-dot { width: 10px; height: 10px; background: #8A174B; border-radius: 50%; margin-top: 0.35rem; flex-shrink: 0; }
+  .feed-content { background: #f8fafc; border: 1px solid #f1f5f9; padding: 0.75rem 1rem; border-radius: 6px; flex: 1; }
+  .feed-header { display: flex; gap: 0.5rem; font-size: 0.75rem; color: #64748b; }
+  .feed-type { font-weight: 700; color: #8A174B; }
+  .feed-time { margin-left: auto; }
+  .feed-summary { font-size: 0.844rem; color: #0f172a; margin: 0.25rem 0 0; }
+
+  .side-card { background: #f8fafc; border: 1px solid #e2e8f0; padding: 1rem; border-radius: 6px; margin-bottom: 1rem; }
+  .side-card h3 { font-size: 0.88rem; margin: 0 0 0.5rem 0; color: #0f172a; }
+  .side-textarea { width: 100%; border: 1px solid #cbd5e1; border-radius: 4px; padding: 0.5rem; font-size: 0.844rem; outline: none; box-sizing: border-block; margin-bottom: 0.5rem; }
+
+  .data-table { width: 100%; border-collapse: collapse; font-size: 0.844rem; text-align: left; }
+  .data-table th { background: #f8fafc; color: #475569; padding: 0.65rem 0.85rem; border-bottom: 1px solid #e2e8f0; font-size: 0.75rem; text-transform: uppercase; }
+  .data-table td { padding: 0.75rem 0.85rem; border-bottom: 1px solid #f1f5f9; }
+  .pill { font-size: 0.72rem; font-weight: 600; padding: 0.15rem 0.5rem; border-radius: 3px; background: #e2e8f0; }
+
+  .financial-summary-banner { display: flex; gap: 1.5rem; background: #f8fafc; border: 1px solid #e2e8f0; padding: 1rem 1.25rem; border-radius: 6px; margin-bottom: 1.25rem; font-size: 0.844rem; flex-wrap: wrap; }
+
+  .addr-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+  .addr-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 1rem; }
+
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: grid; place-items: center; padding: 1.5rem; }
+  .modal-card { background: #fff; border-radius: 8px; width: 100%; max-width: 480px; padding: 1.5rem; }
+  .modal-head { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem; }
+  .modal-foot { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.25rem; }
+  .cancel-btn { background: none; border: 1px solid #cbd5e1; padding: 0.45rem 1rem; border-radius: 6px; cursor: pointer; }
+  .submit-btn { background: #8A174B; color: #fff; border: none; padding: 0.45rem 1rem; border-radius: 6px; font-weight: 600; cursor: pointer; }
+  .f-input { width: 100%; padding: 0.45rem; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.844rem; }
+
+  .empty-state-msg { text-align: center; color: #64748b; padding: 2rem; background: #f8fafc; border-radius: 4px; border: 1px dashed #cbd5e1; font-size: 0.88rem; }
+
+  @media (max-width: 900px) {
+    .pane-split, .addr-grid { grid-template-columns: 1fr; }
+  }
+</style>

@@ -1,0 +1,352 @@
+{
+  "cork-tablemat-chocochip": {
+    "product_name": "Cork Tablemat ChocoChip",
+    "images": [
+      {
+        "order": 1,
+        "file": "cork-tablemat-chocochip/01.jpg",
+        "role": "primary"
+      }
+    ]
+  },
+  "cork-tablemat-abstract": {
+    "product_name": "Cork Tablemat Abstract",
+    "images": [
+      {
+        "order": 1,
+        "file": "cork-tablemat-abstract/01.jpg",
+        "role": "primary"
+      },
+      {
+        "order": 2,
+        "file": "cork-tablemat-abstract/02.jpg",
+        "role": "gallery"
+      }
+    ]
+  },
+  "cork-tablemat-oval-red-assiago": {
+    "product_name": "Cork Tablemat Oval Red Assiago",
+    "images": [
+      {
+        "order": 1,
+        "file": "cork-tablemat-oval-red-assiago/01.jpg",
+        "role": "primary"
+      },
+      {
+        "order": 2,
+        "file": "cork-tablemat-oval-red-assiago/02.jpg",
+        "role": "gallery"
+      }
+    ]
+  },
+  "cork-tablemat-red-assiago": {
+    "product_name": "Cork Tablemat Red Assiago",
+    "images": [
+      {
+        "order": 1,
+        "file": "cork-tablemat-red-assiago/01.jpg",
+        "role": "primary"
+      }
+    ]
+  },
+  "smoky-black-small-round-tray": {
+    "product_name": "Smoky Black Small Round Tray",
+    "images": [
+      {
+        "order": 1,
+        "file": "smoky-black-small-round-tray/01.jpg",
+        "role": "primary"
+      }
+    ]
+  },
+  "box-print-table-top-t-t-planter": {
+    "product_name": "Box Print Table Top T.T. Planter",
+    "images": [
+      {
+        "order": 1,
+        "file": "box-print-table-top-t-t-planter/01.jpg",
+        "role": "primary"
+      },
+      {
+        "order": 2,
+        "file": "box-print-table-top-t-t-planter/02.jpg",
+        "role": "gallery"
+      },
+      {
+        "order": 3,
+        "file": "box-print-table-top-t-t-planter/03.jpg",
+        "role": "gallery"
+      }
+    ]
+  },
+  "box-print-table-top-test-tube-planter-combo-46": {
+    "product_name": "Box Print Table Top Test Tube Planter Combo-46",
+    "images": [
+      {
+        "order": 1,
+        "file": "box-print-table-top-test-tube-planter-combo-46/01.jpg",
+        "role": "primary"
+      }
+    ]
+  },
+  "charochip-square-planter": {
+    "product_name": "CharoChip Square Planter",
+    "images": [
+      {
+        "order": 1,
+        "file": "charochip-square-planter/01.jpg",
+        "role": "primary"
+      }
+    ]
+  },
+  "cork-belly-planter": {
+    "product_name": "Cork Belly Planter",
+    "images": [
+      {
+        "order": 1,
+        "file": "cork-belly-planter/01.jpg",
+        "role": "primary"
+      },
+      {
+        "order": 2,
+        "file": "cork-belly-planter/02.jpg",
+        "role": "gallery"
+      }
+    ]
+  },
+  "cork-conical-flask-planter": {
+    "product_name": "Cork Conical Flask Planter",
+    "images": [
+      {
+        "order": 1,
+        "file": "cork-conical-flask-planter/01.jpg",
+        "role": "primary"
+      },
+      {
+        "order": 2,
+        "file": "cork-conical-flask-planter/02.jpg",
+        "role": "gallery"
+      }
+    ]
+  },
+  "diamond-square-planter": {
+    "product_name": "Diamond Square Planter",
+    "images": [
+      {
+        "order": 1,
+        "file": "diamond-square-planter/01.jpg",
+        "role": "primary"
+      },
+      {
+        "order": 2,
+        "file": "diamond-square-planter/02.jpg",
+        "role": "gallery"
+      }
+    ]
+  },
+  "feather-printed-tabletop-t-t-planter": {
+    "product_name": "Feather Printed Tabletop T.T. Planter",
+    "images": [
+      {
+        "order": 1,
+        "file": "feather-printed-tabletop-t-t-planter/01.jpg",
+        "role": "primary"
+      }
+    ]
+  },
+  "multi-printed-tabletop-t-t-planter": {
+    "product_name": "Multi Printed Tabletop T.T. Planter",
+    "images": [
+      {
+        "order": 1,
+        "file": "multi-printed-tabletop-t-t-planter/01.jpg",
+        "role": "primary"
+      }
+    ]
+  },
+  "natural-bark-planter": {
+    "product_name": "Natural Bark Planter",
+    "images": [
+      {
+        "order": 1,
+        "file": "natural-bark-planter/01.jpg",
+        "role": "primary"
+      }
+    ]
+  },
+  "round-linear-planter": {
+    "product_name": "Round Linear Planter",
+    "images": [
+      {
+        "order": 1,
+        "file": "round-linear-planter/01.jpg",
+        "role": "primary"
+      }
+    ]
+  },
+  "rectangular-test-tube-planter": {
+    "product_name": "Rectangular Test Tube Planter",
+    "images": [
+      {
+        "order": 1,
+        "file": "rectangular-test-tube-planter/01.jpg",
+        "role": "primary"
+      },
+      {
+        "order": 2,
+        "file": "rectangular-test-tube-planter/02.jpg",
+        "role": "gallery"
+      }
+    ]
+  },
+  "round-fine-grain-planter": {
+    "product_name": "Round Fine Grain Planter",
+    "images": [
+      {
+        "order": 1,
+        "file": "round-fine-grain-planter/01.jpg",
+        "role": "primary"
+      }
+    ]
+  },
+  "wall-frame-test-tube-planter": {
+    "product_name": "Wall Frame Test Tube Planter",
+    "images": [
+      {
+        "order": 1,
+        "file": "wall-frame-test-tube-planter/01.jpg",
+        "role": "primary"
+      },
+      {
+        "order": 2,
+        "file": "wall-frame-test-tube-planter/02.jpg",
+        "role": "gallery"
+      }
+    ]
+  },
+  "ecodesk-diary-a5-combo-10": {
+    "product_name": "Ecodesk Diary A5 Combo 10",
+    "images": [
+      {
+        "order": 1,
+        "file": "ecodesk-diary-a5-combo-10/01.jpg",
+        "role": "primary"
+      }
+    ]
+  },
+  "cork-tea-light-holder-assorted-c-46": {
+    "product_name": "Cork Tea Light Holder Assorted C-46",
+    "images": [
+      {
+        "order": 1,
+        "file": "cork-tea-light-holder-assorted-c-46/01.jpg",
+        "role": "primary"
+      },
+      {
+        "order": 2,
+        "file": "cork-tea-light-holder-assorted-c-46/02.jpg",
+        "role": "gallery"
+      }
+    ]
+  },
+  "natural-tray-9x9-inch-combo-46": {
+    "product_name": "Natural Tray 9x9 Inch Combo-46",
+    "images": [
+      {
+        "order": 1,
+        "file": "natural-tray-9x9-inch-combo-46/01.jpg",
+        "role": "primary"
+      },
+      {
+        "order": 2,
+        "file": "natural-tray-9x9-inch-combo-46/02.jpg",
+        "role": "gallery"
+      }
+    ]
+  },
+  "mouse-pad-super-fine-grain-c-36": {
+    "product_name": "Mouse Pad Super Fine Grain C-36",
+    "images": [
+      {
+        "order": 1,
+        "file": "mouse-pad-super-fine-grain-c-36/01.jpg",
+        "role": "primary"
+      },
+      {
+        "order": 2,
+        "file": "mouse-pad-super-fine-grain-c-36/02.jpg",
+        "role": "gallery"
+      }
+    ]
+  },
+  "small-calendar-combo-36": {
+    "product_name": "Small Calendar Combo-36",
+    "images": [
+      {
+        "order": 1,
+        "file": "small-calendar-combo-36/01.jpg",
+        "role": "primary"
+      }
+    ]
+  },
+  "passport-holder-granoco-combo-19": {
+    "product_name": "Passport Holder Granoco Combo-19",
+    "images": [
+      {
+        "order": 1,
+        "file": "passport-holder-granoco-combo-19/01.jpg",
+        "role": "primary"
+      }
+    ]
+  },
+  "cork-bottle-granoco-combo-19": {
+    "product_name": "Cork Bottle Granoco Combo-19",
+    "images": [
+      {
+        "order": 1,
+        "file": "cork-bottle-granoco-combo-19/01.jpg",
+        "role": "primary"
+      }
+    ]
+  },
+  "jet-case-brown-bag-combo-19": {
+    "product_name": "Jet Case Brown Bag Combo-19",
+    "images": [
+      {
+        "order": 1,
+        "file": "jet-case-brown-bag-combo-19/01.jpg",
+        "role": "primary"
+      },
+      {
+        "order": 2,
+        "file": "jet-case-brown-bag-combo-19/02.jpg",
+        "role": "gallery"
+      }
+    ]
+  },
+  "cork-bottle-ocean-mist-combo-18": {
+    "product_name": "Cork Bottle Ocean Mist Combo-18",
+    "images": [
+      {
+        "order": 1,
+        "file": "cork-bottle-ocean-mist-combo-18/01.jpg",
+        "role": "primary"
+      }
+    ]
+  },
+  "cork-canvas-sleeve-combo-10": {
+    "product_name": "Cork Canvas Sleeve Combo 10",
+    "images": [
+      {
+        "order": 1,
+        "file": "cork-canvas-sleeve-combo-10/01.jpg",
+        "role": "primary"
+      },
+      {
+        "order": 2,
+        "file": "cork-canvas-sleeve-combo-10/02.jpg",
+        "role": "gallery"
+      }
+    ]
+  }
+}

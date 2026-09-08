@@ -3,6 +3,7 @@ import Base from '../../../layouts/Base.astro';
 import { getSessionUser } from '../../../lib/auth';
 import { db } from '../../../lib/db';
 import { evaluatePurchasability, COMMERCE_MODE } from '../../../lib/purchasability';
+import { getComboAvailability } from '../../../lib/combos';
 
 const user = getSessionUser(Astro.request);
 if (!user) {
@@ -20,6 +21,18 @@ const collections = db.prepare('SELECT * FROM collections WHERE deleted_at IS NU
 const subcategories = db.prepare('SELECT * FROM subcategories WHERE deleted_at IS NULL ORDER BY name ASC').all() as any[];
 const images = db.prepare('SELECT * FROM product_images WHERE product_id = ? ORDER BY position ASC').all(productId) as any[];
 const variants = db.prepare('SELECT * FROM product_variants WHERE product_id = ? ORDER BY position ASC').all(productId) as any[];
+const allSelectableVariants = db.prepare(`
+  SELECT v.id, v.sku, p.name as product_name
+  FROM product_variants v
+  JOIN products p ON v.product_id = p.id
+  WHERE p.deleted_at IS NULL AND p.id != ?
+  ORDER BY p.name ASC
+`).all(productId) as any[];
+
+const variantsWithCombos = variants.map(v => ({
+  ...v,
+  comboAvailability: getComboAvailability(v.id)
+}));
 
 const purchasability = evaluatePurchasability(product, variants);
 const missingFields = [...purchasability.missingProductFields, ...purchasability.missingVariantFields];
@@ -143,7 +156,7 @@ const missingFields = [...purchasability.missingProductFields, ...purchasability
               id="consumer_care_contact" 
               name="consumer_care_contact" 
               value={product.consumer_care_contact || ''} 
-              placeholder="e.g. info@vinsho.com · Phone: +91 8527406482" 
+              placeholder="e.g. vinvks@gmail.com · Phone: +91 9625515351" 
               class="admin-input" 
             />
           </div>
@@ -263,6 +276,82 @@ const missingFields = [...purchasability.missingProductFields, ...purchasability
             />
           </div>
         </div>
+
+        <!-- Card 5: Combo / Bundle Component Manager -->
+        <div class="form-card full-width" style="border-left: 4px solid #8A174B;">
+          <div class="card-title-row">
+            <div>
+              <h3>5. Combo / Bundle Component Manager</h3>
+              <p style="font-size: 0.813rem; color: #64748b; margin: 0.2rem 0 0 0;">
+                Map individual component items for bundles. Purchasing a combo will automatically deduct inventory from each component item.
+              </p>
+            </div>
+          </div>
+
+          {variantsWithCombos.map((v) => (
+            <div class="combo-builder-variant-box" data-variant-id={v.id} style="background: #faf6f0; border: 1px solid rgba(138,23,75,0.15); border-radius: 8px; padding: 1.25rem; margin-bottom: 1.25rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid rgba(138,23,75,0.1); padding-bottom: 0.5rem;">
+                <div>
+                  <strong style="color: #8A174B; font-size: 0.95rem;">Variant SKU: {v.sku || `ID #${v.id}`} ({v.size || 'Standard'} / {v.colour || 'Default'})</strong>
+                  <span style="display: block; font-size: 0.781rem; color: #475569; margin-top: 0.15rem;">
+                    Status: <b>{v.comboAvailability.isBundle ? 'Active Combo Bundle' : 'Standalone Product'}</b> &middot;
+                    Max Sellable Combos: <b style="color: #166534; font-size: 0.88rem;">{v.comboAvailability.maxSellableCombos}</b>
+                  </span>
+                </div>
+                <button type="button" class="btn-save-combo-components" data-combo-var-id={v.id} style="background: #8A174B; color: #fff; border: none; padding: 0.45rem 1rem; border-radius: 4px; font-weight: 700; font-size: 0.781rem; cursor: pointer;">
+                  Save Components for Variant
+                </button>
+              </div>
+
+              <table class="admin-table combo-components-table" id={`combo-comp-table-${v.id}`} style="background: #fff; border-radius: 6px; overflow: hidden; margin-bottom: 1rem;">
+                <thead>
+                  <tr style="background: #f1f5f9; font-size: 0.781rem;">
+                    <th>Component Product / Variant</th>
+                    <th>Required Qty per Combo</th>
+                    <th>Available Physical Stock</th>
+                    <th>Max Combos Possible</th>
+                    <th style="text-align: right;">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {v.comboAvailability.components.length > 0 ? (
+                    v.comboAvailability.components.map((comp: any) => (
+                      <tr class="combo-comp-row">
+                        <td>
+                          <select class="comp-var-select admin-select" style="font-size: 0.813rem;">
+                            {allSelectableVariants.map((sv: any) => (
+                              <option value={sv.id} selected={sv.id === comp.componentVariantId}>
+                                {sv.product_name} ({sv.sku || `Var #${sv.id}`})
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                        <td>
+                          <input type="number" min="1" class="comp-qty-input admin-input-sm" value={comp.requiredQty} style="width: 80px;" />
+                        </td>
+                        <td>{comp.stock} units</td>
+                        <td><strong style="color: #166534;">{comp.maxCombosPossible}</strong></td>
+                        <td style="text-align: right;">
+                          <button type="button" class="btn-del-row" onclick="this.closest('tr').remove()">&times;</button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr class="empty-comp-row">
+                      <td colspan="5" style="text-align: center; color: #64748b; padding: 1rem; font-size: 0.813rem;">
+                        No components mapped for this variant. It currently sells as a standalone product.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+
+              <button type="button" class="btn-add-comp-row" data-target-table={`combo-comp-table-${v.id}`} style="background: #0f172a; color: #fff; border: none; padding: 0.35rem 0.75rem; border-radius: 4px; font-size: 0.781rem; font-weight: 600; cursor: pointer;">
+                + Add Component to Bundle
+              </button>
+            </div>
+          ))}
+        </div>
       </form>
     </main>
   </div>
@@ -360,6 +449,71 @@ const missingFields = [...purchasability.missingProductFields, ...purchasability
       } else {
         alert(`Error: ${json.error}`);
       }
+    });
+
+    // Combo Component Builder Event Listeners
+    document.querySelectorAll('.btn-add-comp-row').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const targetId = (e.currentTarget as HTMLElement).dataset.targetTable;
+        if (!targetId) return;
+        const tableBody = document.querySelector(`#${targetId} tbody`);
+        tableBody?.querySelector('.empty-comp-row')?.remove();
+
+        const tr = document.createElement('tr');
+        tr.className = 'combo-comp-row';
+        tr.innerHTML = `
+          <td>
+            <select class="comp-var-select admin-select" style="font-size: 0.813rem;">
+              ${Array.from(document.querySelectorAll('.comp-var-select:first-of-type option')).map(opt => 
+                `<option value="${(opt as HTMLOptionElement).value}">${opt.textContent}</option>`
+              ).join('')}
+            </select>
+          </td>
+          <td>
+            <input type="number" min="1" class="comp-qty-input admin-input-sm" value="1" style="width: 80px;" />
+          </td>
+          <td>&mdash;</td>
+          <td>&mdash;</td>
+          <td style="text-align: right;">
+            <button type="button" class="btn-del-row" onclick="this.closest('tr').remove()">&times;</button>
+          </td>
+        `;
+        tableBody?.appendChild(tr);
+      });
+    });
+
+    document.querySelectorAll('.btn-save-combo-components').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        const comboVarId = (e.currentTarget as HTMLElement).dataset.comboVarId;
+        if (!comboVarId) return;
+
+        const table = document.querySelector(`#combo-comp-table-${comboVarId}`);
+        const rows = table?.querySelectorAll('.combo-comp-row');
+        const components: any[] = [];
+
+        rows?.forEach(r => {
+          const compVarId = parseInt((r.querySelector('.comp-var-select') as HTMLSelectElement).value, 10);
+          const quantity = parseInt((r.querySelector('.comp-qty-input') as HTMLInputElement).value || '1', 10);
+          components.push({ componentVariantId: compVarId, quantity });
+        });
+
+        try {
+          const res = await fetch(`/api/admin/combos/${comboVarId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ components })
+          });
+          const json = await res.json();
+          if (json.success) {
+            alert(`Combo components saved successfully! Max sellable combos: ${json.availability.maxSellableCombos}`);
+            window.location.reload();
+          } else {
+            alert(`Error saving combo components: ${json.error}`);
+          }
+        } catch (err) {
+          alert('Failed to save combo components due to a network error.');
+        }
+      });
     });
   });
 </script>

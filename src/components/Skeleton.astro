@@ -1,0 +1,70 @@
+---
+export interface Props {
+  variant?: 'text' | 'card' | 'table-row' | 'dashboard-stat' | 'order-card';
+  width?: string;
+  height?: string;
+  count?: number;
+  class?: string;
+}
+
+const {
+  variant = 'text',
+  width = '100%',
+  height = '1rem',
+  count = 1,
+  class: className = ''
+} = Astro.props;
+
+const items = Array.from({ length: count });
+---
+
+{variant === 'card' && (
+  <div class={`sk-card-layout ${className}`}>
+    <div class="sk-item" style="width: 100%; aspect-ratio: 1/1; border-radius: 8px;"></div>
+    <div class="sk-item" style="width: 75%; height: 1.25rem; margin-top: 0.75rem;"></div>
+    <div class="sk-item" style="width: 45%; height: 1rem; margin-top: 0.5rem;"></div>
+  </div>
+)}
+
+{variant === 'dashboard-stat' && (
+  <div class={`sk-stat-card ${className}`}>
+    <div class="sk-item" style="width: 40%; height: 0.85rem;"></div>
+    <div class="sk-item" style="width: 60%; height: 2rem; margin-top: 0.75rem;"></div>
+  </div>
+)}
+
+{variant === 'table-row' && (
+  <tr class={`sk-tr ${className}`}>
+    <td style="padding: 1rem;"><div class="sk-item" style="height: 1rem; width: 80%;"></div></td>
+    <td style="padding: 1rem;"><div class="sk-item" style="height: 1rem; width: 60%;"></div></td>
+    <td style="padding: 1rem;"><div class="sk-item" style="height: 1rem; width: 70%;"></div></td>
+    <td style="padding: 1rem;"><div class="sk-item" style="height: 1rem; width: 50%;"></div></td>
+  </tr>
+)}
+
+{variant === 'order-card' && (
+  <div class={`sk-order-card ${className}`} style="background: var(--paper-2); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--line); margin-bottom: 1rem;">
+    <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+      <div class="sk-item" style="width: 30%; height: 1.25rem;"></div>
+      <div class="sk-item" style="width: 20%; height: 1rem;"></div>
+    </div>
+    <div class="sk-item" style="width: 50%; height: 1rem; margin-bottom: 0.5rem;"></div>
+    <div class="sk-item" style="width: 40%; height: 1rem;"></div>
+  </div>
+)}
+
+{variant === 'text' && items.map((_, idx) => (
+  <div
+    class={`sk-item ${className}`}
+    style={`width: ${width}; height: ${height}; margin-bottom: ${idx === count - 1 ? '0' : '0.5rem'};`}
+  ></div>
+))}
+
+<style>
+  .sk-stat-card {
+    background: var(--paper-2, #F9F4F0);
+    border: 1px solid var(--line, rgba(138, 23, 75,.15));
+    border-radius: 8px;
+    padding: 1.25rem;
+  }
+</style>

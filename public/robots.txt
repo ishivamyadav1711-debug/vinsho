@@ -1,0 +1,17 @@
+# VINSHO Search Engine Robots Instructions
+User-agent: *
+Allow: /
+
+# Exclude Administrative, API, Authentication, and Private Customer Routes
+Disallow: /admin/
+Disallow: /api/
+Disallow: /account/
+Disallow: /checkout/
+Disallow: /cart
+Disallow: /login
+Disallow: /signup
+Disallow: /forgot-password
+Disallow: /reset-password
+
+# Sitemap Index
+Sitemap: https://vinsho.com/sitemap-index.xml

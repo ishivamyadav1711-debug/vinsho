@@ -1,9 +1,3 @@
 ---
-import { getSessionUser } from '../../lib/auth';
-
-const user = getSessionUser(Astro.request);
-if (!user) {
-  return Astro.redirect('/admin/login');
-}
-return Astro.redirect('/admin/crm');
+return Astro.redirect('/crm');
 ---

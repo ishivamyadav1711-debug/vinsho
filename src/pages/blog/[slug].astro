@@ -1,0 +1,410 @@
+---
+export const prerender = true;
+
+import Base from '../../layouts/Base.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+import Modal from '../../components/Modal.astro';
+import CustomCursor from '../../components/motion/CustomCursor.astro';
+import TextReveal from '../../components/motion/TextReveal.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import { getAllBlogPosts, getBlogPostBySlug } from '../../lib/blog';
+
+export function getStaticPaths() {
+  const posts = getAllBlogPosts();
+  return posts.map((post) => ({
+    params: { slug: post.slug }
+  }));
+}
+
+const { slug } = Astro.params;
+const post = getBlogPostBySlug(slug);
+
+if (!post) {
+  throw new Error(`Blog post not found: ${slug}`);
+}
+
+const breadcrumbItems = [
+  { label: 'Home', url: '/' },
+  { label: 'Blog', url: '/blog' },
+  { label: post.title }
+];
+
+const articleJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": post.title,
+  "author": {
+    "@type": "Person",
+    "name": post.author
+  },
+  "datePublished": "2025-10-09",
+  "image": post.featuredImage,
+  "description": post.metaDescription,
+  "publisher": {
+    "@type": "Organization",
+    "name": "VINSHO",
+    "url": "https://vinsho.com"
+  }
+};
+---
+
+<Base title={`${post.metaTitle}`} description={post.metaDescription}>
+  <script type="application/ld+json" set:html={JSON.stringify(articleJsonLd)} />
+  <CustomCursor />
+  <Nav />
+
+  <main id="main-content" class="wrap article-detail-page">
+    <Breadcrumbs items={breadcrumbItems} />
+
+    <article class="article-container">
+      <header class="article-header">
+        <a href="/blog" class="back-to-blog-link">&larr; Back to Blog</a>
+        
+        <div class="article-cat-tag">{post.category}</div>
+        <TextReveal as="h1" class="article-title">{post.title}</TextReveal>
+      </header>
+
+      {post.featuredImage && (
+        <div class="article-featured-frame">
+          <img src={post.featuredImage} alt={post.title} class="article-featured-img" />
+        </div>
+      )}
+
+      <div class="article-content-body">
+        {post.sections.map((section, idx) => (
+          <section class="article-section">
+            {section.heading && (
+              <h2>{section.heading}</h2>
+            )}
+            {section.paragraphs.map((para) => (
+              <p>{para}</p>
+            ))}
+          </section>
+        ))}
+
+        {post.ctaText && post.ctaLink && (
+          <div class="article-cta-box">
+            <a href={post.ctaLink} class="article-cta-btn">
+              {post.ctaText}
+            </a>
+          </div>
+        )}
+      </div>
+
+      <!-- Clean Blog Comment Section Structure -->
+      <section class="article-comments-area">
+        <h3>Leave a Comment</h3>
+        <p class="comment-note">Your email address will not be published. Required fields are marked *</p>
+
+        <form class="comment-form-visual" onsubmit="event.preventDefault(); alert('Comments are currently closed for this article.');">
+          <div class="comment-form-row">
+            <div class="comment-field">
+              <label for="comment-name">Name *</label>
+              <input type="text" id="comment-name" required class="comment-input" placeholder="Your name" />
+            </div>
+            <div class="comment-field">
+              <label for="comment-email">Email *</label>
+              <input type="email" id="comment-email" required class="comment-input" placeholder="Your email address" />
+            </div>
+          </div>
+
+          <div class="comment-field">
+            <label for="comment-website">Website</label>
+            <input type="url" id="comment-website" class="comment-input" placeholder="Your website (optional)" />
+          </div>
+
+          <div class="comment-field">
+            <label for="comment-text">Type here.. *</label>
+            <textarea id="comment-text" rows="5" required class="comment-input" placeholder="Write your comment here..."></textarea>
+          </div>
+
+          <div class="comment-checkbox-row">
+            <input type="checkbox" id="save-info" class="comment-checkbox" />
+            <label for="save-info">Save my name, email, and website in this browser for the next time I comment.</label>
+          </div>
+
+          <button type="submit" class="submit-comment-btn">Post Comment</button>
+        </form>
+      </section>
+
+      <footer class="article-footer-nav">
+        <a href="/blog" class="btn-all-articles">&larr; Return to all articles</a>
+      </footer>
+    </article>
+  </main>
+
+  <Footer />
+  <Modal />
+</Base>
+
+<style>
+  .article-detail-page {
+    padding-block: clamp(1.5rem, 3vw, 3.5rem);
+  }
+
+  .article-container {
+    max-width: 48rem;
+    margin-inline: auto;
+  }
+
+  .back-to-blog-link {
+    font-size: 0.813rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--pink, #CD788F);
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 1rem;
+    transition: color 0.2s ease;
+  }
+
+  .back-to-blog-link:hover {
+    color: var(--maroon, #8A174B);
+  }
+
+  .article-cat-tag {
+    display: inline-block;
+    background: var(--paper-3, #F5EBE8);
+    color: var(--maroon, #8A174B);
+    font-size: 0.688rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    margin-bottom: 0.75rem;
+  }
+
+  .article-header {
+    margin-bottom: 2rem;
+  }
+
+  .article-title {
+    font-family: var(--display, 'Inter', sans-serif);
+    font-size: clamp(1.85rem, 4vw, 3rem);
+    color: var(--maroon-2, #731D42);
+    line-height: 1.15;
+    margin: 0;
+  }
+
+  .article-featured-frame {
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    border-radius: 6px;
+    margin-bottom: 2.5rem;
+    background: var(--paper-3, #F5EBE8);
+  }
+
+  .article-featured-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .article-content-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+    font-size: 1.05rem;
+    line-height: 1.75;
+    color: var(--ink, #3E3336);
+  }
+
+  .article-section h2 {
+    font-family: var(--display, 'Inter', sans-serif);
+    font-size: clamp(1.35rem, 2.5vw, 1.85rem);
+    color: var(--maroon-2, #731D42);
+    margin: 1.5rem 0 0.75rem;
+    line-height: 1.25;
+  }
+
+  .article-section p {
+    margin: 0 0 1rem;
+  }
+
+  .article-section p:last-child {
+    margin-bottom: 0;
+  }
+
+  .article-cta-box {
+    margin-top: 1rem;
+    padding-top: 1rem;
+  }
+
+  .article-cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--maroon, #8A174B);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.88rem;
+    letter-spacing: 0.08em;
+    padding: 0.8rem 1.6rem;
+    border-radius: 999px;
+    text-decoration: none;
+    transition: background 0.2s ease, transform 0.2s ease;
+  }
+
+  .article-cta-btn:hover {
+    background: var(--maroon-2, #6B0E38);
+    transform: translateY(-2px);
+  }
+
+  /* Comment Area Clean Styling */
+  .article-comments-area {
+    margin-top: 3.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--line, rgba(138, 23, 75,.15));
+  }
+
+  .article-comments-area h3 {
+    font-family: var(--display, 'Inter', sans-serif);
+    font-size: 1.5rem;
+    color: var(--maroon-2, #731D42);
+    margin: 0 0 0.35rem;
+    font-weight: 600;
+  }
+
+  .comment-note {
+    font-size: 0.844rem;
+    color: var(--ink-soft, #7C6B6E);
+    margin: 0 0 1.75rem;
+  }
+
+  .comment-form-visual {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    background: var(--paper-2, #F9F4F0);
+    padding: 2rem;
+    border-radius: 8px;
+    border: 1px solid var(--line, rgba(138, 23, 75,.15));
+  }
+
+  .comment-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+
+  .comment-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    min-height: 0;
+    align-items: stretch;
+  }
+
+  .comment-field label {
+    font-size: 0.844rem;
+    font-weight: 600;
+    color: var(--maroon-2, #731D42);
+    text-align: left;
+    display: block;
+    margin: 0;
+  }
+
+  .comment-input {
+    width: 100%;
+    background: var(--paper, #FBF3F0);
+    border: 1px solid var(--line, rgba(138, 23, 75,.25));
+    border-radius: 6px;
+    padding: 0.7rem 0.9rem;
+    font-size: 0.88rem;
+    font-family: inherit;
+    color: var(--ink, #3E3336);
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .comment-input:focus {
+    border-color: var(--maroon, #8A174B);
+    box-shadow: 0 0 0 3px rgba(138, 23, 75, 0.1);
+  }
+
+  textarea.comment-input {
+    min-height: 120px;
+    resize: vertical;
+    line-height: 1.5;
+  }
+
+  .comment-checkbox-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    margin-top: 0.25rem;
+  }
+
+  .comment-checkbox {
+    width: 16px;
+    height: 16px;
+    margin-top: 0.15rem;
+    accent-color: var(--maroon, #8A174B);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .comment-checkbox-row label {
+    font-size: 0.813rem;
+    color: var(--ink-soft, #7C6B6E);
+    cursor: pointer;
+    font-weight: 400;
+    line-height: 1.4;
+  }
+
+  .submit-comment-btn {
+    align-self: flex-start;
+    background: var(--maroon, #8A174B);
+    color: #ffffff;
+    border: none;
+    padding: 0.75rem 1.75rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+    margin-top: 0.5rem;
+  }
+
+  .submit-comment-btn:hover {
+    background: var(--maroon-2, #6B0E38);
+    transform: translateY(-1px);
+  }
+
+  .article-footer-nav {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line, rgba(138, 23, 75,.15));
+    text-align: center;
+  }
+
+  .btn-all-articles {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--maroon, #8A174B);
+    font-weight: 600;
+    font-size: 0.88rem;
+    text-decoration: none;
+  }
+
+  @media (max-width: 640px) {
+    .comment-form-visual {
+      padding: 1.25rem;
+      gap: 1rem;
+    }
+    .comment-form-row {
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+  }
+</style>

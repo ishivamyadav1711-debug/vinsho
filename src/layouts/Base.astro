@@ -5,12 +5,21 @@ import content from '../../vinsho-content.json';
 interface Props {
   title?: string;
   description?: string;
+  canonicalUrl?: string;
+  ogImage?: string;
 }
 
 const { 
   title = "VINSHO — Luxury Home Décor & Furnishings",
-  description = "VINSHO — luxury home décor, furnishings and gifting. Curated pieces that blend elegance, comfort and functionality. Greater Noida, trusted seller since 1997."
+  description = "VINSHO — luxury home décor, furnishings and gifting. Curated pieces that blend elegance, comfort and functionality. Greater Noida.",
+  canonicalUrl,
+  ogImage
 } = Astro.props;
+
+const siteOrigin = Astro.site ? Astro.site.origin : "https://vinsho.com";
+const resolvedCanonical = canonicalUrl || new URL(Astro.url.pathname, siteOrigin).href;
+
+const shareImage = ogImage || content.siteImages.hero || content.siteImages.exploreLarge;
 
 // Prepare JSON-LD
 const organization = {
@@ -29,11 +38,14 @@ const localBusiness = {
   "foundingDate": content.brand.established,
   "address": {
     "@type": "PostalAddress",
+    "streetAddress": "India Expo Plaza First Floor, Plot No. C-03 & 04 Knowledge Park-II",
     "addressLocality": "Greater Noida",
-    "addressRegion": "Delhi NCR",
+    "addressRegion": "Uttar Pradesh",
+    "postalCode": "201310",
     "addressCountry": "IN"
   },
-  "telephone": content.brand.phone
+  "telephone": content.brand.phone,
+  "email": content.brand.email
 };
 
 const itemList = {
@@ -58,6 +70,7 @@ const itemList = {
     <meta charset="UTF-8" />
     <meta name="description" content={description} />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="canonical" href={resolvedCanonical} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
@@ -66,18 +79,20 @@ const itemList = {
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
-    {content.siteImages.hero ? <meta property="og:image" content={content.siteImages.hero} /> : <meta property="og:image" content={content.siteImages.exploreLarge} />}
+    <meta property="og:url" content={resolvedCanonical} />
+    {shareImage && <meta property="og:image" content={shareImage} />}
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image" />
     <meta property="twitter:title" content={title} />
     <meta property="twitter:description" content={description} />
-    {content.siteImages.hero ? <meta property="twitter:image" content={content.siteImages.hero} /> : <meta property="twitter:image" content={content.siteImages.exploreLarge} />}
+    <meta property="twitter:url" content={resolvedCanonical} />
+    {shareImage && <meta property="twitter:image" content={shareImage} />}
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300..700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Inter:opsz,wght@14..32,300..700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet" />
 
     <script type="application/ld+json" set:html={JSON.stringify(organization)} />
     <script type="application/ld+json" set:html={JSON.stringify(localBusiness)} />

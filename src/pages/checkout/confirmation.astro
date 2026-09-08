@@ -1,0 +1,274 @@
+---
+import Base from '../../layouts/Base.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+import Modal from '../../components/Modal.astro';
+import CustomCursor from '../../components/motion/CustomCursor.astro';
+---
+
+<Base 
+  title="Order Confirmed | VINSHO Luxury Home Décor" 
+  description="Thank you for your order with VINSHO. We have received your order details and are preparing your package."
+>
+  <CustomCursor />
+  <Nav />
+
+  <main id="main-content" class="v-confirmation-page">
+    <div class="wrap">
+      
+      <div class="v-confirm-card">
+        <div class="v-check-circle">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="20 6 9 17 4 12" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+
+        <span class="v-confirm-eyebrow">THANK YOU FOR YOUR ORDER</span>
+        <h1 class="v-confirm-title">ORDER CONFIRMED</h1>
+        <p class="v-confirm-sub">
+          Order Reference: <strong id="v-order-num-txt">#VIN-2026-000001</strong>
+        </p>
+
+        <p class="v-confirm-desc">
+          We have received your order and sent a confirmation to your registered contact address. Our studio team is preparing your handcrafted items for dispatch.
+        </p>
+
+        <div class="v-confirm-divider"></div>
+
+        <div class="v-confirm-details-grid">
+          <div class="v-confirm-box">
+            <h3 class="v-box-title">DELIVERY ADDRESS</h3>
+            <div id="v-confirm-addr" class="v-box-body"></div>
+          </div>
+
+          <div class="v-confirm-box">
+            <h3 class="v-box-title">ORDER SUMMARY</h3>
+            <div id="v-confirm-items" class="v-confirm-items-list"></div>
+            <div class="v-confirm-total-row">
+              <span>Total Paid:</span>
+              <strong id="v-confirm-total">₹0</strong>
+            </div>
+          </div>
+        </div>
+
+        <div class="v-confirm-actions">
+          <a href="/products" class="v-btn primary">CONTINUE SHOPPING</a>
+          <a href="/" class="v-btn secondary">RETURN TO HOME</a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <Footer />
+  <Modal />
+</Base>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const orderNumTxt = document.getElementById('v-order-num-txt');
+    const addrBox = document.getElementById('v-confirm-addr');
+    const itemsBox = document.getElementById('v-confirm-items');
+    const totalTxt = document.getElementById('v-confirm-total');
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlOrderNum = urlParams.get('orderNumber');
+
+    let placedData: any = null;
+    try {
+      const raw = sessionStorage.getItem('vinsho_last_placed_order');
+      if (raw) placedData = JSON.parse(raw);
+    } catch {
+      placedData = null;
+    }
+
+    const orderNum = urlOrderNum || (placedData ? placedData.orderNumber : 'VIN-2026-000001');
+    if (orderNumTxt) orderNumTxt.textContent = orderNum;
+
+    if (placedData) {
+      if (addrBox && placedData.address) {
+        const a = placedData.address;
+        addrBox.innerHTML = `
+          <strong>${a.name}</strong> &middot; ${a.phone}<br/>
+          ${a.line1}<br/>
+          ${a.city}, ${a.state} — <strong>${a.pincode}</strong>
+        `;
+      }
+
+      if (itemsBox && placedData.items) {
+        itemsBox.innerHTML = placedData.items.map((item: any) => `
+          <div class="v-confirm-item-row">
+            <span class="v-c-name">${item.name} &times; ${item.quantity}</span>
+            <span class="v-c-price">₹${(item.price * item.quantity).toLocaleString('en-IN')}</span>
+          </div>
+        `).join('');
+      }
+
+      if (totalTxt && placedData.grandTotal) {
+        totalTxt.textContent = `₹${placedData.grandTotal.toLocaleString('en-IN')}`;
+      }
+    }
+  });
+</script>
+
+<style>
+  .v-confirmation-page {
+    background-color: #FAF6F0;
+    color: #3E3336;
+    padding-block: clamp(3rem, 6vw, 6rem);
+    min-height: 70vh;
+  }
+
+  .wrap {
+    max-width: 800px;
+    margin-inline: auto;
+    padding-inline: clamp(1rem, 3.5vw, 2.5rem);
+  }
+
+  .v-confirm-card {
+    background: #ffffff;
+    border: 1px solid rgba(138, 23, 75, 0.15);
+    border-radius: 12px;
+    padding: clamp(2rem, 5vw, 4rem) 1.5rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .v-check-circle {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #8A174B;
+    color: #ffffff;
+    display: grid;
+    place-items: center;
+    margin-bottom: 1.25rem;
+  }
+
+  .v-confirm-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    color: #8A174B;
+    margin-bottom: 0.4rem;
+  }
+
+  .v-confirm-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    color: #8A174B;
+    margin: 0 0 0.5rem;
+  }
+
+  .v-confirm-sub {
+    font-size: 0.95rem;
+    color: #3E3336;
+    margin: 0 0 1rem;
+  }
+
+  .v-confirm-desc {
+    font-size: 0.95rem;
+    color: #8A7D77;
+    max-width: 34rem;
+    margin: 0 0 2rem;
+    line-height: 1.6;
+  }
+
+  .v-confirm-divider {
+    width: 100%;
+    height: 1px;
+    background: rgba(138, 23, 75, 0.15);
+    margin-bottom: 2rem;
+  }
+
+  .v-confirm-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    width: 100%;
+    text-align: left;
+    margin-bottom: 2.5rem;
+  }
+
+  @media (max-width: 640px) {
+    .v-confirm-details-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .v-confirm-box {
+    background: #FAF6F0;
+    border: 1px solid rgba(138, 23, 75, 0.12);
+    border-radius: 8px;
+    padding: 1.25rem;
+  }
+
+  .v-box-title {
+    font-size: 0.781rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: #8A174B;
+    margin: 0 0 0.75rem;
+  }
+
+  .v-box-body {
+    font-size: 0.88rem;
+    line-height: 1.6;
+  }
+
+  .v-confirm-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .v-confirm-item-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.844rem;
+  }
+
+  .v-confirm-total-row {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(138, 23, 75, 0.12);
+    font-size: 0.95rem;
+  }
+
+  .v-confirm-total-row strong {
+    color: #8A174B;
+    font-size: 1.1rem;
+  }
+
+  .v-confirm-actions {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .v-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.813rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    padding: 0.85rem 1.85rem;
+    border-radius: 999px;
+    text-decoration: none;
+  }
+
+  .v-btn.primary {
+    background: #8A174B;
+    color: #ffffff;
+  }
+
+  .v-btn.secondary {
+    background: transparent;
+    color: #8A174B;
+    border: 1px solid #8A174B;
+  }
+</style>

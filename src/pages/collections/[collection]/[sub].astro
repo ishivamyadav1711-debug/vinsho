@@ -8,6 +8,7 @@ import TextReveal from '../../../components/motion/TextReveal.astro';
 import Breadcrumbs from '../../../components/Breadcrumbs.astro';
 import ProductCard from '../../../components/ProductCard.astro';
 import Modal from '../../../components/Modal.astro';
+import CandleCraftsmanship from '../../../components/CandleCraftsmanship.astro';
 import { getCollections, getCollectionByKey, getSubcategoryByKey, getProductsBySubcategory, getSubcategoryProductCount } from '../../../utils/taxonomy';
 
 export function getStaticPaths() {
@@ -19,6 +20,12 @@ export function getStaticPaths() {
       paths.push({
         params: { collection: col.key, sub: sub.key }
       });
+      if (col.key === 'gifting-collection') {
+        paths.push({ params: { collection: 'gifting', sub: sub.key } });
+      }
+      if (col.key === 'home-furnishing') {
+        paths.push({ params: { collection: 'home-furnishings', sub: sub.key } });
+      }
     });
   });
 
@@ -36,6 +43,8 @@ if (!collection || !subcategory) {
 
 const products = getProductsBySubcategory(collection.key, subcategory.key);
 const totalCount = getSubcategoryProductCount(collection.key, subcategory.key);
+
+const isCandleSub = subKey === 'candles' || collectionKey === 'candles' || subcategory.name.toLowerCase().includes('candle');
 
 const breadcrumbItems = [
   { label: 'Home', url: '/' },
@@ -55,16 +64,40 @@ const breadcrumbItems = [
         <TextReveal as="h1">{subcategory.name}</TextReveal>
         <span class="sub-count-tag">{totalCount} pieces</span>
       </div>
-      <p class="sub-parent-ref">
-        Collection: <a href={`/collections/${collection.key}`} class="parent-link">{collection.name}</a>
-      </p>
+      <p class="sub-blurb">{subcategory.blurb || collection.blurb}</p>
+
+      <nav class="subcat-nav-bar" aria-label="Sub-categories">
+        {collection.subcategories.map((sub) => {
+          const subCount = getSubcategoryProductCount(collection.key, sub.key);
+          const isActive = sub.key === subcategory.key;
+          return (
+            <a 
+              href={`/collections/${collection.key}/${sub.key}`} 
+              class={`sub-nav-pill ${isActive ? 'active' : ''}`}
+            >
+              {sub.name} <span class="sub-pill-num">({subCount})</span>
+            </a>
+          );
+        })}
+      </nav>
     </header>
 
-    <div class="grid">
-      {products.map((product) => (
-        <ProductCard product={product} />
-      ))}
-    </div>
+    {products.length > 0 ? (
+      <div class="grid">
+        {products.map((product) => (
+          <ProductCard product={product} />
+        ))}
+      </div>
+    ) : (
+      <div class="no-products-box">
+        <p>No products currently found in {subcategory.name}.</p>
+        <a href={`/collections/${collection.key}`} class="btn">View All {collection.name} &rarr;</a>
+      </div>
+    )}
+
+    {isCandleSub && (
+      <CandleCraftsmanship />
+    )}
   </main>
   <Footer />
   <Modal />
@@ -78,7 +111,7 @@ const breadcrumbItems = [
   .subcategory-hero {
     margin-block: 1rem 2.5rem;
     border-bottom: 1px solid var(--line);
-    padding-bottom: 1.5rem;
+    padding-bottom: 1.75rem;
   }
 
   .sub-hero-top {
@@ -103,20 +136,50 @@ const breadcrumbItems = [
     font-weight: 600;
   }
 
-  .sub-parent-ref {
-    margin: 0.5rem 0 0;
-    font-size: 0.92rem;
+  .sub-blurb {
+    font-size: 1rem;
     color: var(--ink-soft);
+    max-width: 44rem;
+    margin: 0.5rem 0 1.5rem;
   }
 
-  .parent-link {
+  .subcat-nav-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .sub-nav-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--paper-3);
     color: var(--maroon-2);
+    font-size: 0.85rem;
     font-weight: 500;
+    padding: 0.4rem 1rem;
+    min-height: 44px;
+    border-radius: 999px;
     text-decoration: none;
-    transition: color 0.2s ease;
+    transition: all 0.22s ease;
   }
 
-  .parent-link:hover {
-    color: var(--maroon);
+  .sub-nav-pill:hover,
+  .sub-nav-pill.active {
+    background: var(--maroon);
+    color: #fff;
+  }
+
+  .sub-pill-num {
+    opacity: 0.75;
+    font-size: 0.781rem;
+  }
+
+  .no-products-box {
+    text-align: center;
+    padding: 3rem;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-radius: 6px;
   }
 </style>

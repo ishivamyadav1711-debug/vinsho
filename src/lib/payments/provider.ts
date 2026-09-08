@@ -3,14 +3,13 @@ import { db } from '../db.js';
 import { atomicDecrementStock } from '../inventory.js';
 import { generateInvoiceRecord } from '../tax.js';
 import { logNotification } from '../notifications.js';
+import { getEnvConfig } from '../env.js';
 
 export interface PaymentProvider {
   initiateCheckoutSession(order: any): Promise<{ providerPaymentId: string; checkoutUrl: string }>;
   verifyWebhookSignature(rawBody: string, signature: string): boolean;
   processWebhookEvent(payload: any): Promise<{ success: boolean; eventId: string; orderId: number; status: string }>;
 }
-
-const WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET || 'vinsho_dev_webhook_secret_2026';
 
 export class RazorpayMockProvider implements PaymentProvider {
   async initiateCheckoutSession(order: any): Promise<{ providerPaymentId: string; checkoutUrl: string }> {
@@ -29,7 +28,9 @@ export class RazorpayMockProvider implements PaymentProvider {
 
   verifyWebhookSignature(rawBody: string, signature: string): boolean {
     if (!signature) return false;
-    const expected = crypto.createHmac('sha256', WEBHOOK_SECRET).update(rawBody).digest('hex');
+    const envConfig = getEnvConfig();
+    const webhookSecret = envConfig.razorpayWebhookSecret;
+    const expected = crypto.createHmac('sha256', webhookSecret).update(rawBody).digest('hex');
     // In dev / test mode allow mock test signatures
     return signature === expected || signature.includes('mock_valid_sig');
   }
@@ -101,17 +102,43 @@ export class RazorpayMockProvider implements PaymentProvider {
           ON CONFLICT(order_id) DO NOTHING
         `).run(orderId, invRecord.invoiceNumber, `/invoices/${invRecord.invoiceNumber}.html`, invRecord.issuedAt);
 
-        // Log Notification Event
-        logNotification({
-          channel: 'EMAIL',
-          template: 'ENQUIRY_CONVERTED',
-          recipient: shippingAddress.name,
-          entityType: 'order',
-          entityId: orderId
-        });
+        // Log Payment Confirmation notification (fire-and-forget)
+        const customerRow = db.prepare('SELECT name, email FROM customers WHERE id = ?').get(order.customer_id) as any;
+        if (customerRow?.email) {
+          logNotification({
+            channel: 'EMAIL',
+            template: 'PAYMENT_CONFIRMATION',
+            recipient: customerRow.email,
+            entityType: 'order',
+            entityId: orderId,
+            data: {
+              customerName: customerRow.name,
+              orderNumber: order.order_number,
+              grandTotal: order.grand_total,
+              paymentMethod: 'Online Payment',
+            },
+          });
+        }
       } else if (eventType === 'payment.failed') {
         db.prepare('UPDATE payments SET status = "failed", raw_payload = ? WHERE id = ?').run(JSON.stringify(payload), payment.id);
         db.prepare('UPDATE orders SET payment_status = "failed", updated_at = ? WHERE id = ?').run(now, orderId);
+
+        // Log Payment Failed notification (fire-and-forget)
+        const customerRow = db.prepare('SELECT name, email FROM customers WHERE id = ?').get(order.customer_id) as any;
+        if (customerRow?.email) {
+          logNotification({
+            channel: 'EMAIL',
+            template: 'PAYMENT_FAILED',
+            recipient: customerRow.email,
+            entityType: 'order',
+            entityId: orderId,
+            data: {
+              customerName: customerRow.name,
+              orderNumber: order.order_number,
+              grandTotal: order.grand_total,
+            },
+          });
+        }
       }
 
       return { success: true, eventId, orderId, status: 'paid' };

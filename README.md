@@ -1,6 +1,6 @@
 # VINSHO — Pan-India E-Commerce & CRM System
 
-This is the complete transacting online store and CRM backoffice for **VINSHO Studio** (Greater Noida, Delhi NCR, Est. 1997), built with Astro 5, TypeScript, SQLite, and Vanilla CSS.
+This is the complete transacting online store and CRM backoffice for **VINSHO Studio** (Greater Noida, Delhi NCR), built with Astro 5, TypeScript, SQLite, and Vanilla CSS.
 
 ---
 
@@ -70,7 +70,7 @@ The SQLite relational database (`data/vinsho.db`) contains 19 tables:
 ## 5. Admin Operational Guide
 
 ### 5.1 Add a Product & Make it Sellable
-1. Log in to Admin Backoffice (`/admin/login`) as Super Admin or Admin (`admin@vinsho.com` / `VinshoAdmin2026!`).
+1. Log in to Admin Backoffice (`/admin/login`) using administrator environment credentials (`ADMIN_EMAIL` / `ADMIN_PASSWORD`).
 2. Go to Product Catalogue (`/admin/products`).
 3. Click on a product to edit details. Fill in mandatory Legal Metrology fields:
    - Manufacturer / Packer Name & Address

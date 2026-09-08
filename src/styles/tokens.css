@@ -1,12 +1,19 @@
 :root{
   --paper:#FBF3F0; --paper-2:#F9F4F0; --paper-3:#F5EBE8;
-  --maroon:#670832; --maroon-2:#731D42; --maroon-3:#8E2E56;
+  --maroon:#8A174B; --maroon-2:#720E3B; --maroon-3:#8E2E56;
   --pink:#CD788F; --pink-soft:#F2D6DC;
-  --ink:#3E3336; --ink-soft:#7C6B6E; --line:rgba(103,8,50,.15);
-  --display:'Inter',system-ui,-apple-system,sans-serif;
+  --ink:#3E3336; --ink-soft:#7C6B6E; --line:rgba(138, 23, 75,.15);
+  --display:'Playfair Display',Didot,'Bodoni MT',serif;
+  --serif:'Playfair Display',Didot,'Bodoni MT','Cormorant Garamond',serif;
   --sans:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
-  --pad:clamp(1rem,3.6vw,4rem); --gap:clamp(.85rem,1.5vw,1.5rem);
+  --pad:clamp(0.85rem,3.6vw,4rem); --gap:clamp(0.6rem,1.5vw,1.5rem);
   --ease:cubic-bezier(.2,.7,.3,1); --nav:58px; --nav-mobile:52px; --max-w:1600px;
+
+  /* Responsive Breakpoint Markers */
+  --bp-desktop: 1200px;
+  --bp-tablet: 768px;
+  --bp-mobile: 480px;
+  --bp-small-mobile: 360px;
 
   /* Fluid Spacing Scale */
   --space-3xs: clamp(0.25rem, 0.5vw, 0.375rem);
@@ -19,7 +26,7 @@
   --space-2xl: clamp(3.5rem, 7vw, 6rem);
 
   /* Fluid Card Bounds */
-  --card-min-w: 220px;
+  --card-min-w: 140px;
   --card-max-w: 340px;
-  --card-aspect: 4 / 5;
+  --card-aspect: 1 / 1;
 }

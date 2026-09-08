@@ -1,0 +1,476 @@
+---
+import Base from '../../../layouts/Base.astro';
+import Nav from '../../../components/Nav.astro';
+import Footer from '../../../components/Footer.astro';
+import { getCustomerFromSession } from '../../../lib/customerAuth';
+import { db } from '../../../lib/db';
+
+const customer = getCustomerFromSession(Astro.request);
+if (!customer) {
+  return Astro.redirect(`/login?redirect=${encodeURIComponent(Astro.url.pathname)}`);
+}
+
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect('/account');
+}
+
+// Query Order
+const order = db.prepare(`
+  SELECT * FROM orders WHERE (id = ? OR order_number = ?)
+`).get(id, id) as any;
+
+if (!order) {
+  return Astro.redirect('/account');
+}
+
+// CRITICAL SECURITY RULE: Verify customer owns this order! (§9)
+if (order.customer_id !== customer.id) {
+  return Astro.redirect('/account');
+}
+
+// Query Order Items
+const items = db.prepare(`
+  SELECT oi.*, p_img.url as image_url, p.slug as product_slug
+  FROM order_items oi
+  LEFT JOIN product_variants pv ON oi.variant_id = pv.id
+  LEFT JOIN products p ON pv.product_id = p.id
+  LEFT JOIN product_images p_img ON (p_img.product_id = pv.product_id AND p_img.is_primary = 1)
+  WHERE oi.order_id = ?
+`).all(order.id);
+
+// Query Shipping Address
+const shippingAddress = db.prepare('SELECT * FROM addresses WHERE id = ?').get(order.shipping_address_id) as any;
+
+// Query Payment Record
+const payment = db.prepare('SELECT * FROM payments WHERE order_id = ? ORDER BY id DESC LIMIT 1').get(order.id) as any;
+
+const formattedDate = order.placed_at ? new Date(order.placed_at).toLocaleDateString('en-IN', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit'
+}) : 'N/A';
+---
+
+<Base title={`Order #${order.order_number} | VINSHO`} description={`View order details for #${order.order_number}`}>
+  <Nav />
+
+  <main class="order-detail-wrapper">
+    <div class="order-container wrap">
+      
+      <!-- Back Link -->
+      <div class="top-nav-bar">
+        <a href="/account" class="back-to-acc-link">&larr; Back to My Account</a>
+      </div>
+
+      <!-- Main Order Box -->
+      <div class="order-card-frame">
+        
+        <!-- Header Banner -->
+        <div class="order-head-banner">
+          <div>
+            <span class="ord-label">ORDER SUMMARY</span>
+            <h1 class="ord-title">Order #{order.order_number}</h1>
+            <p class="ord-date-txt">Placed on {formattedDate}</p>
+          </div>
+          <div class="ord-badges-row">
+            <span class={`status-badge ${order.status.toLowerCase()}`}>
+              Status: {order.status}
+            </span>
+            <span class={`payment-badge ${order.payment_status.toLowerCase()}`}>
+              {order.payment_status === 'paid' ? 'Payment Completed' : 'Payment Pending'}
+            </span>
+          </div>
+        </div>
+
+        <!-- Order Content Grid -->
+        <div class="order-content-grid">
+          
+          <!-- LEFT: ITEMS LIST -->
+          <div class="items-column">
+            <h2 class="section-heading">Items Purchased ({items.length})</h2>
+
+            <div class="order-items-list">
+              {items.map((item: any) => (
+                <div class="order-item-row">
+                  <div class="item-thumb">
+                    <img src={item.image_url || '/placeholder.png'} alt={item.product_name_snapshot} onerror="this.onerror=null; this.src='/placeholder.png';" />
+                  </div>
+                  <div class="item-details">
+                    <h3 class="item-name">
+                      {item.product_slug ? (
+                        <a href={`/product/${item.product_slug}`}>{item.product_name_snapshot}</a>
+                      ) : (
+                        item.product_name_snapshot
+                      )}
+                    </h3>
+                    <p class="item-variant">Variant: {item.variant_label_snapshot}</p>
+                    <p class="item-qty-rate">₹{item.unit_price_snapshot.toLocaleString('en-IN')} &times; {item.qty}</p>
+                  </div>
+                  <div class="item-total-box">
+                    <span class="item-total-val">₹{item.line_total.toLocaleString('en-IN')}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <!-- RIGHT: ADDRESS & COST SUMMARY -->
+          <aside class="summary-column">
+            
+            <!-- Delivery Address Card -->
+            {shippingAddress && (
+              <div class="summary-sub-card">
+                <h3 class="card-title">Delivery Address</h3>
+                <div class="addr-block">
+                  <strong>{shippingAddress.name}</strong>
+                  <p>
+                    {shippingAddress.line1}{shippingAddress.line2 ? `, ${shippingAddress.line2}` : ''}<br />
+                    {shippingAddress.city}, {shippingAddress.state} &ndash; {shippingAddress.pincode}<br />
+                    {shippingAddress.country}
+                  </p>
+                  <p class="addr-phone">Phone: {shippingAddress.phone}</p>
+                </div>
+              </div>
+            )}
+
+            <!-- Payment Breakdown Card -->
+            <div class="summary-sub-card">
+              <h3 class="card-title">Payment Summary</h3>
+              <div class="cost-lines">
+                <div class="cost-row">
+                  <span>Subtotal:</span>
+                  <strong>₹{order.subtotal.toLocaleString('en-IN')}</strong>
+                </div>
+                <div class="cost-row">
+                  <span>Estimated Tax (GST):</span>
+                  <strong>₹{order.tax_total.toLocaleString('en-IN')}</strong>
+                </div>
+                <div class="cost-row">
+                  <span>Shipping Fee:</span>
+                  <strong class="free-text">{order.shipping_total === 0 ? 'FREE' : `₹${order.shipping_total}`}</strong>
+                </div>
+                {order.discount_total > 0 && (
+                  <div class="cost-row discount">
+                    <span>Discount:</span>
+                    <strong>- ₹{order.discount_total.toLocaleString('en-IN')}</strong>
+                  </div>
+                )}
+                <div class="cost-divider"></div>
+                <div class="cost-row total-line">
+                  <span>Grand Total:</span>
+                  <span class="grand-val">₹{order.grand_total.toLocaleString('en-IN')}</span>
+                </div>
+              </div>
+            </div>
+
+            {payment && (
+              <div class="summary-sub-card">
+                <h3 class="card-title">Payment Information</h3>
+                <p class="pay-info">
+                  Provider: <strong>{payment.provider}</strong><br />
+                  Payment ID: <code>{payment.provider_payment_id}</code><br />
+                  Method: {payment.method || 'Razorpay Hosted Checkout'}
+                </p>
+              </div>
+            )}
+
+          </aside>
+
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <Footer />
+</Base>
+
+<style>
+  .order-detail-wrapper {
+    background-color: #FAF6F0;
+    padding-block: clamp(1.75rem, 4vw, 3.5rem);
+    min-height: 80vh;
+  }
+
+  .order-container {
+    max-width: 1100px;
+    margin-inline: auto;
+  }
+
+  .top-nav-bar {
+    margin-bottom: 1.25rem;
+  }
+
+  .back-to-acc-link {
+    font-size: 0.844rem;
+    font-weight: 700;
+    color: var(--maroon, #8A174B);
+    text-decoration: none;
+  }
+
+  .back-to-acc-link:hover {
+    text-decoration: underline;
+  }
+
+  .order-card-frame {
+    background: #ffffff;
+    border: 1px solid rgba(138, 23, 75, 0.12);
+    border-radius: 16px;
+    padding: clamp(1.25rem, 3.5vw, 2.25rem);
+    box-shadow: 0 10px 30px rgba(138, 23, 75, 0.04);
+  }
+
+  .order-head-banner {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(138, 23, 75, 0.12);
+    padding-bottom: 1.25rem;
+    margin-bottom: 1.75rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .ord-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: var(--pink, #CD788F);
+  }
+
+  .ord-title {
+    font-family: var(--serif, serif);
+    font-size: clamp(1.6rem, 3.2vw, 2.2rem);
+    color: var(--maroon, #8A174B);
+    margin: 0.15rem 0 0.25rem;
+    font-weight: 600;
+  }
+
+  .ord-date-txt {
+    font-size: 0.844rem;
+    color: var(--ink-soft, #7C6B6E);
+    margin: 0;
+  }
+
+  .ord-badges-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .status-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .payment-badge.paid {
+    background: #dbeafe;
+    color: #1e40af;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+  }
+
+  .payment-badge.pending {
+    background: #fef3c7;
+    color: #92400e;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.3rem 0.75rem;
+    border-radius: 999px;
+  }
+
+  /* GRID */
+  .order-content-grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 2.25rem;
+    align-items: start;
+  }
+
+  @media (max-width: 860px) {
+    .order-content-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .section-heading {
+    font-family: var(--serif, serif);
+    font-size: 1.25rem;
+    color: var(--maroon, #8A174B);
+    margin: 0 0 1rem;
+  }
+
+  .order-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .order-item-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.85rem;
+    background: #FAF6F0;
+    border: 1px solid rgba(138, 23, 75, 0.08);
+    border-radius: 10px;
+  }
+
+  .item-thumb {
+    width: 64px;
+    height: 64px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #ffffff;
+    flex-shrink: 0;
+  }
+
+  .item-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .item-details {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .item-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin: 0 0 0.2rem;
+  }
+
+  .item-name a {
+    color: var(--ink, #3E3336);
+    text-decoration: none;
+  }
+
+  .item-name a:hover {
+    color: var(--maroon, #8A174B);
+    text-decoration: underline;
+  }
+
+  .item-variant {
+    font-size: 0.781rem;
+    color: var(--ink-soft, #7C6B6E);
+    margin: 0 0 0.15rem;
+  }
+
+  .item-qty-rate {
+    font-size: 0.781rem;
+    color: var(--ink-soft, #7C6B6E);
+    margin: 0;
+  }
+
+  .item-total-val {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--maroon, #8A174B);
+    white-space: nowrap;
+  }
+
+  /* SUMMARY ASIDE */
+  .summary-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .summary-sub-card {
+    background: #FAF6F0;
+    border: 1px solid rgba(138, 23, 75, 0.1);
+    border-radius: 12px;
+    padding: 1.25rem;
+  }
+
+  .card-title {
+    font-family: var(--serif, serif);
+    font-size: 1.1rem;
+    color: var(--maroon, #8A174B);
+    margin: 0 0 0.85rem;
+  }
+
+  .addr-block {
+    font-size: 0.844rem;
+    line-height: 1.5;
+    color: var(--ink-soft, #7C6B6E);
+  }
+
+  .addr-block strong {
+    color: var(--ink, #3E3336);
+  }
+
+  .addr-phone {
+    margin-top: 0.35rem;
+    font-weight: 600;
+    color: var(--ink, #3E3336);
+  }
+
+  .cost-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    font-size: 0.875rem;
+  }
+
+  .cost-row {
+    display: flex;
+    justify-content: space-between;
+    color: var(--ink-soft, #7C6B6E);
+  }
+
+  .cost-row strong {
+    color: var(--ink, #3E3336);
+  }
+
+  .cost-row .free-text {
+    color: #166534;
+    font-weight: 700;
+  }
+
+  .cost-divider {
+    height: 1px;
+    background: rgba(138, 23, 75, 0.12);
+    margin-block: 0.35rem;
+  }
+
+  .total-line {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--ink, #3E3336);
+  }
+
+  .grand-val {
+    font-size: 1.3rem;
+    color: var(--maroon, #8A174B);
+    font-weight: 700;
+  }
+
+  .pay-info {
+    font-size: 0.813rem;
+    color: var(--ink-soft, #7C6B6E);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .pay-info code {
+    background: #fff;
+    padding: 0.1rem 0.35rem;
+    border-radius: 4px;
+    font-family: monospace;
+    color: var(--maroon, #8A174B);
+  }
+</style>

@@ -1,0 +1,147 @@
+---
+import type { BlogPost } from '../lib/blog';
+
+export interface Props {
+  post: BlogPost;
+  class?: string;
+}
+
+const { post, class: className = '' } = Astro.props;
+---
+
+<article class={`blog-card ${className}`}>
+  {post.featuredImage && (
+    <div class="blog-card-media">
+      <a href={`/blog/${post.slug}`} aria-label={`Read ${post.title}`}>
+        <img src={post.featuredImage} alt={post.title} loading="lazy" />
+      </a>
+      <span class="blog-card-cat">{post.category}</span>
+    </div>
+  )}
+
+  <div class="blog-card-content">
+    <h3 class="blog-card-title">
+      <a href={`/blog/${post.slug}`}>{post.title}</a>
+    </h3>
+
+    <p class="blog-card-excerpt">{post.excerpt}</p>
+
+    <div class="blog-card-foot">
+      <a href={`/blog/${post.slug}`} class="blog-read-more">
+        <span>READ MORE</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+    </div>
+  </div>
+</article>
+
+<style>
+  .blog-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--paper-2, #F9F4F0);
+    border: 1px solid var(--line, rgba(138, 23, 75,.15));
+    border-radius: 6px;
+    overflow: hidden;
+    height: 100%;
+    transition: transform 0.3s var(--ease, ease), box-shadow 0.3s ease;
+  }
+
+  .blog-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(138, 23, 75, 0.08);
+  }
+
+  .blog-card-media {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: var(--paper-3, #F5EBE8);
+  }
+
+  .blog-card-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.8s var(--ease, ease);
+  }
+
+  .blog-card:hover .blog-card-media img {
+    transform: scale(1.05);
+  }
+
+  .blog-card-cat {
+    position: absolute;
+    top: 0.75rem;
+    left: 0.75rem;
+    background: var(--maroon, #8A174B);
+    color: #ffffff;
+    font-size: 0.625rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.65rem;
+    border-radius: 2px;
+    font-weight: 600;
+  }
+
+  .blog-card-content {
+    padding: clamp(1.2rem, 2vw, 1.6rem);
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+
+
+  .blog-card-title {
+    font-family: var(--display, 'Inter', sans-serif);
+    font-size: clamp(1.15rem, 2vw, 1.4rem);
+    font-weight: 600;
+    line-height: 1.25;
+    margin: 0 0 0.75rem;
+  }
+
+  .blog-card-title a {
+    color: var(--maroon-2, #731D42);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+
+  .blog-card-title a:hover {
+    color: var(--maroon, #8A174B);
+  }
+
+  .blog-card-excerpt {
+    font-size: 0.88rem;
+    line-height: 1.55;
+    color: var(--ink-soft, #7C6B6E);
+    margin: 0 0 1.25rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .blog-card-foot {
+    margin-top: auto;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--line, rgba(138, 23, 75,.12));
+  }
+
+  .blog-read-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.781rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--maroon, #8A174B);
+    text-decoration: none;
+    transition: gap 0.25s ease;
+  }
+
+  .blog-read-more:hover {
+    gap: 0.75rem;
+  }
+</style>

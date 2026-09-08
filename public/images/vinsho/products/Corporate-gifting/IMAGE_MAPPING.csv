@@ -1,0 +1,51 @@
+product_number,product_id,product_slug,product_name,image_file,image_web_path,mapping_type,status,notes
+1,cg-01,cork-diary-as-fab-india-combo-30,Cork Diary — As Fab India Combo 30,01_cork_diary_as_fab_india_combo_30.jpg,/images/vinsho/products/Corporate-gifting/01_cork_diary_as_fab_india_combo_30.jpg,combo,mapped,combo page
+2,cg-02,cork-metal-pen-combo-30,Cork Metal Pen — Combo 30,02_cork_metal_pen_combo_30.jpg,/images/vinsho/products/Corporate-gifting/02_cork_metal_pen_combo_30.jpg,combo,mapped,combo page
+3,cg-03,ecodesk-diary-combo-10,Ecodesk Diary — Combo 10,03_ecodesk_diary_as_combo_10.jpg,/images/vinsho/products/Corporate-gifting/03_ecodesk_diary_as_combo_10.jpg,combo,mapped,combo page
+4,cg-04,cork-card-stacker-combo-10,Cork Card Stacker — Combo 10,04_card_stacker_combo_10.jpg,/images/vinsho/products/Corporate-gifting/04_card_stacker_combo_10.jpg,combo,mapped,combo page
+5,cg-05,key-chain-combo-10,Key Chain — Combo 10,05_key_chain_combo_10.jpg,/images/vinsho/products/Corporate-gifting/05_key_chain_combo_10.jpg,combo,mapped,combo page
+6,cg-06,cork-metal-pen-combo-10,Cork Metal Pen — Combo 10,06_cork_metal_pen_combo_10.jpg,/images/vinsho/products/Corporate-gifting/06_cork_metal_pen_combo_10.jpg,combo,mapped,combo page
+7,cg-07,cork-canvas-sleeve-combo-10,Cork Canvas Sleeve — Combo 10,07_cork_canvas_sleeve_combo_10.jpg,/images/vinsho/products/Corporate-gifting/07_cork_canvas_sleeve_combo_10.jpg,combo,mapped,combo page
+8,cg-08,ocean-mist-bag-combo-18,Ocean Mist Bag — Combo 18,08_ocean_mist_bag_combo_18.jpg,/images/vinsho/products/Corporate-gifting/08_ocean_mist_bag_combo_18.jpg,combo,mapped,combo page
+9,cg-09,passport-holder-ocean-mist-combo-18,Passport Holder — Ocean Mist Combo 18,09_passport_holder_ocean_mist_combo_18.jpg,/images/vinsho/products/Corporate-gifting/09_passport_holder_ocean_mist_combo_18.jpg,combo,mapped,combo page
+10,cg-10,cork-bottle-ocean-mist-combo-18,Cork Bottle — Ocean Mist Combo 18,10_cork_bottle_ocean_mist_combo_18.jpg,/images/vinsho/products/Corporate-gifting/10_cork_bottle_ocean_mist_combo_18.jpg,combo,mapped,combo page
+11,cg-11,jet-case-brown-bag-combo-19,Jet Case — Brown Bag Combo 19,11_jet_case_brown_bag_combo_19.jpg,/images/vinsho/products/Corporate-gifting/11_jet_case_brown_bag_combo_19.jpg,combo,mapped,combo page
+12,cg-12,cork-bottle-granco-combo-19,Cork Bottle — Granco Combo 19,12_cork_bottle_granco_combo_19.jpg,/images/vinsho/products/Corporate-gifting/12_cork_bottle_granco_combo_19.jpg,combo,mapped,combo page
+13,cg-13,passport-holder-granco-combo-19,Passport Holder — Granco Combo 19,13_passport_holder_granco_combo_19.jpg,/images/vinsho/products/Corporate-gifting/13_passport_holder_granco_combo_19.jpg,combo,mapped,combo page
+14,cg-14,ecodesk-diary-combo-36,Ecodesk Diary — Combo 36,14_ecodesk_diary_as_combo_36.jpg,/images/vinsho/products/Corporate-gifting/14_ecodesk_diary_as_combo_36.jpg,combo,mapped,combo page
+15,cg-15,small-calculator-combo-36,Small Calculator — Combo 36,15_small_calculator_combo_36.jpg,/images/vinsho/products/Corporate-gifting/15_small_calculator_combo_36.jpg,combo,mapped,combo page
+16,cg-16,pen-holder-combo-36,Pen Holder — Combo 36,16_pen_holder_combo_36.jpg,/images/vinsho/products/Corporate-gifting/16_pen_holder_combo_36.jpg,combo,mapped,combo page
+17,cg-17,mouse-pad-super-fine-grain-combo-36,Mouse Pad Super Fine Grain — Combo 36,17_mouse_pad_super_fine_grain_combo_36.jpg,/images/vinsho/products/Corporate-gifting/17_mouse_pad_super_fine_grain_combo_36.jpg,combo,mapped,combo page
+18,cg-18,cork-metal-pen-combo-36,Cork Metal Pen — Combo 36,18_cork_metal_pen_combo_36.jpg,/images/vinsho/products/Corporate-gifting/18_cork_metal_pen_combo_36.jpg,combo,mapped,combo page
+19,cg-19,natural-tray-9x9-inch-combo-46,Natural Tray 9×9 inch — Combo 46,19_natural_tray_9x9_inch_combo_46.jpg,/images/vinsho/products/Corporate-gifting/19_natural_tray_9x9_inch_combo_46.jpg,combo,mapped,combo page
+20,cg-20,box-uv-printed-coaster-combo-46,Box UV Printed Coaster — Combo 46,20_box_uv_printed_coaster_combo_46.jpg,/images/vinsho/products/Corporate-gifting/20_box_uv_printed_coaster_combo_46.jpg,combo,mapped,combo page
+21,cg-21,box-print-table-top-test-tube-holder-combo-46,Box Print Table Top Test Tube Holder — Combo 46,21_box_print_table_top_test_tube_holder_combo_46.jpg,/images/vinsho/products/Corporate-gifting/21_box_print_table_top_test_tube_holder_combo_46.jpg,combo,mapped,combo page
+22,cg-22,cork-tea-light-holder-assorted-combo-46,Cork Tea Light Holder Assorted — Combo 46,22_cork_tea_light_holder_assorted_combo_46.jpg,/images/vinsho/products/Corporate-gifting/22_cork_tea_light_holder_assorted_combo_46.jpg,combo,mapped,combo page
+23,cg-23,round-linear-planter,Round Linear Planter,23_round_linear_planter.jpg,/images/vinsho/products/Corporate-gifting/23_round_linear_planter.jpg,exact,mapped,visual match
+24,cg-24,chocochip-square-planter-24,Chocochip Square Planter,24_chocochip_square_planter.jpg,/images/vinsho/products/Corporate-gifting/24_chocochip_square_planter.jpg,catalog,mapped,catalog crop (item 24)
+25,cg-25,natural-bark-planter,Natural Bark Planter,25_natural_bark_planter.jpg,/images/vinsho/products/Corporate-gifting/25_natural_bark_planter.jpg,exact,mapped,visual match
+26,cg-26,cork-belly-planter,Cork Belly Planter,26_cork_belly_planter.jpg,/images/vinsho/products/Corporate-gifting/26_cork_belly_planter.jpg,exact,mapped,visual match
+27,cg-27,rectangular-test-tube-planter,Rectangular Test Tube Planter,27_rectangular_test_tube_planter.jpg,/images/vinsho/products/Corporate-gifting/27_rectangular_test_tube_planter.jpg,exact,mapped,visual match
+28,cg-28,box-print-table-top-tt-planter,Box Print Table Top TT Planter,28_box_print_table_top_tt_planter.jpg,/images/vinsho/products/Corporate-gifting/28_box_print_table_top_tt_planter.jpg,catalog,mapped,catalog crop
+29,cg-29,feather-printed-tabletop-tt-planter,Feather Printed Tabletop TT Planter,29_feather_printed_tabletop_tt_planter.jpg,/images/vinsho/products/Corporate-gifting/29_feather_printed_tabletop_tt_planter.jpg,catalog,mapped,catalog crop
+30,cg-30,multi-printed-tabletop-tt-planter,Multi Printed Tabletop TT Planter,30_multi_printed_tabletop_tt_planter.jpg,/images/vinsho/products/Corporate-gifting/30_multi_printed_tabletop_tt_planter.jpg,catalog,mapped,catalog crop
+31,cg-31,cork-conical-flask-planter,Cork Conical Flask Planter,31_cork_conical_flask_planter.jpg,/images/vinsho/products/Corporate-gifting/31_cork_conical_flask_planter.jpg,combo,mapped,combo/catalog reference
+32,cg-32,wall-frame-test-tube-planter,Wall Frame Test Tube Planter,32_wall_frame_test_tube_planter.jpg,/images/vinsho/products/Corporate-gifting/32_wall_frame_test_tube_planter.jpg,exact,mapped,page 13 test-tube image
+33,cg-33,diamond-square-planter,Diamond Square Planter,33_diamond_square_planter.jpg,/images/vinsho/products/Corporate-gifting/33_diamond_square_planter.jpg,catalog,mapped,catalog crop
+34,cg-34,chocochip-square-planter-34,Chocochip Square Planter,34_chocochip_square_planter.jpg,/images/vinsho/products/Corporate-gifting/34_chocochip_square_planter.jpg,catalog,mapped,catalog crop (item 34)
+35,cg-35,cork-belly-coaster-set,Cork Belly Coaster — Set,35_cork_belly_coaster_set.jpg,/images/vinsho/products/Corporate-gifting/35_cork_belly_coaster_set.jpg,catalog,mapped,catalog crop
+36,cg-36,leaf-shape-coaster-set,Leaf Shape Coaster — Set,36_leaf_shape_coaster_set.jpg,/images/vinsho/products/Corporate-gifting/36_leaf_shape_coaster_set.jpg,catalog,mapped,catalog crop
+37,cg-37,box-uv-printed-coaster-set,Box UV Printed Coaster — Set,37_box_uv_printed_coaster_set.jpg,/images/vinsho/products/Corporate-gifting/37_box_uv_printed_coaster_set.jpg,catalog,mapped,catalog crop
+38,cg-38,cork-fine-natural-trivet-set,Cork Fine Natural Trivet — Set,38_cork_fine_natural_trivet_set.jpg,/images/vinsho/products/Corporate-gifting/38_cork_fine_natural_trivet_set.jpg,exact,mapped,trivet set
+39,cg-39,chocochip-trivet-set,Chocochip Trivet — Set,39_chocochip_trivet_set.jpg,/images/vinsho/products/Corporate-gifting/39_chocochip_trivet_set.jpg,exact,mapped,trivet set
+40,cg-40,red-assiago-trivet-set,Red Assiago Trivet — Set,40_red_assiago_trivet_set.jpg,/images/vinsho/products/Corporate-gifting/40_red_assiago_trivet_set.jpg,exact,mapped,trivet set
+41,cg-41,striped-trivet-set,Striped Trivet — Set,41_striped_trivet_set.jpg,/images/vinsho/products/Corporate-gifting/41_striped_trivet_set.jpg,exact,mapped,visual match
+42,cg-42,web-printed-trivet,Web Printed Trivet,42_web_printed_trivet.jpg,/images/vinsho/products/Corporate-gifting/42_web_printed_trivet.jpg,catalog,mapped,catalog crop
+43,cg-43,smoky-black-small-round-tray,Smoky Black Small Round Tray,,,missing,missing,no matching image file found
+44,cg-44,cork-tablemat-chocochip-18-inch,"Cork Tablemat Chocochip 18""",44_cork_tablemat_chocochip_18_inch.jpg,/images/vinsho/products/Corporate-gifting/44_cork_tablemat_chocochip_18_inch.jpg,catalog,mapped,catalog crop
+45,cg-45,cork-tablemat-red-assiago-18-inch,"Cork Tablemat Red Assiago 18""",45_cork_tablemat_red_assiago_18_inch.jpg,/images/vinsho/products/Corporate-gifting/45_cork_tablemat_red_assiago_18_inch.jpg,catalog,mapped,catalog crop
+46,cg-46,cork-tablemat-abstract-18-inch,"Cork Tablemat Abstract 18""",46_cork_tablemat_abstract_18_inch.jpg,/images/vinsho/products/Corporate-gifting/46_cork_tablemat_abstract_18_inch.jpg,catalog,mapped,catalog crop
+47,cg-47,cork-tablemat-oval-red-assiago,Cork Tablemat Oval Red Assiago,47_cork_tablemat_oval_red_assiago.jpg,/images/vinsho/products/Corporate-gifting/47_cork_tablemat_oval_red_assiago.jpg,catalog,mapped,catalog crop
+48,cg-48,chocochip-napkin-ring,Chocochip Napkin Ring,,,missing,missing,no matching image file found
+49,cg-49,round-napkin-ring,Round Napkin Ring,,,missing,missing,no matching image file found
+50,cg-50,fine-grain-napkin-ring,Fine Grain Napkin Ring,,,missing,missing,no matching image file found

@@ -10,30 +10,31 @@ export const POST: APIRoute = async ({ request }) => {
     const body = await request.json();
 
     const {
-      name, phone, email, message, productSlug, collectionKey, subcategoryKey,
+      name, phone, email, message, company, subject, productSlug, collectionKey, subcategoryKey,
       source, website_url, dpdp_consent
     } = body;
 
-    // 1. Honeypot Spam Filter Check (§2)
+    // 1. Honeypot Spam Filter Check
     if (website_url && website_url.trim() !== '') {
       console.warn(`[SPAM DETECTED] Honeypot field populated by IP ${clientIp}`);
-      return new Response(JSON.stringify({ success: true, message: 'Enquiry submitted successfully.' }), {
+      return new Response(JSON.stringify({ success: true, message: 'Message sent successfully.' }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
-    // 2. Submission Rate Limiting per IP & Phone (§2)
+    // 2. Submission Rate Limiting per IP & Contact (10 minutes window)
     const now = Date.now();
     const cleanPhone = (phone || '').trim();
-    const rateIdentifier = `${clientIp}_${cleanPhone}`;
-    const windowMs = 10 * 60 * 1000; // 10 minutes
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const rateIdentifier = `${clientIp}_${cleanPhone || cleanEmail}`;
+    const windowMs = 10 * 60 * 1000;
     const maxSubmissions = 3;
 
     const rateRow = db.prepare('SELECT * FROM enquiry_rate_limits WHERE identifier = ?').get(rateIdentifier) as any;
     if (rateRow && now - rateRow.first_attempt_at < windowMs && rateRow.attempts >= maxSubmissions) {
       return new Response(JSON.stringify({
-        error: 'Too many enquiry submissions from this connection. Please wait 10 minutes before submitting again.'
+        error: 'Too many submissions. Please wait 10 minutes before submitting again.'
       }), {
         status: 429,
         headers: { 'Content-Type': 'application/json' }
@@ -51,29 +52,46 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // 3. Input Validation
-    if (!name || !phone) {
-      return new Response(JSON.stringify({ error: 'Name and Phone Number are mandatory fields.' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+    const cleanName = (name || '').trim();
+    const cleanSubject = (subject || '').trim();
+    const cleanCompany = (company || '').trim();
+    const cleanMessage = (message || '').trim();
+
+    if (!cleanName) {
+      return new Response(JSON.stringify({ error: 'Name is mandatory.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
     }
 
-    // 4. Customer Deduplication (Phone first, then Email) (§1, §2)
+    if (!cleanPhone && !cleanEmail) {
+      return new Response(JSON.stringify({ error: 'Phone number or Email address is required.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    }
+
+    if (cleanEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      return new Response(JSON.stringify({ error: 'Please enter a valid email address.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    }
+
+    // 4. Customer Deduplication (Phone first, then Email)
     const consentTime = new Date().toISOString();
-    const consentText = dpdp_consent ? 'Product quotation and customer service under DPDP Act 2023' : 'Implicit submission consent under DPDP Act 2023';
+    const consentText = dpdp_consent ? 'Customer service & enquiry under DPDP Act 2023' : 'Implicit submission consent under DPDP Act 2023';
 
     const { customer } = findOrCreateCustomer({
-      name,
-      phone: cleanPhone,
-      email: email || null,
-      source: source || 'Product Page Enquiry',
+      name: cleanName,
+      phone: cleanPhone || 'Not Provided',
+      email: cleanEmail || null,
+      source: source || 'Contact Us Page',
       consentAt: consentTime,
       consentPurpose: consentText
     });
 
+    // Format full message text
+    let fullMsgParts: string[] = [];
+    if (cleanSubject) fullMsgParts.push(`Subject: ${cleanSubject}`);
+    if (cleanCompany) fullMsgParts.push(`Company: ${cleanCompany}`);
+    if (cleanMessage) fullMsgParts.push(cleanMessage);
+    const finalMessage = fullMsgParts.join('\n\n');
+
     // Resolve Product ID from Slug if provided
     let productId: number | null = null;
-    let productName = productSlug || 'General Inquiry';
+    let productName = productSlug || (cleanSubject ? `Subject: ${cleanSubject}` : 'General Inquiry');
     if (productSlug) {
       const pRow = db.prepare('SELECT id, name FROM products WHERE slug = ?').get(productSlug) as any;
       if (pRow) {
@@ -82,7 +100,7 @@ export const POST: APIRoute = async ({ request }) => {
       }
     }
 
-    // 5. Create Enquiry Record (§2)
+    // 5. Create Enquiry Record
     const enquiryRes = db.prepare(`
       INSERT INTO enquiries (
         customer_id, product_id, name, phone, email, message, source, status, created_at, updated_at
@@ -90,11 +108,11 @@ export const POST: APIRoute = async ({ request }) => {
     `).run(
       customer.id,
       productId,
-      name.trim(),
-      cleanPhone,
-      (email || '').trim().toLowerCase() || null,
-      (message || '').trim(),
-      source || 'Product Quick View Modal',
+      cleanName,
+      cleanPhone || 'Not Provided',
+      cleanEmail || null,
+      finalMessage,
+      source || 'Contact Us Page',
       consentTime,
       consentTime
     );
@@ -107,20 +125,11 @@ export const POST: APIRoute = async ({ request }) => {
       entityId: enquiryId,
       actorId: null,
       type: 'CREATED',
-      summary: `Public enquiry submitted by ${name} (${cleanPhone}) for product: ${productName}`,
-      meta: { customerId: customer.id, source, ip: clientIp }
+      summary: `Contact form submitted by ${cleanName} (${cleanEmail}) - Subject: ${cleanSubject || 'General'}`,
+      meta: { customerId: customer.id, source, company: cleanCompany, subject: cleanSubject, ip: clientIp }
     });
 
-    logCrmActivity({
-      entityType: 'customer',
-      entityId: customer.id,
-      actorId: null,
-      type: 'ENQUIRY_SUBMITTED',
-      summary: `Enquiry #${enquiryId} created for '${productName}'`,
-      meta: { enquiryId }
-    });
-
-    // 7. Log Notification Event (§9)
+    // 7. Log Notification Event
     logNotification({
       channel: 'WHATSAPP',
       template: 'NEW_ENQUIRY_STAFF',
@@ -129,16 +138,11 @@ export const POST: APIRoute = async ({ request }) => {
       entityId: enquiryId
     });
 
-    // 8. Generate WhatsApp Pre-filled URL (§2)
-    const whatsappMsg = encodeURIComponent(`Hi VINSHO, I have submitted an enquiry for "${productName}". My name is ${name.trim()} (${cleanPhone}).`);
-    const whatsappUrl = `https://wa.me/${content.brand.whatsapp}?text=${whatsappMsg}`;
-
     return new Response(JSON.stringify({
       success: true,
-      message: 'Thank you! Your enquiry has been received. Our team will get back to you shortly.',
+      message: 'Thank you! Your message has been received. Our team will get back to you shortly.',
       enquiryId,
-      customerId: customer.id,
-      whatsappUrl
+      customerId: customer.id
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
@@ -146,7 +150,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   } catch (err: any) {
     console.error('Enquiry Submission Error:', err);
-    return new Response(JSON.stringify({ error: 'Server error processing enquiry.' }), {
+    return new Response(JSON.stringify({ error: 'Server error processing enquiry. Please try again later.' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });

@@ -13,22 +13,34 @@
     "seed": "node scripts/seed-db.js",
     "db:backup": "node scripts/db-backup.js backup",
     "db:restore": "node scripts/db-backup.js restore",
+    "db:test-backup": "node scripts/test-backup-restore.js",
+    "test:e2e": "playwright test",
     "test:m1": "node scripts/test-m1.js",
     "test:m2": "node scripts/test-m2.js",
     "test:m3": "node scripts/test-m3.js",
-    "test:m4": "node scripts/test-m4.js"
+    "test:m4": "node scripts/test-m4.js",
+    "validate:corporate-images": "node tools/validate-corporate-gifting-images.mjs"
   },
   "dependencies": {
     "@astrojs/node": "^11.1.0",
+    "@astrojs/react": "^6.0.4",
+    "@astrojs/sitemap": "^3.7.4",
     "@studio-freight/lenis": "^1.0.42",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
     "astro": "^7.2.0",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^13.0.3",
     "gsap": "^3.15.0",
-    "lenis": "^1.3.26"
+    "lenis": "^1.3.26",
+    "nodemailer": "^9.0.6",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@types/bcryptjs": "^2.4.6",
-    "@types/better-sqlite3": "^9.6.0"
+    "@types/better-sqlite3": "^9.6.0",
+    "@types/nodemailer": "^8.0.1"
   }
 }

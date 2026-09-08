@@ -1,4 +1,6 @@
 ---
+export const prerender = true;
+
 import Base from '../layouts/Base.astro';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
@@ -18,10 +20,10 @@ const pageDescription = aboutData.story.paragraphs[0]; // First story paragraph 
 
 // Image Substitutions (Replacing generic stock images with genuine VINSHO photography)
 // TODO: client to supply India Expo Plaza studio photo for hero
-const heroImage = siteContent.siteImages.exploreLarge || "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-21-at-10.23.08-1.jpeg";
+const heroImage = siteContent.siteImages.exploreLarge || "/images/vinsho/site/WhatsApp-Image-2026-01-21-at-10.23.08-1.jpeg";
 
 // TODO: client to supply styled room photo for FAQ
-const faqImage = siteContent.siteImages.artisanalInset || "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-21-at-10.23.07-2.jpeg";
+const faqImage = siteContent.siteImages.artisanalInset || "/images/vinsho/site/WhatsApp-Image-2026-01-21-at-10.23.07-2.jpeg";
 
 import { COMMERCE_MODE } from '../lib/commerce';
 
@@ -165,30 +167,6 @@ const breadcrumbSchema = {
       </div>
     </section>
 
-    <!-- 1.3 Heritage Block (29 Years Trading Credibility) -->
-    <!-- TODO: Client to supply founding story, milestones, archive photographs, and evidence for the export claim (invoices, shipping records, buyer references). Until that evidence exists, the export line stays at the site's own soft wording. -->
-    <section class="about-heritage wrap">
-      <div class="heritage-card">
-        <div class="heritage-badge">
-          <span class="est-year">1997</span>
-          <span class="est-label">ESTABLISHED</span>
-        </div>
-        <div class="heritage-info">
-          <span class="eyebrow-sub">Established 1997</span>
-          <h2 class="heritage-heading">A Legacy Built Over 29 Years</h2>
-          <p class="heritage-text">
-            VINSHO has been trading in home furnishings, décor and gifting since 1997, working out of India Expo Plaza in Greater Noida. Twenty-nine years on, the range spans bedding and soft furnishing, wall décor and showpieces, table linen and curated gifting — and our creations reach homes across the USA, Europe and Australia.
-          </p>
-          <div class="heritage-meta">
-            <span class="meta-item">Established 1997</span>
-            <span class="meta-item">Greater Noida, Delhi NCR</span>
-            <span class="meta-item">All-India shipping</span>
-            <span class="meta-item">30-day returns</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <!-- 1.4 Credentials Strip -->
     <section class="credentials-strip wrap">
       <div class="credentials-grid">
@@ -326,16 +304,6 @@ const breadcrumbSchema = {
     margin-bottom: 0.5rem;
   }
 
-  .eyebrow-sub {
-    display: inline-block;
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--pink-soft, #E8A8B8);
-    margin-bottom: 0.5rem;
-  }
-
   /* 1.1 Hero */
   .about-hero {
     margin-block: 1rem 3.5rem;
@@ -351,7 +319,7 @@ const breadcrumbSchema = {
     font-family: var(--display, serif);
     font-size: clamp(2.5rem, 6vw, 4.5rem);
     font-weight: 700;
-    color: var(--maroon, #670832);
+    color: var(--maroon, #8A174B);
     margin: 0 0 0.5rem 0;
   }
 
@@ -366,7 +334,7 @@ const breadcrumbSchema = {
   .about-hero-img-wrap {
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 16px 40px rgba(103, 8, 50, 0.08);
+    box-shadow: 0 16px 40px rgba(138, 23, 75, 0.08);
   }
 
   /* 1.2 Story Section */
@@ -382,7 +350,7 @@ const breadcrumbSchema = {
   .story-heading {
     font-family: var(--display, serif);
     font-size: clamp(1.8rem, 3.5vw, 2.75rem);
-    color: var(--maroon, #670832);
+    color: var(--maroon, #8A174B);
     font-weight: 600;
     margin: 0.25rem 0 1.5rem 0;
     line-height: 1.2;
@@ -396,78 +364,6 @@ const breadcrumbSchema = {
     font-weight: 300;
   }
 
-  /* 1.3 Heritage Block */
-  .about-heritage {
-    margin-block: 3rem;
-  }
-
-  .heritage-card {
-    background: var(--maroon, #670832);
-    color: #ffffff;
-    border-radius: 14px;
-    padding: 3rem 3.5rem;
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 3.5rem;
-    align-items: center;
-    box-shadow: 0 16px 45px rgba(103, 8, 50, 0.18);
-  }
-
-  .heritage-badge {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    border-right: 1px solid rgba(255, 255, 255, 0.2);
-    padding-right: 3.5rem;
-  }
-
-  .est-year {
-    font-family: var(--display, serif);
-    font-size: 4.5rem;
-    font-weight: 700;
-    line-height: 1;
-    color: var(--paper, #FBF3F0);
-  }
-
-  .est-label {
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.25em;
-    color: var(--pink-soft, #E8A8B8);
-    margin-top: 0.5rem;
-  }
-
-  .heritage-heading {
-    font-family: var(--display, serif);
-    font-size: clamp(1.75rem, 3vw, 2.5rem);
-    color: #ffffff;
-    margin: 0 0 1rem 0;
-  }
-
-  .heritage-text {
-    font-size: 1.05rem;
-    color: rgba(255, 255, 255, 0.88);
-    line-height: 1.7;
-    margin-bottom: 1.5rem;
-    font-weight: 300;
-  }
-
-  .heritage-meta {
-    display: flex;
-    gap: 1.5rem;
-    flex-wrap: wrap;
-  }
-
-  .meta-item {
-    font-size: 0.844rem;
-    font-weight: 500;
-    color: var(--paper-2, #F9F4F0);
-    background: rgba(255, 255, 255, 0.12);
-    padding: 0.4rem 0.85rem;
-    border-radius: 999px;
-  }
-
   /* 1.4 Credentials Strip */
   .credentials-strip {
     margin-block: 2rem 4rem;
@@ -475,7 +371,7 @@ const breadcrumbSchema = {
 
   .credentials-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 1.25rem;
     background: #ffffff;
     border: 1px solid var(--line, #e2d8d5);
@@ -490,7 +386,7 @@ const breadcrumbSchema = {
     gap: 0.75rem;
     font-size: 0.92rem;
     font-weight: 500;
-    color: var(--maroon, #670832);
+    color: var(--maroon, #8A174B);
   }
 
   .cred-check-icon {
@@ -511,7 +407,7 @@ const breadcrumbSchema = {
   .gallery-header h2 {
     font-family: var(--display, serif);
     font-size: clamp(2rem, 4vw, 3rem);
-    color: var(--maroon, #670832);
+    color: var(--maroon, #8A174B);
     margin: 0;
   }
 
@@ -542,7 +438,7 @@ const breadcrumbSchema = {
   .section-title {
     font-family: var(--display, serif);
     font-size: clamp(2rem, 4vw, 3rem);
-    color: var(--maroon, #670832);
+    color: var(--maroon, #8A174B);
     margin: 0 0 2rem 0;
   }
 
@@ -573,7 +469,7 @@ const breadcrumbSchema = {
     font-family: var(--sans, sans-serif);
     font-size: 1.1rem;
     font-weight: 600;
-    color: var(--maroon, #670832);
+    color: var(--maroon, #8A174B);
     margin: 0 0 0.35rem 0;
   }
 
@@ -606,7 +502,7 @@ const breadcrumbSchema = {
   .faq-heading {
     font-family: var(--display, serif);
     font-size: clamp(2rem, 4vw, 3rem);
-    color: var(--maroon, #670832);
+    color: var(--maroon, #8A174B);
     margin: 0 0 0.75rem 0;
   }
 
@@ -672,7 +568,7 @@ const breadcrumbSchema = {
 
   .cta-btn {
     background: #ffffff !important;
-    color: var(--maroon, #670832) !important;
+    color: var(--maroon, #8A174B) !important;
     font-size: 0.95rem;
     font-weight: 600;
     padding: 0.85rem 2.2rem;
@@ -692,19 +588,6 @@ const breadcrumbSchema = {
       gap: 2.5rem;
     }
 
-    .heritage-card {
-      grid-template-columns: 1fr;
-      gap: 2rem;
-      padding: 2.5rem 2rem;
-    }
-
-    .heritage-badge {
-      border-right: none;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-      padding-right: 0;
-      padding-bottom: 1.5rem;
-    }
-
     .credentials-grid {
       grid-template-columns: repeat(2, 1fr);
     }
@@ -721,15 +604,6 @@ const breadcrumbSchema = {
 
     .gallery-grid {
       grid-template-columns: 1fr;
-    }
-
-    .est-year {
-      font-size: 3.5rem;
-    }
-
-    .heritage-meta {
-      flex-direction: column;
-      gap: 0.5rem;
     }
   }
 </style>

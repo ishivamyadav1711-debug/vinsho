@@ -18,7 +18,7 @@ const breadcrumbItems = [
 ];
 ---
 
-<Base title="Curated Collections — VINSHO" description="Explore VINSHO's four distinct craft disciplines across Home Furnishings, Home Décor, Table & Living, and Gifting.">
+<Base title="Curated Collections — VINSHO" description="Explore VINSHO's distinct craft disciplines across Home Furnishings, Home Décor, and Gifting.">
   <Nav />
   <main id="main-content" class="wrap collections-landing-page">
     <Breadcrumbs items={breadcrumbItems} />
@@ -26,14 +26,14 @@ const breadcrumbItems = [
     <header class="collections-hero-head">
       <TextReveal as="h1">Curated Collections</TextReveal>
       <p class="hero-subtext">
-        Explore our four distinct craft disciplines, grouping {activeProducts.length} handcrafted pieces across 17 sub-categories.
+        Explore our distinct craft disciplines, grouping {activeProducts.length} handcrafted pieces.
       </p>
     </header>
 
     <div class="collections-master-grid">
       {collections.map((col) => {
         const totalCount = getCollectionProductCount(col.key);
-        const colProducts = activeProducts.filter(p => p.collectionKey === col.key).slice(0, 4);
+        const colProducts = activeProducts.filter(p => p.collectionKey === col.key);
 
         return (
           <section class="collection-master-card">
@@ -45,8 +45,11 @@ const breadcrumbItems = [
                 <span class="col-badge-count">{totalCount} pieces</span>
               </div>
               <p class="col-blurb-text">{col.blurb}</p>
+            </div>
 
+            {col.key === 'gifting-collection' && col.subcategories && col.subcategories.length > 0 && (
               <div class="subcat-chips-list">
+                <span class="subcat-label" style="font-size: 0.813rem; font-weight: 600; color: var(--maroon-2); margin-right: 0.5rem; align-self: center;">Select Subcategory:</span>
                 {col.subcategories.map((sub) => {
                   const subCount = getSubcategoryProductCount(col.key, sub.key);
                   return (
@@ -56,7 +59,7 @@ const breadcrumbItems = [
                   );
                 })}
               </div>
-            </div>
+            )}
 
             <div class="col-featured-preview">
               <div class="grid">

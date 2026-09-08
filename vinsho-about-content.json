@@ -4,7 +4,7 @@
   "hero": {
     "h1": "About Us",
     "subhead": "Everything your home deserves",
-    "image": "https://vinsho.in/wp-content/uploads/2025/09/white-furniture-in-room.jpg",
+    "image": "/images/vinsho/site/white-furniture-in-room.jpg",
     "imageFlag": "STOCK PHOTO — not a VINSHO product or space. Must be replaced."
   },
   "story": {
@@ -23,17 +23,17 @@
     "100% Safe transactions"
   ],
   "gallery": [
-    "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-21-at-10.23.08-1.jpeg",
-    "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-21-at-10.23.08.jpeg",
-    "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-21-at-10.23.07-3.jpeg",
-    "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-21-at-10.23.07-2.jpeg",
-    "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-21-at-10.23.07-1.jpeg",
-    "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-21-at-10.23.07.jpeg"
+    "/images/vinsho/site/WhatsApp-Image-2026-01-21-at-10.23.08-1.jpeg",
+    "/images/vinsho/site/WhatsApp-Image-2026-01-21-at-10.23.08.jpeg",
+    "/images/vinsho/site/WhatsApp-Image-2026-01-21-at-10.23.07-3.jpeg",
+    "/images/vinsho/site/WhatsApp-Image-2026-01-21-at-10.23.07-2.jpeg",
+    "/images/vinsho/site/WhatsApp-Image-2026-01-21-at-10.23.07-1.jpeg",
+    "/images/vinsho/site/WhatsApp-Image-2026-01-21-at-10.23.07.jpeg"
   ],
   "faq": {
     "heading": "FAQ",
     "intro": "Find quick and clear answers to the most common questions about Vinsho, our products, and services.",
-    "image": "https://vinsho.in/wp-content/uploads/2025/09/dining-room-with-wooden-furniture.jpg",
+    "image": "/images/vinsho/site/dining-room-with-wooden-furniture.jpg",
     "imageFlag": "STOCK PHOTO — not a VINSHO space. Must be replaced.",
     "items": [
       {
@@ -83,27 +83,27 @@
         "text": "We care for our planet as much as we care for your home."
       }
     ],
-    "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-21-at-15.03.51.jpeg"
+    "image": "/images/about/why-choose-us.jpg"
   },
   "cta": {
     "heading": "Transform your home into a sanctuary of comfort and relaxation.",
     "button": "Shop Now",
-    "image": "https://vinsho.in/wp-content/uploads/2025/10/Untitled-design-3.png",
+    "image": "/images/vinsho/site/Untitled-design-3.png",
     "linkFlag": "Live site points at /product/ which 404s. Should target the catalogue."
   },
   "topbar": {
     "message": "Express delivery and free returns within 30 days",
-    "email": "Info@vinsho.com"
+    "email": "vinvks@gmail.com"
   },
   "contact": {
-    "email": "info@vinsho.com",
-    "phone": "+91 8527406482",
+    "email": "vinvks@gmail.com",
+    "phone": "+91 9625515351",
     "address": "India Expo Plaza, First Floor, Plot No. C-03 & C-04, Knowledge Park-II, Greater Noida, U.P. 201310"
   },
   "contentFlags": [
     {
       "severity": "HIGH",
-      "issue": "The About page never mentions 1997. 'Trusted Seller Since 1997' appears only as small eyebrow text on the homepage hero. Twenty-nine years of trading is the strongest credibility asset this brand has and the About page omits it entirely.",
+      "issue": "Twenty-nine years of trading is the strongest credibility asset this brand has.",
       "action": "Build a heritage block into the new About page. Ask the client for founding story, milestones and any archive photographs."
     },
     {
@@ -129,7 +129,7 @@
     {
       "severity": "MEDIUM",
       "issue": "Badges 'Premium Product' and 'Professional Services' say nothing specific and could belong to any business.",
-      "action": "Replace with concrete facts: 'Since 1997', 'Exported to USA, Europe & Australia', 'All-India shipping', '30-day returns'."
+      "action": "Replace with concrete facts: 'Exported to USA, Europe & Australia', 'All-India shipping', '30-day returns'."
     },
     {
       "severity": "LOW",

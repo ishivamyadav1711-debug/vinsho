@@ -2,17 +2,14 @@
 export const prerender = true;
 
 import Base from '../../layouts/Base.astro';
-import Nav from '../../components/Nav.astro';
 import Footer from '../../components/Footer.astro';
-import TextReveal from '../../components/motion/TextReveal.astro';
-import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import Modal from '../../components/Modal.astro';
 import VariantSelector from '../../components/VariantSelector.astro';
-import LegalMetrology from '../../components/LegalMetrology.astro';
+import CandleCraftsmanship from '../../components/CandleCraftsmanship.astro';
+import DesignCraftsmanshipHighlights from '../../components/DesignCraftsmanshipHighlights.astro';
 import content from '../../../vinsho-content.json';
 import { getAllProducts, getProductBySlug, getCollectionByKey, getSubcategoryByKey } from '../../utils/taxonomy';
-import { getCommerceProductBySlug, evaluateProductPurchasability, COMMERCE_MODE } from '../../lib/commerce';
-
+import { getCommerceProductBySlug, evaluateProductPurchasability } from '../../lib/commerce';
 import { isProductPurchasable } from '../../lib/purchasability';
 
 export function getStaticPaths() {
@@ -55,18 +52,15 @@ const commerceProduct = getCommerceProductBySlug(slug) || {
   careInstructions: null
 };
 
-const evalResult = evaluateProductPurchasability(commerceProduct);
 const isPurchasable = isProductPurchasable(baseProduct);
+const isCandleProduct = 
+  baseProduct.subcategoryKey === 'candles' || 
+  baseProduct.collectionKey === 'candles' ||
+  baseProduct.slug.includes('candle') || 
+  baseProduct.name.toLowerCase().includes('candle');
 
 const collection = getCollectionByKey(baseProduct.collectionKey);
 const subcategory = getSubcategoryByKey(baseProduct.collectionKey, baseProduct.subcategoryKey);
-
-const breadcrumbItems = [
-  { label: 'Home', url: '/' },
-  { label: collection?.name || baseProduct.collection || baseProduct.mainCategory || 'Products', url: `/collections/${baseProduct.collectionKey}` },
-  { label: subcategory?.name || baseProduct.subcategory || baseProduct.subCategory || '', url: `/collections/${baseProduct.collectionKey}/${baseProduct.subcategoryKey}` },
-  { label: baseProduct.name }
-];
 
 const whatsappText = encodeURIComponent(`Hi VINSHO, I would like to enquire about "${baseProduct.name}" (${baseProduct.subcategory || baseProduct.subCategory || baseProduct.collection}).`);
 const whatsappUrl = `https://wa.me/${content.brand.whatsapp}?text=${whatsappText}`;
@@ -79,139 +73,440 @@ const formattedSellingPrice = isPurchasable && priceVal
 const formattedMrp = isPurchasable && commerceProduct.mrp 
   ? `MRP: ₹${commerceProduct.mrp.toLocaleString('en-IN')}`
   : null;
+
+// Dynamic watermark text calculation
+const rawNameWords = baseProduct.name.toUpperCase().split(/\s+/);
+const watermarkWords = rawNameWords.length >= 2 
+  ? [rawNameWords[0], rawNameWords.slice(1).join(' ')]
+  : [rawNameWords[0], (baseProduct.collection || baseProduct.mainCategory || 'VINSHO').toUpperCase()];
+
+// Related products
+const allProducts = getAllProducts();
+const relatedProducts = allProducts
+  .filter(p => p.slug !== slug && (p.collectionKey === baseProduct.collectionKey || p.subcategoryKey === baseProduct.subcategoryKey))
+  .slice(0, 3);
+
+// Category label
+const categoryLabel = (baseProduct.subcategory || baseProduct.subCategory || baseProduct.collection || baseProduct.mainCategory || 'HOME DÉCOR').toUpperCase();
+
+const displayHighlights = ((baseProduct as any).highlights && (baseProduct as any).highlights.length > 0)
+  ? (baseProduct as any).highlights
+  : (baseProduct.features || []);
+
+const displayHighlightsTagline = (baseProduct as any).highlightsTagline || baseProduct.closing_line || baseProduct.closingLine || '';
+
+const isHomeDecorOrFurnishing = 
+  baseProduct.collectionKey === 'home-decor' || 
+  baseProduct.collectionKey === 'home-furnishing' ||
+  baseProduct.collection === 'Home Decor' ||
+  baseProduct.collection === 'Home Furnishing' ||
+  baseProduct.mainCategory === 'Home Decor' ||
+  baseProduct.mainCategory === 'Home Furnishing' ||
+  (baseProduct.collectionKey && baseProduct.collectionKey.includes('decor')) ||
+  (baseProduct.collectionKey && baseProduct.collectionKey.includes('furnish'));
+
+const showShippingDelivery = !isHomeDecorOrFurnishing;
+
+const productImages = (baseProduct.images && baseProduct.images.length > 0)
+  ? baseProduct.images
+  : [baseProduct.image];
 ---
 
-<Base title={`${baseProduct.name} — ${baseProduct.subcategory || baseProduct.subCategory} — VINSHO`} description={baseProduct.description}>
-  <Nav />
-  <main id="main-content" class="wrap product-detail-page">
-    <Breadcrumbs items={breadcrumbItems} />
-
-    <article class="product-detail-grid">
-      <div class="p-gallery">
-        <div class="p-main-img-frame">
-          <img src={baseProduct.image} alt={baseProduct.name} class="p-main-img" id="pdp-main-image" />
-          <span class="shipping-class-badge" data-class={commerceProduct.shippingClass}>
-            {commerceProduct.shippingClass.toUpperCase()}
-          </span>
+<Base title={`${baseProduct.name} — VINSHO Editorial`} description={baseProduct.description}>
+  <div class="editorial-pdp-outer">
+    <div class="editorial-pdp-canvas">
+      
+      <!-- Editorial Minimal Header -->
+      <header class="pdp-editorial-header">
+        <div class="pdp-header-left">
+          <a href="/" class="pdp-brand-link" aria-label="VINSHO Home">
+            <img src="/vinsho-logo-transparent.png" alt="VINSHO" class="pdp-header-logo" />
+          </a>
         </div>
+        <nav class="pdp-header-nav">
+          <a href="/" class="pdp-nav-item">Home</a>
+          <a href="/about" class="pdp-nav-item">About Us</a>
+          <a href="/products" class="pdp-nav-item">Products</a>
+          <a href="/collections" class="pdp-nav-item">Collections</a>
+          <a href="/blog" class="pdp-nav-item">Blog</a>
+          <a href="/contact" class="pdp-nav-item">Contact Us</a>
+        </nav>
+        <div class="pdp-header-right">
+          <a href="/products" class="pdp-util-btn" aria-label="Search">
+            <svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="7"/>
+              <path d="m20 20-3.5-3.5"/>
+            </svg>
+            <span class="util-txt">Search</span>
+          </a>
+          <button class="pdp-util-btn" id="pdp-cart-btn" aria-label="View Cart" type="button">
+            <svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 7h12l-1 13H7L6 7Z"/>
+              <path d="M9 7a3 3 0 0 1 6 0"/>
+            </svg>
+            <span class="util-txt">Cart</span>
+            <span class="pdp-cart-badge" id="pdpCartN">0</span>
+          </button>
+          <a class="pdp-header-cta" href={whatsappUrl} target="_blank" rel="noopener noreferrer">
+            Enquire
+          </a>
+        </div>
+      </header>
+
+      <!-- Category Label Header -->
+      <div class="pdp-category-breadcrumb">
+        <span class="lbl-prefix">COLLECTION</span>
+        <span class="lbl-divider">&bull;</span>
+        <span class="lbl-cat">{categoryLabel}</span>
       </div>
 
-      <div class="p-info-col">
-        <span class="p-eyebrow-tag">{baseProduct.subcategory || baseProduct.subCategory} &middot; {baseProduct.collection || baseProduct.mainCategory}</span>
-        <TextReveal as="h1" class="p-title">{baseProduct.name}</TextReveal>
+      <!-- Main 3-Column Editorial Hero Stage -->
+      <section class="pdp-hero-stage">
         
-        <div class="p-price-row">
-          <span class="p-price-tag" id="pdp-selling-price">{formattedSellingPrice}</span>
-          {formattedMrp && (
-            <span class="p-mrp-tag" id="pdp-mrp-price">{formattedMrp}</span>
-          )}
-          {isPurchasable && (
-            <span class="p-vat-note">Inclusive of all taxes &amp; GST</span>
-          )}
+        <!-- Large Background Watermark Typography -->
+        <div class="pdp-watermark-bg" aria-hidden="true">
+          <span class="wm-line1">{watermarkWords[0]}</span>
+          {watermarkWords[1] && <span class="wm-line2">{watermarkWords[1]}</span>}
         </div>
 
-        {/* Stock badge if purchasable */}
-        {isPurchasable && (
-          <div class="stock-badge-row">
-            <span class="stock-badge in-stock" id="pdp-stock-badge">In Stock (Ready to Dispatch)</span>
-          </div>
-        )}
+        <div class="pdp-hero-grid">
+          
+          <!-- LEFT COLUMN: Product Primary Info & Buy Controls -->
+          <div class="pdp-col-left">
+            <div class="pdp-eyebrow">
+              {baseProduct.subcategory || baseProduct.subCategory || 'CURATED ACCENT'}
+            </div>
 
-        <p class="p-description">{baseProduct.description}</p>
+            <h1 class="pdp-title">{baseProduct.name}</h1>
 
-        <!-- Multi-Variant Selector Component if purchasable -->
-        {isPurchasable && commerceProduct.variants && commerceProduct.variants.length > 0 && (
-          <VariantSelector 
-            variants={commerceProduct.variants}
-            defaultPrice={commerceProduct.sellingPrice}
-            defaultMrp={commerceProduct.mrp}
-          />
-        )}
+            {baseProduct.tagline && baseProduct.tagline.trim() !== '' && (
+              <p class="pdp-tagline">{baseProduct.tagline}</p>
+            )}
 
-        <div class="p-spec-box">
-          <div class="spec-item">
-            <span class="spec-label">Material &amp; Finish</span>
-            <span class="spec-val">{baseProduct.material}</span>
-          </div>
-          <div class="spec-item">
-            <span class="spec-label">Shipping Class</span>
-            <span class="spec-val" style="text-transform: capitalize;">{commerceProduct.shippingClass}</span>
-          </div>
-          <div class="spec-item">
-            <span class="spec-label">Returnable</span>
-            <span class="spec-val">{commerceProduct.returnable ? 'Yes (14-Day Policy)' : 'No (Custom/Bulky item)'}</span>
-          </div>
-          <div class="spec-item">
-            <span class="spec-label">Location Origin</span>
-            <span class="spec-val">Greater Noida, Delhi NCR (Est. 1997)</span>
-          </div>
-        </div>
-
-        <div class="p-actions-row">
-          {isPurchasable ? (
-            <div class="pdp-purchasable-wrapper">
-              <div class="pdp-qty-row">
-                <label for="pdp-qty-select" class="qty-label">Quantity:</label>
-                <select id="pdp-qty-select" class="qty-select">
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                </select>
+            <div class="pdp-price-box">
+              <div class="pdp-price-row">
+                <span class="pdp-price" id="pdp-selling-price">{formattedSellingPrice}</span>
+                {formattedMrp && <span class="pdp-mrp">{formattedMrp}</span>}
               </div>
-              <div class="pdp-btn-group">
-                <button class="add-to-cart-btn" id="pdp-add-cart-btn" data-slug={baseProduct.slug} data-add={baseProduct.slug}>
-                  Add to Cart
+              {isPurchasable && <span class="pdp-tax-note">Inclusive of all taxes &amp; GST</span>}
+            </div>
+
+            <!-- Multi-Variant Selector if purchasable -->
+            {isPurchasable && commerceProduct.variants && commerceProduct.variants.length > 0 && (
+              <VariantSelector 
+                variants={commerceProduct.variants}
+                defaultPrice={commerceProduct.sellingPrice}
+                defaultMrp={commerceProduct.mrp}
+              />
+            )}
+
+            <!-- Purchase / Quantity Controls -->
+            {isPurchasable ? (
+              <div class="pdp-buy-controls">
+                <div class="pdp-qty-stepper">
+                  <button type="button" class="qty-btn" id="pdp-qty-minus" aria-label="Decrease quantity">&minus;</button>
+                  <span class="qty-val" id="pdp-qty-val">1</span>
+                  <button type="button" class="qty-btn" id="pdp-qty-plus" aria-label="Increase quantity">+</button>
+                </div>
+
+                <div class="pdp-btn-stack">
+                  <button class="pdp-btn-primary" id="pdp-add-cart-btn" data-slug={baseProduct.slug}>
+                    ADD TO CART
+                  </button>
+                  <button class="pdp-btn-secondary" id="pdp-buy-now-btn" data-slug={baseProduct.slug}>
+                    BUY NOW
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div class="pdp-enquiry-controls">
+                <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" class="pdp-btn-whatsapp">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                  </svg>
+                  <span>Enquire on WhatsApp</span>
+                </a>
+                <button class="pdp-btn-quote" data-open={baseProduct.slug}>
+                  Request Custom Quote
                 </button>
-                <button class="buy-now-btn" id="pdp-buy-now-btn" data-slug={baseProduct.slug}>
-                  Buy Now
+              </div>
+            )}
+          </div>
+
+          <!-- CENTER COLUMN: Floating Main Hero Product Image -->
+          <div class="pdp-col-center">
+            <div class="pdp-img-frame" id="pdp-gallery-frame">
+              {productImages.length > 1 && (
+                <button type="button" class="gallery-nav-btn prev-btn" id="pdp-prev-img" aria-label="Previous image">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
                 </button>
+              )}
+
+              <div class="pdp-slides-container">
+                {productImages.map((imgUrl, index) => (
+                  <img 
+                    src={imgUrl} 
+                    alt={`${baseProduct.name} - Image ${index + 1}`} 
+                    class={`pdp-hero-img slide-img ${index === 0 ? 'active' : ''}`}
+                    data-index={index}
+                    id={index === 0 ? 'pdp-main-image' : undefined}
+                    onerror="this.onerror=null; this.src='/images/candles/placeholder.svg';" 
+                  />
+                ))}
+              </div>
+
+              {productImages.length > 1 && (
+                <button type="button" class="gallery-nav-btn next-btn" id="pdp-next-img" aria-label="Next image">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+              )}
+            </div>
+
+            <div class="pdp-gallery-counter">
+              <span id="pdp-gallery-counter-txt">
+                01 &mdash; {String(productImages.length).padStart(2, '0')}
+              </span>
+            </div>
+
+            {productImages.length > 1 && (
+              <div class="pdp-thumb-strip">
+                {productImages.map((imgUrl, index) => (
+                  <button 
+                    type="button" 
+                    class={`pdp-thumb-btn ${index === 0 ? 'active' : ''}`} 
+                    data-index={index}
+                    aria-label={`View image ${index + 1}`}
+                  >
+                    <img src={imgUrl} alt={`Thumbnail ${index + 1}`} />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <!-- RIGHT COLUMN: DESIGN & CRAFTSMANSHIP HIGHLIGHTS -->
+          <div class="pdp-col-right">
+            <DesignCraftsmanshipHighlights 
+              highlights={displayHighlights} 
+              quote={displayHighlightsTagline} 
+            />
+          </div>
+        </div>
+      </section>
+
+      <!-- Candle Craftsmanship & Care Section for Candle Products -->
+      {isCandleProduct && (
+        <CandleCraftsmanship />
+      )}
+
+      <!-- FULL-WIDTH PRODUCT INFORMATION SECTION (Description, Material & Details, Shipping & Delivery) -->
+      <section class="pdp-full-info-section">
+        <div class="pdp-info-accordions">
+          {baseProduct.description && baseProduct.description.trim() !== '' && (
+            <details class="pdp-acc-item" open>
+              <summary class="pdp-acc-summary">
+                <span>DESCRIPTION</span>
+                <svg class="acc-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+              </summary>
+              <div class="pdp-acc-body">
+                <p>{baseProduct.description}</p>
+              </div>
+            </details>
+          )}
+
+          <details class="pdp-acc-item">
+            <summary class="pdp-acc-summary">
+              <span>MATERIAL &amp; DETAILS</span>
+              <svg class="acc-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+            </summary>
+            <div class="pdp-acc-body">
+              <div class="spec-grid">
+                <div class="spec-row"><span>Material:</span> <strong>{baseProduct.material || 'Crafted Luxury Material'}</strong></div>
+                <div class="spec-row"><span>Category:</span> <strong>{baseProduct.subcategory || baseProduct.subCategory}</strong></div>
+                <div class="spec-row"><span>Shipping Class:</span> <strong style="text-transform: capitalize;">{commerceProduct.shippingClass}</strong></div>
+                {commerceProduct.countryOfOrigin && (
+                  <div class="spec-row"><span>Country of Origin:</span> <strong>{commerceProduct.countryOfOrigin}</strong></div>
+                )}
+                {commerceProduct.manufacturerOrPacker && (
+                  <div class="spec-row"><span>Manufacturer / Packer:</span> <strong>{commerceProduct.manufacturerOrPacker}</strong></div>
+                )}
               </div>
             </div>
-          ) : (
-            <>
-              <a class="whatsapp-btn" href={whatsappUrl} target="_blank" rel="noopener noreferrer">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
-                </svg>
-                Enquire on WhatsApp
-              </a>
-              <button class="quick-quote-btn" data-open={baseProduct.slug}>
-                Get Quote
-              </button>
-            </>
+          </details>
+
+          {isCandleProduct && (
+            <details class="pdp-acc-item">
+              <summary class="pdp-acc-summary">
+                <span>WAX &amp; FRAGRANCE CRAFTSMANSHIP</span>
+                <svg class="acc-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+              </summary>
+              <div class="pdp-acc-body">
+                <div class="spec-grid">
+                  <div class="spec-row"><span>Wax Blend:</span> <strong>Pure Coconut-Soy / Soy-Beeswax</strong></div>
+                  <div class="spec-row"><span>Fragrance:</span> <strong>Floral &amp; Botanical Compositions</strong></div>
+                  <div class="spec-row"><span>Scent Throw:</span> <strong>Balanced Ambient Throw</strong></div>
+                  <div class="spec-row"><span>Ambience:</span> <strong>Soothing &amp; Relaxing Atmosphere</strong></div>
+                </div>
+              </div>
+            </details>
+          )}
+
+          {showShippingDelivery && (
+            <details class="pdp-acc-item">
+              <summary class="pdp-acc-summary">
+                <span>SHIPPING &amp; DELIVERY</span>
+                <svg class="acc-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+              </summary>
+              <div class="pdp-acc-body">
+                <p>Complimentary shipping across India. Carefully packaged and dispatched with real-time tracking.</p>
+              </div>
+            </details>
           )}
         </div>
+      </section>
 
-        <!-- Mandatory Legal Metrology Section (§5) -->
-        <LegalMetrology product={commerceProduct} />
-      </div>
-    </article>
-  </main>
+      <!-- Related Products Strip -->
+      {relatedProducts && relatedProducts.length > 0 && (
+        <section class="pdp-related-section">
+          <div class="related-header">
+            <h3>MORE FROM THIS CURATION</h3>
+            <a href={`/collections/${baseProduct.collectionKey}`} class="related-link">Explore Collection &rarr;</a>
+          </div>
+          <div class="related-grid">
+            {relatedProducts.map((rel) => (
+              <a href={`/product/${rel.slug}`} class="rel-card">
+                <div class="rel-img-frame">
+                  <img src={rel.image} alt={rel.name} class="rel-img" onerror="this.onerror=null; this.src='/images/candles/placeholder.svg';" />
+                </div>
+                <div class="rel-info">
+                  <span class="rel-cat">{rel.subcategory || rel.subCategory || rel.collection}</span>
+                  <h4 class="rel-title">{rel.name}</h4>
+                  <span class="rel-price">{rel.price ? `₹${rel.price.toLocaleString('en-IN')}` : 'Price on request'}</span>
+                </div>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
+
+    </div>
+  </div>
+
+  <!-- Mobile Fixed Bottom Action Bar (<= 767px) -->
+  {isPurchasable ? (
+    <div class="pdp-mobile-sticky-bar" id="pdp-mobile-sticky-bar">
+      <button type="button" class="pdp-mobile-btn-primary" id="pdp-mobile-add-cart-btn" data-slug={baseProduct.slug}>
+        ADD TO CART
+      </button>
+      <button type="button" class="pdp-mobile-btn-secondary" id="pdp-mobile-buy-now-btn" data-slug={baseProduct.slug}>
+        BUY NOW
+      </button>
+    </div>
+  ) : (
+    <div class="pdp-mobile-sticky-bar pdp-mobile-sticky-bar-enquiry" id="pdp-mobile-sticky-bar">
+      <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" class="pdp-mobile-btn-whatsapp">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+        </svg>
+        <span>WhatsApp</span>
+      </a>
+      <button type="button" class="pdp-mobile-btn-quote" data-open={baseProduct.slug}>
+        Request Custom Quote
+      </button>
+    </div>
+  )}
+
   <Footer />
   <Modal />
 </Base>
 
 <script>
   import { trackViewItem, trackAddToCart } from '../../lib/analytics';
-  import { addLocalCartItem, openCartDrawer } from '../../scripts/cart-store';
+  import { addLocalCartItem, openCartDrawer, getCartCount } from '../../scripts/cart-store';
+  import { createWhatsAppOrderUrl } from '../../utils/whatsapp-order';
 
   document.addEventListener('DOMContentLoaded', () => {
     const slug = window.location.pathname.split('/').pop() || '';
-    const nameEl = document.querySelector('.p-title');
+    const nameEl = document.querySelector('.pdp-title');
     const name = nameEl?.textContent || 'Product';
     const img = (document.getElementById('pdp-main-image') as HTMLImageElement)?.src || '';
     const priceText = document.getElementById('pdp-selling-price')?.textContent || '0';
-    const price = parseInt(priceText.replace(/[^\d]/g, ''), 10) || 499;
+    const price = parseInt(priceText.replace(/[^\d]/g, ''), 10) || 0;
 
     trackViewItem({ slug, name });
 
-    const addCartBtn = document.getElementById('pdp-add-cart-btn');
-    const qtySelect = document.getElementById('pdp-qty-select') as HTMLSelectElement | null;
+    // Multi-Image Gallery Slider Logic
+    const slides = document.querySelectorAll('.slide-img');
+    const thumbs = document.querySelectorAll('.pdp-thumb-btn');
+    const counterTxt = document.getElementById('pdp-gallery-counter-txt');
+    const prevBtn = document.getElementById('pdp-prev-img');
+    const nextBtn = document.getElementById('pdp-next-img');
 
+    if (slides.length > 1) {
+      let currentIndex = 0;
+
+      const updateGallery = (newIndex: number) => {
+        currentIndex = (newIndex + slides.length) % slides.length;
+        
+        slides.forEach((slide, idx) => {
+          if (idx === currentIndex) {
+            slide.classList.add('active');
+          } else {
+            slide.classList.remove('active');
+          }
+        });
+
+        thumbs.forEach((thumb, idx) => {
+          if (idx === currentIndex) {
+            thumb.classList.add('active');
+          } else {
+            thumb.classList.remove('active');
+          }
+        });
+
+        if (counterTxt) {
+          const currentPadded = String(currentIndex + 1).padStart(2, '0');
+          const totalPadded = String(slides.length).padStart(2, '0');
+          counterTxt.innerHTML = `${currentPadded} &mdash; ${totalPadded}`;
+        }
+      };
+
+      prevBtn?.addEventListener('click', () => updateGallery(currentIndex - 1));
+      nextBtn?.addEventListener('click', () => updateGallery(currentIndex + 1));
+
+      thumbs.forEach((thumb) => {
+        thumb.addEventListener('click', (e) => {
+          const target = e.currentTarget as HTMLElement;
+          const index = parseInt(target.dataset.slideIndex || '0', 10);
+          updateGallery(index);
+        });
+      });
+    }
+
+    // Quantity Stepper
+    let qty = 1;
+    const qtyMinusBtn = document.getElementById('pdp-qty-minus');
+    const qtyPlusBtn = document.getElementById('pdp-qty-plus');
+    const qtyValEl = document.getElementById('pdp-qty-val');
+    const pdpCartBadge = document.getElementById('pdp-cart-badge');
+
+    qtyMinusBtn?.addEventListener('click', () => {
+      if (qty > 1) {
+        qty--;
+        if (qtyValEl) qtyValEl.textContent = String(qty);
+      }
+    });
+
+    qtyPlusBtn?.addEventListener('click', () => {
+      if (qty < 10) {
+        qty++;
+        if (qtyValEl) qtyValEl.textContent = String(qty);
+      }
+    });
+
+    // Add To Cart
+    const addCartBtn = document.getElementById('pdp-add-cart-btn');
     addCartBtn?.addEventListener('click', () => {
-      const qty = parseInt(qtySelect?.value || '1', 10);
       trackAddToCart({ slug, name, quantity: qty });
       addLocalCartItem({
         slug,
@@ -220,12 +515,15 @@ const formattedMrp = isPurchasable && commerceProduct.mrp
         price,
         quantity: qty
       });
+      if (pdpCartBadge) {
+        pdpCartBadge.textContent = String(getCartCount());
+      }
       openCartDrawer();
     });
 
+    // Buy Now
     const buyNowBtn = document.getElementById('pdp-buy-now-btn');
     buyNowBtn?.addEventListener('click', () => {
-      const qty = parseInt(qtySelect?.value || '1', 10);
       addLocalCartItem({
         slug,
         name,
@@ -233,348 +531,1457 @@ const formattedMrp = isPurchasable && commerceProduct.mrp
         price,
         quantity: qty
       });
+      if (pdpCartBadge) {
+        pdpCartBadge.textContent = String(getCartCount());
+      }
+      const waUrl = createWhatsAppOrderUrl([{ name, price, quantity: qty }]);
+      window.open(waUrl, '_blank');
+    });
+
+    // Mobile Sticky Add To Cart
+    const mobileAddCartBtn = document.getElementById('pdp-mobile-add-cart-btn');
+    mobileAddCartBtn?.addEventListener('click', () => {
+      trackAddToCart({ slug, name, quantity: qty });
+      addLocalCartItem({
+        slug,
+        name,
+        image: img,
+        price,
+        quantity: qty
+      });
+      if (pdpCartBadge) {
+        pdpCartBadge.textContent = String(getCartCount());
+      }
       openCartDrawer();
+    });
+
+    // Mobile Sticky Buy Now
+    const mobileBuyNowBtn = document.getElementById('pdp-mobile-buy-now-btn');
+    mobileBuyNowBtn?.addEventListener('click', () => {
+      addLocalCartItem({
+        slug,
+        name,
+        image: img,
+        price,
+        quantity: qty
+      });
+      if (pdpCartBadge) {
+        pdpCartBadge.textContent = String(getCartCount());
+      }
+      const waUrl = createWhatsAppOrderUrl([{ name, price, quantity: qty }]);
+      window.open(waUrl, '_blank');
     });
   });
 </script>
 
 <style>
-  .product-detail-page {
-    padding-block: clamp(1.25rem, 2.5vw, 2.5rem);
+  /* ---------- OUTER MAROON BACKDROP (#8A174B) ---------- */
+  .editorial-pdp-outer {
+    background-color: #8A174B;
+    background-image: none;
+    padding: clamp(1rem, 2.5vw, 2.5rem);
+    min-height: 100vh;
+    width: 100%;
+    box-sizing: border-box;
   }
 
-  .enquiry-fallback-banner {
-    background: var(--paper-2);
-    border: 1px solid var(--line);
-    color: var(--maroon-2);
-    padding: 0.6rem 0.85rem;
-    border-radius: 4px;
-    font-size: 0.813rem;
-    margin-bottom: 1rem;
-  }
-
-  .product-detail-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: clamp(1.5rem, 3.5vw, 3rem);
-    align-items: start;
-    margin-top: 0.5rem;
-  }
-
-  .p-main-img-frame {
+  /* ---------- FLOATING LIGHT LUXURY CANVAS ---------- */
+  .editorial-pdp-canvas {
+    background: #FAF6F0;
+    border-radius: clamp(16px, 2.5vw, 32px);
+    border: 1px solid rgba(138, 23, 75, 0.12);
+    box-shadow: 0 30px 90px rgba(50, 10, 20, 0.28);
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: clamp(1.25rem, 3vw, 2.5rem);
     position: relative;
-    aspect-ratio: 4 / 3;
-    max-height: clamp(300px, 55vh, 560px);
     overflow: hidden;
-    border-radius: 4px;
-    background: var(--paper-3);
-    width: 100%;
   }
 
-  @media (min-width: 992px) {
-    .p-gallery {
-      position: sticky;
-      top: calc(var(--nav) + 1rem);
-    }
-  }
-
-  .p-main-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .shipping-class-badge {
-    position: absolute;
-    top: 0.75rem;
-    left: 0.75rem;
-    background: var(--maroon);
-    color: #fff;
-    font-size: 0.625rem;
-    letter-spacing: 0.14em;
-    padding: 0.25rem 0.65rem;
-    border-radius: 2px;
-  }
-
-  .p-eyebrow-tag {
-    font-size: 0.75rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--pink);
-    font-weight: 600;
-    display: block;
-    margin-bottom: 0.25rem;
-  }
-
-  .p-title {
-    font-family: var(--display);
-    font-size: clamp(1.75rem, 3vw, 2.5rem);
-    color: var(--maroon-2);
-    margin: 0 0 0.5rem;
-    line-height: 1.1;
-  }
-
-  .p-price-row {
+  /* ---------- EDITORIAL MINIMAL HEADER ---------- */
+  .pdp-editorial-header {
     display: flex;
-    align-items: baseline;
-    gap: 0.85rem;
-    margin-bottom: 0.5rem;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid rgba(138, 23, 75, 0.08);
+    margin-bottom: 1.5rem;
   }
 
-  .p-price-tag {
-    font-size: 1.25rem;
-    font-weight: 700;
+  .pdp-header-left {
+    display: flex;
+    align-items: center;
+  }
+
+  .pdp-header-logo {
+    height: 38px;
+    width: auto;
+    object-fit: contain;
+  }
+
+  .pdp-header-nav {
+    display: flex;
+    align-items: center;
+    gap: clamp(1rem, 2vw, 2.2rem);
+  }
+
+  .pdp-nav-item {
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--ink);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .pdp-nav-item:hover {
     color: var(--maroon);
   }
 
-  .p-mrp-tag {
+  .pdp-header-right {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .pdp-util-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--ink);
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  .pdp-util-btn:hover {
+    color: var(--maroon);
+  }
+
+  .pdp-cart-badge {
+    background: var(--maroon);
+    color: #fff;
+    font-size: 0.65rem;
+    font-weight: 700;
+    border-radius: 999px;
+    padding: 0.1rem 0.45rem;
+    margin-left: 0.15rem;
+  }
+
+  .pdp-header-cta {
+    background: var(--maroon);
+    color: #fff;
+    font-size: 0.813rem;
+    font-weight: 600;
+    padding: 0.45rem 1.1rem;
+    border-radius: 999px;
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+
+  .pdp-header-cta:hover {
+    background: var(--maroon-2);
+  }
+
+  /* ---------- CATEGORY BREADCRUMB ---------- */
+  .pdp-category-breadcrumb {
+    font-size: 0.75rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--pink);
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+  }
+
+  .lbl-prefix { color: var(--ink-soft); }
+  .lbl-divider { margin-inline: 0.35rem; color: var(--line); }
+  .lbl-cat { color: var(--maroon-2); font-weight: 700; }
+
+  /* ---------- HERO STAGE ---------- */
+  .pdp-hero-stage {
+    position: relative;
+    padding-bottom: 2.5rem;
+  }
+
+  /* GIANT DYNAMIC WATERMARK TYPOGRAPHY */
+  .pdp-watermark-bg {
+    position: absolute;
+    top: 5%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    user-select: none;
+    z-index: 1;
+    opacity: 0.85;
+  }
+
+  .pdp-watermark-bg span {
+    font-family: var(--serif);
+    font-size: clamp(4.5rem, 13vw, 11rem);
+    font-weight: 700;
+    line-height: 0.82;
+    letter-spacing: -0.02em;
+    color: rgba(138, 23, 75, 0.045);
+    text-transform: uppercase;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  /* HERO 3-COLUMN GRID */
+  .pdp-hero-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.35fr 1fr;
+    gap: clamp(1.5rem, 3vw, 3rem);
+    align-items: start;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* LEFT COLUMN */
+  .pdp-col-left {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .pdp-eyebrow {
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--pink);
+    font-weight: 600;
+  }
+
+  .pdp-title {
+    font-family: var(--serif);
+    font-size: clamp(2.2rem, 3.8vw, 3.4rem);
+    color: var(--maroon-2);
+    font-weight: 600;
+    line-height: 1.08;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+
+  .pdp-tagline {
+    font-size: 0.95rem;
+    font-style: italic;
+    color: var(--maroon);
+    margin: 0;
+    font-weight: 500;
+  }
+
+  .pdp-price-box {
+    margin-block: 0.25rem;
+  }
+
+  .pdp-price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.85rem;
+  }
+
+  .pdp-price {
+    font-family: var(--serif);
+    font-size: 1.85rem;
+    font-weight: 700;
+    color: var(--maroon-2);
+  }
+
+  .pdp-mrp {
     font-size: 0.9rem;
     text-decoration: line-through;
     color: var(--ink-soft);
   }
 
-  .p-vat-note {
-    font-size: 0.781rem;
-    color: var(--ink-soft);
-  }
-
-  .stock-badge-row {
-    margin-bottom: 0.5rem;
-  }
-
-  .stock-badge {
+  .pdp-tax-note {
     font-size: 0.75rem;
-    font-weight: 600;
-    padding: 0.25rem 0.75rem;
-    border-radius: 999px;
-  }
-
-  .in-stock { background: #D4EDDA; color: #155724; }
-  .low-stock { background: #FFF3CD; color: #856404; }
-  .out-of-stock { background: #F8D7DA; color: #721C24; }
-
-  .p-description {
-    font-size: 0.875rem;
-    line-height: 1.5;
     color: var(--ink-soft);
-    margin-bottom: 0.75rem;
-  }
-
-  .placeholder-copy-notice {
-    font-size: 0.75rem;
-    color: var(--pink);
-    margin-bottom: 0.75rem;
-  }
-
-  /* Pincode Estimator */
-  .pincode-estimator-box {
-    background: var(--paper-2);
-    border: 1px solid var(--line);
-    padding: 0.6rem 0.85rem;
-    border-radius: 4px;
-    margin-block: 0.65rem;
-  }
-
-  .pincode-label {
     display: block;
-    font-size: 0.781rem;
-    font-weight: 600;
-    color: var(--maroon-2);
-    margin-bottom: 0.3rem;
+    margin-top: 0.15rem;
   }
 
-  .pincode-input-row {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .pincode-input {
-    flex: 1;
-    background: #fff;
-    border: 1px solid var(--line);
-    padding: 0.35rem 0.65rem;
-    border-radius: 4px;
-    font-size: 0.813rem;
-    outline: none;
-  }
-
-  .pincode-btn {
-    background: var(--maroon);
-    color: #fff;
-    padding: 0.35rem 0.85rem;
-    border-radius: 4px;
-    font-size: 0.813rem;
-    font-weight: 600;
-    cursor: pointer;
-  }
-
-  .pincode-result {
-    font-size: 0.781rem;
-    margin: 0.35rem 0 0 0;
-  }
-
-  .p-spec-box {
-    background: var(--paper-2);
-    border: 1px solid var(--line);
-    border-radius: 4px;
-    padding: 0.85rem;
+  /* BUY CONTROLS */
+  .pdp-buy-controls {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    margin-block: 0.75rem;
+    gap: 1rem;
+    margin-top: 0.5rem;
   }
 
-  .spec-item {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.813rem;
+  .pdp-qty-stepper {
+    display: inline-flex;
+    align-items: center;
+    background: #fff;
+    border: 1.5px solid var(--line);
+    border-radius: 999px;
+    padding: 0.2rem 0.5rem;
+    width: fit-content;
   }
 
-  .spec-label {
-    color: var(--ink-soft);
-  }
-
-  .spec-val {
+  .qty-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-size: 1.1rem;
+    font-weight: 600;
     color: var(--maroon-2);
-    font-weight: 500;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: background 0.2s;
   }
 
-  .p-actions-row {
+  .qty-btn:hover { background: var(--paper-2); }
+
+  .qty-val {
+    width: 36px;
+    text-align: center;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .pdp-btn-stack {
     display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-    margin-bottom: 0.85rem;
+    flex-direction: column;
+    gap: 0.65rem;
+    width: 100%;
   }
 
-  .add-to-cart-btn, .buy-now-btn, .whatsapp-btn, .quick-quote-btn {
+  .pdp-btn-primary {
+    background: #8A174B;
+    color: #ffffff;
+    border: 1.5px solid #8A174B;
+    padding: 0.85rem 1.5rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    cursor: pointer;
+    transition: background 0.25s;
+    width: 100%;
+    text-transform: uppercase;
+  }
+
+  .pdp-btn-primary:hover {
+    background: #6B0E38;
+  }
+
+  .pdp-btn-secondary {
+    background: transparent;
+    color: #8A174B;
+    border: 1.5px solid #8A174B;
+    padding: 0.8rem 1.5rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    cursor: pointer;
+    transition: all 0.25s;
+    width: 100%;
+    text-transform: uppercase;
+  }
+
+  .pdp-btn-secondary:hover {
+    background: #8A174B;
+    color: #fff;
+  }
+
+  .pdp-enquiry-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+  }
+
+  .pdp-btn-whatsapp {
+    background: #25D366;
+    color: #fff;
+    padding: 0.8rem 1.25rem;
+    border-radius: 6px;
+    font-size: 0.88rem;
+    font-weight: 600;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.4rem;
-    font-size: 0.85rem;
-    font-weight: 600;
-    padding: 0.55rem 1.25rem;
-    min-height: 40px;
-    border-radius: 999px;
-    cursor: pointer;
-    transition: all 0.2s ease;
+    gap: 0.5rem;
     text-decoration: none;
-    flex: 1;
-    min-width: 160px;
   }
 
-  .add-to-cart-btn {
-    background: var(--paper-2);
-    border: 1.5px solid var(--maroon);
-    color: var(--maroon);
-  }
-
-  .add-to-cart-btn:hover {
+  .pdp-btn-quote {
     background: var(--maroon);
     color: #fff;
+    padding: 0.8rem 1.25rem;
+    border-radius: 6px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
   }
 
-  .legal-metrology-declarations-card {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 6px;
-    padding: 0.65rem 0.85rem;
-    margin-block: 0.65rem;
-    font-size: 0.781rem;
-  }
-  .metrology-head {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    color: #0f172a;
-    margin-bottom: 0.4rem;
-    font-size: 0.813rem;
-  }
-  .metrology-grid {
+  /* CENTER COLUMN (HERO IMAGE & GALLERY) */
+  .pdp-col-center {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    width: 100%;
   }
-  .metrology-row {
+
+  .pdp-img-frame {
+    width: 100%;
+    max-width: 600px;
+    aspect-ratio: 1 / 1;
+    max-height: clamp(420px, 65vh, 640px);
     display: flex;
-    justify-content: space-between;
-    gap: 0.5rem;
-    border-bottom: 1px dashed #e2e8f0;
-    padding-bottom: 0.2rem;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 0;
+    margin: 0;
+    box-shadow: 0 20px 50px rgba(138, 23, 75, 0.12);
+    border: 1px solid rgba(138, 23, 75, 0.08);
+    box-sizing: border-box;
+    overflow: hidden;
+    position: relative;
   }
-  .m-lbl { color: #64748b; font-weight: 500; }
-  .pdp-purchasable-wrapper {
+
+  .pdp-slides-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+  }
+
+  .slide-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.35s ease, transform 0.35s ease;
+    transform: scale(0.98);
+  }
+
+  .slide-img.active {
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1);
+  }
+
+  .gallery-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(138, 23, 75, 0.15);
+    color: var(--maroon-2);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+  }
+
+  .gallery-nav-btn:hover {
+    background: #ffffff;
+    color: var(--maroon);
+    transform: translateY(-50%) scale(1.08);
+    box-shadow: 0 6px 20px rgba(138, 23, 75, 0.2);
+  }
+
+  .gallery-nav-btn.prev-btn {
+    left: 14px;
+  }
+
+  .gallery-nav-btn.next-btn {
+    right: 14px;
+  }
+
+  .pdp-thumb-strip {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 0.85rem;
+    z-index: 5;
+  }
+
+  .pdp-thumb-btn {
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 2px solid transparent;
+    padding: 0;
+    background: #fff;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.2s;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .pdp-thumb-btn img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .pdp-thumb-btn:hover {
+    transform: translateY(-2px);
+    border-color: rgba(138, 23, 75, 0.4);
+  }
+
+  .pdp-thumb-btn.active {
+    border-color: #8A174B;
+    box-shadow: 0 4px 12px rgba(138, 23, 75, 0.25);
+  }
+
+  .pdp-hero-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    border-radius: inherit;
+    display: block;
+    margin: 0;
+    padding: 0;
+    transition: transform 0.4s var(--ease);
+  }Redesign the existing **Product Detail Page, Cart Page, and Checkout Page** of my website using the uploaded reference image as the PRIMARY UI/UX STRUCTURAL REFERENCE.
+
+## IMPORTANT — FOLLOW THIS FIRST
+
+The uploaded image is provided ONLY as a reference for:
+
+* Layout
+* Page structure
+* Spacing
+* Content hierarchy
+* Product image gallery
+* Product information placement
+* Cart structure
+* Checkout structure
+* Responsive/mobile composition
+* Premium e-commerce UX
+
+**DO NOT copy the visual theme, colors, branding, typography, or furniture-store identity from the reference image.**
+
+My website's **existing/old design theme must remain the source of truth for the visual identity.**
+
+In other words:
+
+**REFERENCE IMAGE = layout + UX inspiration**
+
+**EXISTING WEBSITE = colors + fonts + branding + visual identity**
+
+Do NOT convert my website into the beige/brown furniture theme shown in the reference.
+
+---
+
+# 1. PRODUCT DETAIL PAGE
+
+Redesign the existing product page to follow the structure and premium presentation of the reference image.
+
+### Desktop layout
+
+Use a clean two-column product detail layout:
+
+### LEFT SIDE
+
+Create a premium product image gallery:
+
+* Large primary product image
+* Multiple thumbnail images underneath or beside it
+* Smooth image switching
+* Image zoom on hover/click where appropriate
+* Proper aspect ratio
+* No stretching or distortion
+* Clean whitespace around product images
+
+Use the **actual existing product images** from my website.
+
+Do NOT replace product images with placeholder images.
+
+### RIGHT SIDE
+
+Display:
+
+* Product category
+* Product name
+* Rating
+* Review count
+* Current price
+* Original/MRP price if available
+* Discount percentage if applicable
+* Product short description
+* Available variants
+* Colour selector if applicable
+* Size selector if applicable
+* Quantity selector
+* Add to Cart button
+* Buy Now button if the existing website supports it
+* Wishlist button
+* Stock/availability information if available
+* Key product highlights
+
+The purchase section should be visually prominent but still match my existing website's design language.
+
+---
+
+# 2. PRODUCT INFORMATION SECTION
+
+Below the main product section, create a clean information area inspired by the reference.
+
+Use tabs or clearly separated sections for:
+
+* Description
+* Material & Care
+* Dimensions / Specifications
+* Shipping
+* Returns / Refunds
+
+Only show information that actually exists in the current product data.
+
+Do NOT invent product specifications.
+
+Preserve all existing product information.
+
+---
+
+# 3. PRODUCT HIGHLIGHTS
+
+Create a premium visual section for the existing product highlights.
+
+For example, if the product data contains relevant information, present things such as:
+
+* Material
+* Handmade/Crafted
+* Long-lasting
+* Eco-friendly
+* Fragrance
+* Burn time
+* Size
+* Weight
+
+But ONLY use information already available in the website/product data.
+
+Do not make up claims.
+
+---
+
+# 4. REVIEWS SECTION
+
+Redesign the existing review section to visually match the reference structure.
+
+Include where available:
+
+* Overall rating
+* Rating breakdown
+* Customer reviews
+* Customer name
+* Review date
+* Review text
+* Review images if available
+
+Keep the existing review functionality intact.
+
+---
+
+# 5. RELATED PRODUCTS
+
+Add a visually consistent "You May Also Like" / "Related Products" section near the bottom.
+
+Use the actual products already available in the website.
+
+The product cards should match the existing website theme while using the clean layout and spacing from the reference image.
+
+---
+
+# 6. CART PAGE
+
+Completely redesign the existing Cart page using the uploaded reference image as the structural inspiration.
+
+Do NOT copy its colors/theme.
+
+### Desktop
+
+Use a two-column structure.
+
+### LEFT — CART ITEMS
+
+Each cart item should contain:
+
+* Product image
+* Product name
+* Variant information
+* Price
+* Quantity selector
+* Remove option
+* Wishlist option if supported
+* Item subtotal
+
+Use clean spacing and clear visual hierarchy.
+
+### RIGHT — ORDER SUMMARY
+
+Create a premium order summary card containing:
+
+* Subtotal
+* Discount
+* Shipping
+* Tax if applicable
+* Final total
+* Coupon/promo code if supported
+* Checkout button
+
+Make the Checkout CTA prominent.
+
+Do NOT change existing cart calculations or business logic.
+
+The redesign should only change the presentation/UI unless a functional issue already exists.
+
+---
+
+# 7. EMPTY CART
+
+Create a polished empty-cart state.
+
+It should contain:
+
+* Simple visual/icon
+* "Your cart is empty" message
+* Short supporting text
+* Continue Shopping button
+
+Match the existing website's theme.
+
+---
+
+# 8. CHECKOUT PAGE
+
+Redesign the checkout page using the uploaded reference image's structure.
+
+Keep the checkout process simple, trustworthy and conversion-focused.
+
+### LEFT SIDE
+
+Organize checkout into clear sections:
+
+### Contact Information
+
+* Name
+* Email
+* Phone
+
+### Delivery Address
+
+* Full name
+* Address
+* City
+* State
+* Pincode
+* Phone
+
+### Delivery Method
+
+Show available shipping/delivery options if the existing website supports them.
+
+### Payment
+
+Keep the existing payment integration and functionality.
+
+Since the website uses/Will use **Razorpay**, do NOT create a fake payment system or custom card-processing system.
+
+The Razorpay checkout/payment flow should remain functional.
+
+---
+
+# 9. CHECKOUT RIGHT SIDEBAR
+
+Create a sticky order summary on desktop.
+
+Display:
+
+* Products
+* Product thumbnails
+* Quantity
+* Price
+* Subtotal
+* Discount
+* Shipping
+* Taxes if applicable
+* Final payable amount
+
+Make the final amount extremely clear.
+
+---
+
+# 10. MOBILE RESPONSIVE DESIGN
+
+The reference image includes mobile layouts.
+
+Create a proper mobile experience rather than simply shrinking the desktop page.
+
+### Product page mobile:
+
+Order the sections as:
+
+1. Product image gallery
+2. Product title
+3. Rating
+4. Price
+5. Variants
+6. Quantity
+7. Add to Cart / Buy Now
+8. Product highlights
+9. Description
+10. Specifications
+11. Reviews
+12. Related products
+
+### Cart mobile:
+
+Use a single-column layout.
+
+Make quantity controls easy to use with touch.
+
+### Checkout mobile:
+
+Use a single-column layout.
+
+Order summary can become collapsible/sticky where appropriate.
+
+Buttons must be large enough for comfortable mobile interaction.
+
+---
+
+# 11. PRESERVE EXISTING WEBSITE THEME
+
+This is extremely important.
+
+Before modifying anything, inspect the existing website and identify:
+
+* Existing primary colors
+* Secondary colors
+* Background colors
+* Typography
+* Heading styles
+* Button styles
+* Border radius
+* Shadows
+* Header style
+* Footer style
+* Product card style
+* Existing spacing system
+* Existing brand identity
+
+Use those as the visual foundation.
+
+The reference image should NOT override them.
+
+For example:
+
+If my existing website uses a particular brand color, continue using that brand color for:
+
+* Buttons
+* Links
+* Selected states
+* Important CTAs
+* Product badges
+
+Do NOT automatically use the reference image's brown/gold palette.
+
+---
+
+# 12. DESIGN QUALITY
+
+The final design should feel:
+
+* Premium
+* Clean
+* Modern
+* Elegant
+* Spacious
+* Conversion-focused
+* Trustworthy
+* Consistent with the existing website
+
+Avoid:
+
+* Excessive rounded cards
+* Excessive shadows
+* Huge unnecessary text
+* Too many colors
+* Cluttered layouts
+* Generic template-looking UI
+* Unnecessary animations
+* Fake product information
+
+Use subtle transitions and hover states only where they improve UX.
+
+---
+
+# 13. DO NOT BREAK EXISTING FUNCTIONALITY
+
+This is mandatory.
+
+Before changing the UI, inspect the existing implementation.
+
+Preserve:
+
+* Product data
+* Product images
+* Product variants
+* Pricing
+* Cart functionality
+* Quantity updates
+* Remove from cart
+* Wishlist
+* Checkout functionality
+* Coupon functionality if present
+* Shipping calculations
+* Existing API calls
+* Existing database logic
+* Authentication if present
+* Razorpay integration
+* Existing routes
+* Existing responsive behavior that already works
+
+Do not rewrite backend logic unnecessarily.
+
+Do not create duplicate components or duplicate functionality.
+
+Reuse existing components/data wherever possible.
+
+---
+
+# 14. COMPONENT CONSISTENCY
+
+Create reusable components where appropriate.
+
+For example:
+
+* ProductGallery
+* ProductInfo
+* VariantSelector
+* QuantitySelector
+* ProductHighlights
+* ProductReviews
+* RelatedProducts
+* CartItem
+* OrderSummary
+* CheckoutForm
+* PaymentSection
+
+Follow the existing project's architecture and conventions instead of introducing a completely different architecture.
+
+---
+
+# 15. FINAL IMPLEMENTATION REQUIREMENT
+
+First inspect the existing website carefully.
+
+Then compare the existing Product Page, Cart and Checkout against the uploaded reference image.
+
+Implement the redesign without changing the website's existing brand identity.
+
+The final result should look like:
+
+**"My existing website's theme + the reference image's premium e-commerce layout."**
+
+NOT:
+
+**"The reference image copied onto my website."**
+
+After implementation:
+
+1. Check desktop layout.
+2. Check tablet layout.
+3. Check mobile layout.
+4. Check product image gallery.
+5. Check variant selection.
+6. Check Add to Cart.
+7. Check quantity updates.
+8. Check Cart calculations.
+9. Check Checkout flow.
+10. Check Razorpay/payment flow.
+11. Check all buttons and links.
+12. Check for console errors.
+13. Check for broken images.
+14. Check spacing and typography.
+15. Make sure no existing functionality has been removed.
+
+Do not stop at creating a visual mockup.
+
+**Actually implement the changes in the existing project.**
+
+
+  .pdp-hero-img:hover {
+    transform: scale(1.04);
+  }
+
+  .pdp-gallery-counter {
+    margin-top: 1rem;
+    font-size: 0.781rem;
+    letter-spacing: 0.14em;
+    color: var(--ink-soft);
+    font-weight: 600;
+  }
+
+  /* RIGHT COLUMN (CRAFTSMANSHIP HIGHLIGHTS SIDEBAR) */
+  .pdp-col-right {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .pdp-highlights-sidebar {
+    background: rgba(255, 255, 255, 0.65);
+    border: 1px solid rgba(138, 23, 75, 0.1);
+    border-radius: 14px;
+    padding: 1.25rem 1.35rem;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 20px rgba(50, 10, 20, 0.03);
+  }
+
+  .highlights-heading {
+    font-size: 0.72rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--maroon-2);
+    font-weight: 700;
+    margin: 0 0 1.25rem 0;
+    padding-bottom: 0.65rem;
+    border-bottom: 1px solid rgba(138, 23, 75, 0.1);
+  }
+
+  .highlights-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+  }
+
+  .highlight-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    padding-bottom: 0.85rem;
+    border-bottom: 1px dashed rgba(138, 23, 75, 0.09);
+  }
+
+  .highlight-item:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .hl-num {
+    font-family: var(--serif);
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--maroon);
+    opacity: 0.75;
+    line-height: 1.25;
+    flex-shrink: 0;
+  }
+
+  .hl-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .hl-title {
+    font-family: var(--serif);
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--maroon-2);
+    margin: 0;
+    line-height: 1.25;
+  }
+
+  .hl-desc {
+    font-size: 0.781rem;
+    color: var(--ink-soft);
+    margin: 0;
+    line-height: 1.45;
+  }
+
+  .highlights-quote {
+    margin-top: 1.25rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid rgba(138, 23, 75, 0.1);
+    font-family: var(--serif);
+    font-size: 0.88rem;
+    font-style: italic;
+    color: var(--maroon);
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  /* FULL-WIDTH ACCORDIONS SECTION BELOW HERO */
+  .pdp-full-info-section {
+    margin-top: 2.5rem;
+    padding-top: 1.75rem;
+    border-top: 1px solid rgba(138, 23, 75, 0.1);
+  }
+
+  .pdp-info-accordions {
     display: flex;
     flex-direction: column;
     gap: 0.85rem;
     width: 100%;
   }
 
-  .pdp-qty-row {
+  .pdp-acc-item {
+    background: #ffffff;
+    border: 1px solid rgba(138, 23, 75, 0.09);
+    border-radius: 10px;
+    padding: 0.25rem 1.35rem;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+
+  .pdp-acc-item[open] {
+    box-shadow: 0 6px 20px rgba(50, 10, 20, 0.04);
+    border-color: rgba(138, 23, 75, 0.2);
+  }
+
+  .pdp-acc-summary {
+    font-size: 0.844rem;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    color: var(--maroon-2);
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    font-size: 0.88rem;
-    font-weight: 500;
-    color: var(--ink);
-  }
-
-  .qty-select {
-    padding: 0.35rem 0.75rem;
-    border: 1px solid var(--line);
-    border-radius: 4px;
-    background: var(--paper);
-    font-family: inherit;
-    font-size: 0.88rem;
-    color: var(--ink);
+    justify-content: space-between;
     cursor: pointer;
+    padding-block: 0.85rem;
+    list-style: none;
   }
 
-  .pdp-btn-group {
+  .pdp-acc-summary::-webkit-details-marker { display: none; }
+
+  .acc-ico { transition: transform 0.25s ease; }
+  .pdp-acc-item[open] .acc-ico { transform: rotate(180deg); }
+
+  .pdp-acc-body {
+    padding-bottom: 1.15rem;
+    font-size: 0.875rem;
+    line-height: 1.6;
+    color: var(--ink-soft);
+  }
+
+  .pdp-acc-body p { margin: 0; }
+
+  .spec-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem 1.5rem;
+  }
+
+  .spec-row {
     display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+    padding-block: 0.4rem;
+    border-bottom: 1px dashed rgba(138, 23, 75, 0.08);
+    font-size: 0.825rem;
   }
 
-  .pdp-btn-group button {
-    flex: 1;
-    min-width: 140px;
+  /* RELATED PRODUCTS STRIP */
+  .pdp-related-section {
+    margin-top: 3.5rem;
   }
 
-  .buy-now-btn {
-    background: var(--maroon);
-    color: #fff;
-    border: 1.5px solid var(--maroon);
-    padding: 0.75rem 1.25rem;
-    border-radius: 4px;
+  .related-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.25rem;
+  }
+
+  .related-header h3 {
+    font-size: 0.813rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--maroon-2);
+    margin: 0;
+  }
+
+  .related-link {
+    font-size: 0.813rem;
+    color: var(--maroon);
     font-weight: 600;
-    font-size: 0.88rem;
-    cursor: pointer;
-    transition: background 0.2s ease;
+    text-decoration: none;
   }
 
-  .buy-now-btn:hover {
-    background: var(--maroon-2);
+  .related-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
   }
 
-  .whatsapp-btn {
-    background: #25D366;
-    color: #fff;
+  .rel-card {
+    background: #fff;
+    border: 1px solid rgba(138, 23, 75, 0.08);
+    border-radius: 8px;
+    overflow: hidden;
+    text-decoration: none;
+    transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease);
   }
 
-  .whatsapp-btn:hover {
-    background: #1DA851;
+  .rel-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(50, 10, 20, 0.1);
   }
 
-  .quick-quote-btn {
-    background: var(--maroon);
-    color: var(--paper);
+  .rel-img-frame {
+    aspect-ratio: 4 / 4;
+    overflow: hidden;
+    background: var(--paper-3);
   }
 
-  @media (max-width: 800px) {
-    .product-detail-grid {
-      grid-template-columns: 1fr;
+  .rel-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .rel-info {
+    padding: 0.85rem 1rem;
+  }
+
+  .rel-cat {
+    font-size: 0.688rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--pink);
+    font-weight: 600;
+  }
+
+  .rel-title {
+    font-family: var(--serif);
+    font-size: 1rem;
+    color: var(--maroon-2);
+    margin: 0.2rem 0;
+  }
+
+  .rel-price {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--maroon);
+  }
+
+  /* DYNAMIC WATERMARK BOUNDS */
+  .pdp-watermark-bg {
+    max-width: 100%;
+    overflow: hidden;
+  }
+  .pdp-watermark-bg span {
+    max-width: 100%;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  /* RESPONSIVE RECOMPOSITION */
+  @media (max-width: 1024px) {
+    .pdp-hero-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+    .pdp-col-center {
+      grid-column: span 2;
+      order: -1;
+      margin-bottom: 1.5rem;
+    }
+    .pdp-header-nav { display: none; }
+  }
+
+  @media (max-width: 768px) {
+    .editorial-pdp-outer {
+      padding: 0.65rem;
+    }
+    .editorial-pdp-canvas {
+      padding: 1rem;
+      border-radius: 16px;
+    }
+    .related-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 0.65rem;
+    }
+    .pdp-watermark-bg span {
+      font-size: clamp(1.8rem, 8vw, 3rem);
+    }
+  }
+
+  /* MOBILE STICKY BAR & MOBILE RE-ORDERING (DESKTOP > 767px: HIDDEN / UNCHANGED) */
+  .pdp-mobile-sticky-bar {
+    display: none !important;
+  }
+
+  @media (max-width: 767px) {
+    .editorial-pdp-outer {
+      padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+    }
+
+    /* Mobile Re-Ordering: IMAGE -> PRICE -> QUANTITY -> HIGHLIGHTS */
+    .pdp-hero-grid {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 1.1rem !important;
+    }
+
+    .pdp-col-left {
+      display: contents !important;
+    }
+
+    .pdp-eyebrow {
+      order: 1 !important;
+    }
+
+    .pdp-title {
+      order: 2 !important;
+    }
+
+    .pdp-tagline {
+      order: 3 !important;
+    }
+
+    .pdp-col-center {
+      order: 4 !important;
+      grid-column: span 1 !important;
+      margin-bottom: 0.25rem !important;
+      width: 100% !important;
+    }
+
+    .pdp-price-box {
+      order: 5 !important;
+      margin-block: 0.35rem 0.15rem !important;
+    }
+
+    .pdp-buy-controls,
+    .pdp-enquiry-controls {
+      order: 6 !important;
+    }
+
+    .pdp-col-right {
+      order: 7 !important;
+      margin-top: 0.5rem !important;
+    }
+
+    .pdp-btn-stack,
+    .pdp-enquiry-controls {
+      display: none !important;
+    }
+
+    .pdp-mobile-sticky-bar {
+      display: flex !important;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      width: 100%;
+      background: #ffffff;
+      padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+      box-shadow: 0 -4px 25px rgba(50, 10, 20, 0.15);
+      border-top: 1px solid rgba(138, 23, 75, 0.1);
+      z-index: 9999;
+      box-sizing: border-box;
+    }
+
+    .pdp-mobile-btn-primary {
+      flex: 1;
+      background: #8A174B;
+      color: #ffffff;
+      border: 1.5px solid #8A174B;
+      padding: 0.85rem 0.5rem;
+      border-radius: 6px;
+      font-size: 0.825rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      text-transform: uppercase;
+      text-align: center;
+      transition: background 0.2s;
+    }
+
+    .pdp-mobile-btn-primary:active {
+      background: #6B0E38;
+    }
+
+    .pdp-mobile-btn-secondary {
+      flex: 1;
+      background: transparent;
+      color: #8A174B;
+      border: 1.5px solid #8A174B;
+      padding: 0.85rem 0.5rem;
+      border-radius: 6px;
+      font-size: 0.825rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      text-transform: uppercase;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .pdp-mobile-btn-secondary:active {
+      background: #8A174B;
+      color: #ffffff;
+    }
+
+    .pdp-mobile-btn-whatsapp {
+      flex: 1;
+      background: #25D366;
+      color: #ffffff;
+      padding: 0.85rem 0.5rem;
+      border-radius: 6px;
+      font-size: 0.825rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      text-decoration: none;
+    }
+
+    .pdp-mobile-btn-quote {
+      flex: 1;
+      background: #8A174B;
+      color: #ffffff;
+      border: none;
+      padding: 0.85rem 0.5rem;
+      border-radius: 6px;
+      font-size: 0.825rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .pdp-buy-controls {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .pdp-qty-stepper {
+      width: 100%;
+      justify-content: center;
     }
   }
 </style>

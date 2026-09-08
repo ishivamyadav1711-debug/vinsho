@@ -1,0 +1,1550 @@
+[
+  {
+    "id": 1,
+    "slug": "aprons",
+    "name": "Aprons",
+    "category": "Table & Living",
+    "tagline": "Cook in style. Live in comfort.",
+    "description": "Designed to bring both practicality and style to everyday kitchen routines, this apron helps keep your outfit protected while you cook, bake, or prepare meals. Its comfortable design makes it easy to wear for longer periods, while the clean appearance adds a polished touch to your kitchen essentials. A useful blend of function and everyday convenience.",
+    "features": [
+      {
+        "title": "Durable & Washable",
+        "description": "Made from high-quality fabric for long-lasting use."
+      },
+      {
+        "title": "Protective & Practical",
+        "description": "Shields your clothes from spills and stains with ease."
+      },
+      {
+        "title": "Perfect for Any Occasion",
+        "description": "Ideal for home chefs, bakers and professionals alike."
+      },
+      {
+        "title": "Stylish & Functional",
+        "description": "Thoughtfully designed for comfort and everyday use."
+      }
+    ],
+    "closing_line": "Crafted to elevate every moment.",
+    "giftEligible": true
+  },
+  {
+    "id": 2,
+    "slug": "artificial-flowers",
+    "name": "Artificial Flowers",
+    "category": "Home Decor",
+    "tagline": "Timeless beauty for every corner.",
+    "description": "Bring the beauty of floral décor into your home without the need for constant maintenance. These artificial flowers add color, softness, and natural-inspired character to tables, shelves, consoles, and corners. Easy to style throughout the year, they create a welcoming atmosphere while offering a long-lasting decorative solution for homes, offices, and thoughtfully curated interiors.",
+    "features": [
+      {
+        "title": "Realistic Look",
+        "description": "Natural texture and vibrant colors for a lifelike feel."
+      },
+      {
+        "title": "Long Lasting",
+        "description": "Stays fresh and beautiful all year round without wilting or fading."
+      },
+      {
+        "title": "Perfect Decor",
+        "description": "Ideal for vases, centerpieces, shelves or wall accents."
+      },
+      {
+        "title": "Maintenance Free",
+        "description": "No watering or special care required. Just lasting beauty."
+      }
+    ],
+    "closing_line": "Decor that stays. Beauty that lasts.",
+    "giftEligible": true
+  },
+  {
+    "id": 3,
+    "slug": "bathmats",
+    "name": "Bathmats",
+    "category": "Bath",
+    "tagline": "Softer steps. Better mornings.",
+    "description": "Add comfort and character to your bathroom with a thoughtfully designed bathmat that creates a softer landing after every shower. Its practical surface helps keep the surrounding floor area cleaner and more comfortable, while its understated appearance blends easily with different bathroom interiors. A simple everyday essential that combines functionality, comfort, and decorative appeal.",
+    "features": [
+      {
+        "title": "Ultra Soft & Absorbent",
+        "description": "Plush texture that feels gentle underfoot and absorbs water in seconds."
+      },
+      {
+        "title": "Non-Slip Backing",
+        "description": "Secure grip design keeps the mat firmly in place for safety."
+      },
+      {
+        "title": "Quick Drying",
+        "description": "Dries fast to keep your bathroom fresh, clean and odour-free."
+      },
+      {
+        "title": "Easy to Clean",
+        "description": "Machine washable and built to stay soft and durable after every wash."
+      }
+    ],
+    "closing_line": "Crafted for everyday comfort.",
+    "giftEligible": true
+  },
+  {
+    "id": 4,
+    "slug": "bedcover",
+    "name": "Bedcover",
+    "category": "Home Furnishings",
+    "tagline": "Wrap your bed. Wake up refreshed.",
+    "description": "Give your bedroom an instant refresh with an elegant bedcover designed to add warmth, texture, and visual appeal. Draped neatly across the bed, it creates a more finished and inviting look while complementing your existing décor. Ideal for everyday styling or special occasions, it brings together comfort, practicality, and timeless bedroom elegance.",
+    "features": [
+      {
+        "title": "Premium Comfort",
+        "description": "Crafted from ultra-soft, breathable fabric for a cozy and relaxing sleep."
+      },
+      {
+        "title": "Elegant Design",
+        "description": "Timeless patterns and soothing tones to elevate your bedroom decor."
+      },
+      {
+        "title": "Durable & Easy Care",
+        "description": "High-quality fabric that stays soft, vibrant and easy to maintain."
+      },
+      {
+        "title": "Perfect Fit",
+        "description": "Designed to drape beautifully and stay in place all night."
+      }
+    ],
+    "closing_line": "Everyday luxury for your bedroom.",
+    "giftEligible": true
+  },
+  {
+    "id": 5,
+    "slug": "bedsheet",
+    "name": "Bedsheet",
+    "category": "Home Furnishings",
+    "tagline": "Transform your bedroom into a cozy retreat.",
+    "description": "Create a fresh and inviting bedroom with a beautifully styled bedsheet designed for everyday comfort. Its versatile appearance allows it to complement both contemporary and traditional interiors, while the smooth presentation adds a refined touch to your bedding setup. Perfect for refreshing your room effortlessly, it combines everyday usability with understated elegance.",
+    "features": [
+      {
+        "title": "Cotton",
+        "description": "Made from 100% high quality cotton for superior softness and durability."
+      },
+      {
+        "title": "Soft & Comfortable",
+        "description": "Smooth, gentle touch for a relaxing and cozy sleep."
+      },
+      {
+        "title": "Breathable Fabric",
+        "description": "Keeps you cool and comfortable all night long."
+      },
+      {
+        "title": "Elegant Design",
+        "description": "Stylish prints that add charm and elegance to your bedroom."
+      }
+    ],
+    "closing_line": "Pure cotton comfort every night.",
+    "giftEligible": true
+  },
+  {
+    "id": 6,
+    "slug": "blanket",
+    "name": "Blanket",
+    "category": "Home Furnishings",
+    "tagline": "Wrap yourself in warmth.",
+    "description": "Wrap yourself in warmth and comfort with a cozy blanket designed for relaxing evenings and restful nights. Its versatile design makes it suitable for bedrooms, living spaces, or simply keeping close during cooler weather. Easy to style with existing interiors, it adds a comforting layer of warmth while maintaining a neat and inviting appearance.",
+    "features": [
+      {
+        "title": "Ultra-Soft & Warm",
+        "description": "Premium insulating fabric that provides exceptional warmth and a gentle touch."
+      },
+      {
+        "title": "Lightweight & Cozy",
+        "description": "Designed to be lightweight yet warm, perfect for year-round comfort."
+      },
+      {
+        "title": "Elegant Weave",
+        "description": "Luxurious texture and refined design that adds beauty to your bedroom."
+      },
+      {
+        "title": "Durable & Long Lasting",
+        "description": "High-quality fabric that stays soft, keeps its shape and lasts through countless uses."
+      }
+    ],
+    "closing_line": "Warmth that embraces every season.",
+    "giftEligible": true
+  },
+  {
+    "id": 7,
+    "slug": "blinds-with-decor",
+    "name": "Blinds with Decor",
+    "category": "Home Furnishings",
+    "tagline": "Style. Privacy. Serenity.",
+    "description": "Transform ordinary windows into stylish focal points with decorative blinds that combine practical window coverage with an elevated aesthetic. Designed to complement your interior décor, they can add softness, structure, and personality to the room. Ideal for living rooms, bedrooms, and curated spaces, these blinds bring together everyday functionality and decorative sophistication.",
+    "features": [
+      {
+        "title": "Botanical Beauty",
+        "description": "Soothing green leaf prints inspired by nature."
+      },
+      {
+        "title": "Privacy & Comfort",
+        "description": "Enjoy natural light while keeping your space private."
+      },
+      {
+        "title": "Light Filtering",
+        "description": "Softly filters sunlight for a warm, cozy glow."
+      },
+      {
+        "title": "Premium Quality",
+        "description": "High-quality fabric for durability and style."
+      }
+    ],
+    "closing_line": "Beautiful windows. Serene spaces.",
+    "giftEligible": false
+  },
+  {
+    "id": 8,
+    "slug": "buddha",
+    "name": "Buddha (Statue)",
+    "category": "Spiritual & Gifting",
+    "tagline": "Grace in stillness. Strength in silence.",
+    "description": "Create a peaceful and balanced atmosphere with a Buddha statue designed to bring a sense of calm into your surroundings. Its detailed presence makes it suitable for living rooms, meditation spaces, entrances, or decorative corners. Whether displayed alone or paired with complementary accents, it adds a serene focal point to thoughtfully styled interiors.",
+    "features": [
+      {
+        "title": "Calm That Lasts",
+        "description": "A symbol of peace that brings balance to life."
+      },
+      {
+        "title": "Artistry in Every Detail",
+        "description": "Thoughtfully crafted to reflect beauty, depth, and meaning."
+      },
+      {
+        "title": "Elevate Any Space",
+        "description": "Perfect for homes, offices, or your quiet corner."
+      },
+      {
+        "title": "Beyond Decor",
+        "description": "A daily reminder to pause, breathe, and be present."
+      }
+    ],
+    "closing_line": "Peace and stillness for your home.",
+    "giftEligible": true
+  },
+  {
+    "id": 10,
+    "slug": "carpets",
+    "name": "Carpets",
+    "category": "Home Furnishings",
+    "tagline": "Bring warmth and sophistication to your space.",
+    "description": "Add warmth, texture, and personality to your interiors with a beautifully designed carpet. Whether placed in the living room, bedroom, or another thoughtfully styled space, it helps define the area while creating a more welcoming atmosphere. Its decorative presence can effortlessly complement existing furniture and décor, making everyday spaces feel more comfortable and complete.",
+    "features": [
+      {
+        "title": "Premium Quality",
+        "description": "Crafted from high-quality materials for a soft and luxurious feel."
+      },
+      {
+        "title": "Durable & Comfortable",
+        "description": "Built to last while providing superior comfort underfoot."
+      },
+      {
+        "title": "Stylish Design",
+        "description": "A tasteful design that adds charm and elegance to any living space."
+      },
+      {
+        "title": "Perfect for Any Space",
+        "description": "Ideal for your living room, bedroom, or any corner that needs warmth and character."
+      }
+    ],
+    "closing_line": "Comfort and sophistication underfoot.",
+    "giftEligible": true
+  },
+  {
+    "id": 11,
+    "slug": "comforter-set",
+    "name": "Comforter Set",
+    "category": "Home Furnishings",
+    "tagline": "Soft Touch. Complete Comfort.",
+    "description": "Create a cozy and coordinated bedroom with a thoughtfully styled comforter set designed to bring comfort and visual harmony together. The coordinated appearance makes bed styling effortless while adding softness and warmth to your space. Ideal for everyday use, it gives your bedroom a polished, inviting look without requiring complicated décor changes.",
+    "features": [
+      {
+        "title": "Ultra Soft",
+        "description": "Plush comfort you can feel."
+      },
+      {
+        "title": "Fabric",
+        "description": "Breathable, durable & skin-friendly."
+      },
+      {
+        "title": "Perfect Fit",
+        "description": "Designed to elevate every bedroom."
+      },
+      {
+        "title": "Timeless Style",
+        "description": "Subtle tones that suit every space."
+      }
+    ],
+    "closing_line": "Complete comfort for restful nights.",
+    "giftEligible": true
+  },
+  {
+    "id": 13,
+    "slug": "curtains",
+    "name": "Curtains",
+    "category": "Home Furnishings",
+    "tagline": "Add grace and warmth to your home.",
+    "description": "Frame your windows beautifully with curtains that add softness, privacy, and character to your interiors. Their versatile styling makes them suitable for bedrooms, living rooms, and other spaces where atmosphere matters. Beyond covering windows, they help complete the room’s overall look by adding visual depth, warmth, and a more thoughtfully finished interior.",
+    "features": [
+      {
+        "title": "Finest Fabric",
+        "description": "Made from high-quality fabric for a soft, smooth and luxurious feel."
+      },
+      {
+        "title": "Elegant Design",
+        "description": "Timeless patterns and shades that enhance any interior."
+      },
+      {
+        "title": "Perfect Fit",
+        "description": "Tailored to suit every window beautifully and effortlessly."
+      },
+      {
+        "title": "Privacy & Light Control",
+        "description": "Enjoy the perfect balance of natural light and privacy."
+      }
+    ],
+    "closing_line": "Graceful drapes for elegant living.",
+    "giftEligible": false
+  },
+  {
+    "id": 14,
+    "slug": "cushions",
+    "name": "Cushions",
+    "category": "Home Furnishings",
+    "tagline": "Comfort in Every Hug.",
+    "description": "Add an effortless layer of comfort and personality with decorative cushions designed to enhance sofas, beds, chairs, and lounge spaces. Their versatile styling makes it easy to refresh an interior without changing major furniture pieces. Whether used individually or layered together, they bring softness, texture, and a polished decorative touch to everyday spaces.",
+    "features": [
+      {
+        "title": "Plush & Soft",
+        "description": "Made from ultra-soft fabric for maximum comfort."
+      },
+      {
+        "title": "Adorable Designs",
+        "description": "Cute and charming styles kids and adults will love."
+      },
+      {
+        "title": "Perfect for Any Space",
+        "description": "Adds warmth and joy to bedrooms, living rooms, or play areas."
+      }
+    ],
+    "closing_line": "Plush comfort in every corner.",
+    "giftEligible": true
+  },
+  {
+    "id": 17,
+    "slug": "decorative-candles",
+    "name": "Decorative Candles",
+    "category": "Home Decor",
+    "tagline": "Warmth that glows, beauty that stays.",
+    "description": "Enrich your home's atmosphere with our collection of artisanal decorative candles, thoughtfully poured into elegant vessels that double as sculpted centerpiece accents even when unlit.",
+    "features": [
+      {
+        "title": "Décor First",
+        "description": "Created to function as expressive decorative pieces within an interior."
+      },
+      {
+        "title": "Distinctive Forms",
+        "description": "Decorative silhouettes add personality beyond conventional candles."
+      },
+      {
+        "title": "Styling Versatility",
+        "description": "Suitable for tables, shelves, consoles, and curated corners."
+      },
+      {
+        "title": "Beauty in the Details",
+        "description": "Designed to complement interiors through form, shape, and visual character."
+      }
+    ],
+    "closing_line": "Where candlelight becomes décor.",
+    "giftEligible": true
+  },
+  {
+    "id": 18,
+    "slug": "elegant-diaries",
+    "name": "Elegant Diaries",
+    "category": "Stationery & Gifts",
+    "tagline": "Thoughts today, memories forever.",
+    "description": "Keep ideas, plans, notes, and everyday thoughts beautifully organised with an elegant diary designed for both personal and professional use. Its refined appearance makes it suitable for desks, meetings, journaling, or gifting. More than a writing essential, it adds a polished touch to everyday routines while encouraging a more intentional and organised approach to your day.",
+    "features": [
+      {
+        "title": "Premium Quality",
+        "description": "Smooth, high-quality paper for a superior writing experience every time."
+      },
+      {
+        "title": "Durable & Stylish",
+        "description": "Sturdy cover designed to protect your notes and keep them safe."
+      },
+      {
+        "title": "Perfect for Everyday",
+        "description": "Ideal for journaling, planning, note-taking or gifting on any occasion."
+      }
+    ],
+    "closing_line": "Inspiring every page you write.",
+    "giftEligible": true
+  },
+  {
+    "id": 20,
+    "slug": "floral-panels",
+    "name": "Floral Panels (Wall Greenery)",
+    "category": "Home Decor",
+    "tagline": "Transform your walls into a breathtaking natural escape.",
+    "description": "Add a dramatic botanical touch to your interiors with decorative floral panels designed to create visual impact. Their detailed floral character can transform plain walls and spaces into expressive decorative features. Ideal for bedrooms, living areas, event spaces, or creative corners, they bring depth, color, and a nature-inspired aesthetic into your surroundings.",
+    "features": [
+      {
+        "title": "Natural Beauty",
+        "description": "Realistic foliage and flowers that elevate your decor."
+      },
+      {
+        "title": "Durable & Long Lasting",
+        "description": "Made with premium quality materials for a lasting impression."
+      },
+      {
+        "title": "Perfect for Any Space",
+        "description": "Ideal for homes, offices, cafes, balconies and more."
+      },
+      {
+        "title": "Easy to Maintain",
+        "description": "No watering, no sunlight. Just beauty all year round."
+      }
+    ],
+    "closing_line": "Natural greenery that lasts forever.",
+    "giftEligible": true
+  },
+  {
+    "id": 21,
+    "slug": "flowers-bouquet",
+    "name": "Flowers Bouquet",
+    "category": "Home Decor",
+    "tagline": "Fresh Blooms. Timeless Beauty.",
+    "description": "Brighten your surroundings with a decorative flower bouquet designed to bring color and floral charm into everyday spaces. Perfect for tables, consoles, gifting, or special occasions, it creates an inviting visual focal point without requiring complicated styling. Its versatile presentation makes it easy to introduce a fresh, cheerful atmosphere into both modern and traditional interiors.",
+    "features": [
+      {
+        "title": "Natural Elegance",
+        "description": "Handpicked blooms for a fresh and sophisticated look."
+      },
+      {
+        "title": "Artfully Arranged",
+        "description": "Carefully crafted to create harmony and charm."
+      },
+      {
+        "title": "Long Lasting Beauty",
+        "description": "Made to stay fresh and uplift your space."
+      },
+      {
+        "title": "Perfect for Every Occasion",
+        "description": "Ideal for gifting, decor & special moments."
+      }
+    ],
+    "closing_line": "Timeless blooms for every space.",
+    "giftEligible": true
+  },
+  {
+    "id": 22,
+    "slug": "flower-vases",
+    "name": "Flower Vases",
+    "category": "Home Decor",
+    "tagline": "A perfect blend of elegance and charm.",
+    "description": "Showcase your favorite flowers and botanical arrangements with an elegant vase designed to complement the beauty of the display. Whether filled with fresh blooms, artificial flowers, or used on its own, it adds height and character to tables, shelves, and consoles. A versatile décor piece that turns simple arrangements into thoughtful interior accents.",
+    "features": [
+      {
+        "title": "Artistic Appeal",
+        "description": "Unique designs that bring artistic charm to your decor."
+      },
+      {
+        "title": "Timeless Finish",
+        "description": "High quality finish for a sleek and lasting appeal."
+      },
+      {
+        "title": "Perfect Accent",
+        "description": "Ideal for tables, shelves and console spaces."
+      },
+      {
+        "title": "Made to Elevate",
+        "description": "Designed to complement modern interiors beautifully."
+      }
+    ],
+    "closing_line": "Artistic accent for beautiful living.",
+    "giftEligible": true
+  },
+  {
+    "id": 23,
+    "slug": "fountains",
+    "name": "Fountains",
+    "category": "Home Decor",
+    "tagline": "Flow of Peace, Flow of Prosperity.",
+    "description": "Bring movement and tranquility into your interiors with a decorative fountain designed to create a calming focal point. The flowing-water-inspired element can add atmosphere to living rooms, entrances, balconies, or peaceful corners. Its decorative presence introduces a sense of relaxation and visual interest, making it an appealing accent for spaces designed around comfort and serenity.",
+    "features": [
+      {
+        "title": "Attracts Positive Energy",
+        "description": "Brings positivity and creates a peaceful atmosphere."
+      },
+      {
+        "title": "Enhances Calm & Harmony",
+        "description": "The sound of flowing water reduces stress and soothes the mind."
+      },
+      {
+        "title": "Perfect for Home & Office",
+        "description": "Adds a touch of elegance and serenity to any space."
+      },
+      {
+        "title": "Perfect for Gifting",
+        "description": "A thoughtful gift that spreads peace and good wishes."
+      }
+    ],
+    "closing_line": "Serene water flow for prosperous living.",
+    "giftEligible": false,
+    "image": "/images/vinsho/products/fountains.jpg",
+    "images": [
+      "/images/vinsho/products/fountains.jpg"
+    ]
+  },
+  {
+    "id": 26,
+    "slug": "jute-placemat",
+    "name": "Jute Placemat",
+    "category": "Table & Living",
+    "tagline": "Add a natural, earthy touch to your dining space.",
+    "description": "Bring a natural, earthy touch to your dining table with a jute-inspired placemat designed for everyday table styling. Its textured appearance creates warmth and visual interest while helping define each place setting. Perfect for casual meals, family gatherings, or relaxed entertaining, it combines practical table protection with a charming, organic-inspired aesthetic.",
+    "features": [
+      {
+        "title": "Natural & Eco-Friendly",
+        "description": "Made from sustainable jute fibers, safe for you and the environment."
+      },
+      {
+        "title": "Handcrafted Quality",
+        "description": "Expertly woven by skilled artisans for a unique and premium finish."
+      },
+      {
+        "title": "Durable & Long Lasting",
+        "description": "Strong and sturdy construction designed for everyday use."
+      },
+      {
+        "title": "Elegant Fringed Edges",
+        "description": "Subtle fringe detailing adds charm and enhances your table decor."
+      }
+    ],
+    "closing_line": "Earthy elegance for everyday dining.",
+    "giftEligible": true
+  },
+  {
+    "id": 27,
+    "slug": "ceramic-storage-jars-set",
+    "name": "Ceramic Storage Jars Set",
+    "category": "Table & Living",
+    "tagline": "Vintage Charm. Modern Organization.",
+    "description": "Keep everyday essentials organized while adding decorative charm with a coordinated set of ceramic storage jars. Ideal for kitchens, dining spaces, shelves, or countertops, they combine useful storage with an attractive presentation. Their coordinated appearance helps reduce visual clutter while adding a refined accent to spaces where organization and interior styling need to work together.",
+    "features": [
+      {
+        "title": "Premium Ceramic",
+        "description": "Crafted from high-quality ceramic with a smooth pastel finish for lasting durability."
+      },
+      {
+        "title": "Airtight Lids",
+        "description": "Keeps tea, coffee, sugar, and other essentials fresh for longer."
+      },
+      {
+        "title": "Vintage Design",
+        "description": "Rustic typography and timeless craftsmanship add elegance to every kitchen."
+      },
+      {
+        "title": "Functional & Stylish",
+        "description": "Perfect for everyday storage while enhancing your countertop decor."
+      }
+    ],
+    "closing_line": "Vintage charm for modern countertops.",
+    "giftEligible": true,
+    "image": "/images/vinsho/products/ceramic-storage-jars-set.jpg",
+    "images": [
+      "/images/vinsho/products/ceramic-storage-jars-set.jpg"
+    ]
+  },
+  {
+    "id": 29,
+    "slug": "leafy-hangings",
+    "name": "Leafy Hangings",
+    "category": "Home Decor",
+    "tagline": "Nature. Light. Timeless Ambiance.",
+    "description": "Add an effortless botanical element to your interiors with decorative leafy hangings designed to bring texture and movement to walls or vertical spaces. Their nature-inspired appearance works beautifully in living rooms, balconies, bedrooms, and creative corners. Easy to style alongside existing décor, they introduce greenery-inspired charm without requiring the upkeep of real plants.",
+    "features": [
+      {
+        "title": "Woven Pendant Lights",
+        "description": "Handcrafted woven shades that diffuse warm light and create a cozy atmosphere."
+      },
+      {
+        "title": "Cascading Greenery",
+        "description": "Lush, lifelike green leaves that add freshness and bring nature indoors."
+      },
+      {
+        "title": "Natural Textures",
+        "description": "A perfect blend of rattan and greenery for an earthy, organic charm."
+      },
+      {
+        "title": "Versatile Decor",
+        "description": "Ideal for cafes, restaurants, living spaces, balconies, and more."
+      }
+    ],
+    "closing_line": "Warm ambient glow inspired by nature.",
+    "giftEligible": true
+  },
+  {
+    "id": 31,
+    "slug": "metal-tree",
+    "name": "Metal Tree",
+    "category": "Home Decor",
+    "tagline": "Crafted to elevate every space.",
+    "description": "Create a striking decorative focal point with a sculptural metal tree designed to bring artistic structure into your interior. Its branching form adds visual interest to consoles, shelves, side tables, or display areas. Combining nature-inspired shapes with contemporary decorative character, it works especially well in spaces where you want a distinctive accent without excessive ornamentation.",
+    "features": [
+      {
+        "title": "Exquisite Craftsmanship",
+        "description": "Intricate detailing that reflects fine artistry and precision."
+      },
+      {
+        "title": "Durable & Premium Quality",
+        "description": "Made from high-quality metal for long-lasting beauty."
+      },
+      {
+        "title": "Versatile Decor Piece",
+        "description": "Perfect for tabletops, shelves, mantels, or office spaces."
+      },
+      {
+        "title": "Timeless Appeal",
+        "description": "A symbol of strength and growth that complements any interior."
+      }
+    ],
+    "closing_line": "Artistry and strength in metal.",
+    "giftEligible": true
+  },
+  {
+    "id": 32,
+    "slug": "placemats-napkins",
+    "name": "Placemats & Napkins",
+    "category": "Table & Living",
+    "tagline": "Dine Beautifully. Live Elegantly.",
+    "description": "Create a beautifully coordinated dining experience with a matching combination of placemats and napkins. Together, they help organize each place setting while adding texture, color, and visual harmony to the table. Suitable for everyday meals or entertaining guests, this pairing brings practical protection and decorative sophistication together in one easy table-setting solution.",
+    "features": [
+      {
+        "title": "Premium Quality",
+        "description": "Crafted from high-quality, durable fabric."
+      },
+      {
+        "title": "Easy to Clean",
+        "description": "Stain-resistant & easy to maintain."
+      },
+      {
+        "title": "Stylish Designs",
+        "description": "Vibrant patterns that elevate your table."
+      },
+      {
+        "title": "Protect & Decorate",
+        "description": "Protect your table while adding a decorative touch."
+      }
+    ],
+    "closing_line": "Elegant settings for memorable meals.",
+    "giftEligible": true
+  },
+  {
+    "id": 35,
+    "slug": "pillows",
+    "name": "Pillows",
+    "category": "Home Furnishings",
+    "tagline": "Softness You Feel. Comfort You Deserve.",
+    "description": "Add another layer of comfort to your bedroom or lounge with thoughtfully designed pillows that combine softness and decorative appeal. Perfect for beds, sofas, or reading corners, they help create a more relaxed and inviting environment. Their versatile character makes them easy to coordinate with different interiors while adding subtle texture and visual depth.",
+    "features": [
+      {
+        "title": "Ultra-Soft Fill",
+        "description": "For a cozy, relaxing sleep."
+      },
+      {
+        "title": "Breathable & Fresh",
+        "description": "Airy design keeps you cool through the night."
+      },
+      {
+        "title": "Durable & Long Lasting",
+        "description": "Made with high-quality materials for everyday use."
+      },
+      {
+        "title": "Perfect for Every Sleeper",
+        "description": "Ideal for all sleeping positions and preferences."
+      }
+    ],
+    "closing_line": "Airy softness for restful sleep.",
+    "giftEligible": true
+  },
+  {
+    "id": 37,
+    "slug": "round-placemat",
+    "name": "Round Placemat",
+    "category": "Table & Living",
+    "tagline": "Crafted to elevate every table.",
+    "description": "Add a softer, more organic shape to your dining arrangement with a round placemat designed to frame individual place settings beautifully. It helps protect the table surface while creating a visually balanced foundation for plates and tableware. Ideal for casual dining or elegant gatherings, it adds a subtle decorative detail without overwhelming the overall table design.",
+    "features": [
+      {
+        "title": "Durable & Protective",
+        "description": "Shields your table from heat, spills & scratches."
+      },
+      {
+        "title": "Easy to Clean",
+        "description": "Wipe clean effortlessly for everyday use."
+      },
+      {
+        "title": "Elegant Design",
+        "description": "Beautiful floral & fruit-inspired print with scalloped edges."
+      },
+      {
+        "title": "Perfect for Any Occasion",
+        "description": "Ideal for daily meals or special gatherings."
+      }
+    ],
+    "closing_line": "Protection and beauty for dining tables.",
+    "giftEligible": true
+  },
+  {
+    "id": 38,
+    "slug": "anti-skid-rubber-mat",
+    "name": "Anti Skid Rubber Mat",
+    "category": "Bath",
+    "tagline": "Safety You Can Feel. Comfort You Can Trust.",
+    "description": "Add an extra layer of everyday safety and practicality with an anti-skid rubber mat designed for areas where stable footing matters. Its functional surface helps provide better grip while also protecting the floor beneath. Suitable for entrances, kitchens, bathrooms, or utility areas, it combines practical performance with a simple design that fits naturally into everyday spaces.",
+    "features": [
+      {
+        "title": "Anti Skid Surface",
+        "description": "Superior grip for maximum safety."
+      },
+      {
+        "title": "Durable & Long Lasting",
+        "description": "Made from high-quality rubber for extended use."
+      },
+      {
+        "title": "Easy to Clean",
+        "description": "Water-resistant and low maintenance."
+      },
+      {
+        "title": "Perfect for Every Space",
+        "description": "Ideal for bathrooms, kitchens, entryways & more."
+      }
+    ],
+    "closing_line": "Safety and stability underfoot.",
+    "giftEligible": true
+  },
+  {
+    "id": 41,
+    "slug": "shower-curtains",
+    "name": "Shower Curtains",
+    "category": "Bath",
+    "tagline": "Refresh Your Bathroom. Designed for Everyday Living.",
+    "description": "Refresh your bathroom with a shower curtain that adds privacy while contributing to the overall décor. Its decorative presence can help introduce personality and visual coordination to an otherwise functional space. Easy to incorporate into different bathroom styles, it offers a practical solution for everyday use while helping create a cleaner and more finished atmosphere.",
+    "features": [
+      {
+        "title": "Waterproof",
+        "description": "Prevents water splashes."
+      },
+      {
+        "title": "Durable",
+        "description": "Made from strong and long-lasting material."
+      },
+      {
+        "title": "Easy to Clean",
+        "description": "Wipe or machine wash for hassle free care."
+      },
+      {
+        "title": "Stylish Designs",
+        "description": "Beautiful prints and colors to match your decor."
+      }
+    ],
+    "closing_line": "Everyday luxury for your bath space.",
+    "giftEligible": false
+  },
+  {
+    "id": 42,
+    "slug": "table-cover",
+    "name": "Table Cover",
+    "category": "Table & Living",
+    "tagline": "Refined Texture. Timeless Dining.",
+    "description": "Protect and refresh your dining table with a beautifully styled table cover that combines practicality with decorative charm. It creates an easy foundation for everyday meals while helping introduce color, pattern, or texture into the room. Whether used daily or for gatherings, it helps your dining area feel cleaner, warmer, and more inviting.",
+    "features": [
+      {
+        "title": "Premium Fabric",
+        "description": "Made from high-quality, durable & easy-care material."
+      },
+      {
+        "title": "Elegant Design",
+        "description": "Subtle embroidery and refined patterns for a timeless look."
+      },
+      {
+        "title": "Protects & Beautifies",
+        "description": "Shields your table while enhancing your decor."
+      },
+      {
+        "title": "Perfect for Every Occasion",
+        "description": "Ideal for everyday dining or special celebrations."
+      }
+    ],
+    "closing_line": "Timeless elegance for every feast.",
+    "giftEligible": true
+  },
+  {
+    "id": 43,
+    "slug": "throws",
+    "name": "Throws",
+    "category": "Home Furnishings",
+    "tagline": "Stay warm and stylish with our cozy throws.",
+    "description": "Add a cozy finishing layer to sofas, beds, or lounge chairs with a versatile throw designed for comfort and effortless styling. Perfect for relaxed evenings or decorative layering, it introduces warmth and texture without overwhelming the room. Fold it neatly or drape it casually to create an inviting atmosphere with minimal effort.",
+    "features": [
+      {
+        "title": "Soft & Breathable",
+        "description": "Made from premium fabrics that feel gentle on your skin."
+      },
+      {
+        "title": "Lightweight & Warm",
+        "description": "Perfect balance of warmth and comfort for all seasons."
+      },
+      {
+        "title": "Stylish & Versatile",
+        "description": "Timeless designs that add a pop of color and charm to any space."
+      }
+    ],
+    "closing_line": "Cozy warmth for couch and bed.",
+    "giftEligible": true
+  },
+  {
+    "id": 44,
+    "slug": "turbie-towel",
+    "name": "Turbie Towel",
+    "category": "Bath",
+    "tagline": "Dry Hair. No Frizz. All Comfort.",
+    "description": "Make post-shower hair care more convenient with a turbie towel designed to wrap comfortably around wet hair. Its practical shape helps keep hair neatly secured while you continue with your routine, making it especially useful after bathing. Compact and easy to use, it brings everyday convenience to your personal care essentials without unnecessary fuss.",
+    "features": [
+      {
+        "title": "Quick Dry",
+        "description": "Absorbs moisture fast for faster drying."
+      },
+      {
+        "title": "Lightweight",
+        "description": "Soft, breathable & comfortable to wear."
+      },
+      {
+        "title": "Secure Fit",
+        "description": "Button loop design keeps it in place."
+      },
+      {
+        "title": "Gentle Care",
+        "description": "Reduces frizz & protects hair."
+      }
+    ],
+    "closing_line": "Gentle hair care with zero frizz.",
+    "giftEligible": true
+  },
+  {
+    "id": 45,
+    "slug": "feng-shui-turtle",
+    "name": "Feng Shui Turtle",
+    "category": "Spiritual & Gifting",
+    "tagline": "A Timeless Symbol of Stability, Protection & Good Fortune.",
+    "description": "Introduce a meaningful decorative accent with a Feng Shui-inspired turtle designed to add character to your home or workspace. Its distinctive form makes it suitable for desks, shelves, consoles, and display areas. Beyond its decorative appeal, the turtle-inspired symbolism makes it a thoughtful choice for gifting or creating a more intentional and balanced interior.",
+    "features": [
+      {
+        "title": "Protection",
+        "description": "Shields your space from negativity."
+      },
+      {
+        "title": "Stability",
+        "description": "Brings strength, balance and calm."
+      },
+      {
+        "title": "Perfect for Any Space",
+        "description": "Ideal for home, office and shop."
+      }
+    ],
+    "closing_line": "Stability and positive energy.",
+    "giftEligible": true,
+    "image": "/images/vinsho/products/feng-shui-turtle.jpg",
+    "images": [
+      "/images/vinsho/products/feng-shui-turtle.jpg"
+    ]
+  },
+  {
+    "id": 49,
+    "slug": "wall-painting",
+    "name": "Wall Painting",
+    "category": "Wall Decor",
+    "tagline": "Transform your walls with art that speaks in colors and emotions.",
+    "description": "Give your interiors an expressive finishing touch with a decorative wall painting designed to add color, depth, and personality. It can become a central visual element above sofas, beds, consoles, or dining spaces. Whether your décor is contemporary or classic, a thoughtfully selected painting can transform an ordinary wall into a more memorable part of the room.",
+    "features": [
+      {
+        "title": "Art That Inspires",
+        "description": "Thoughtfully designed paintings that bring life to every wall."
+      },
+      {
+        "title": "Rich in Detail",
+        "description": "Vibrant colors and fine detailing for a lasting impression."
+      },
+      {
+        "title": "Perfect for Every Space",
+        "description": "Elevate your home, office, or any corner with timeless art."
+      }
+    ],
+    "closing_line": "Vibrant colors and inspiring emotions.",
+    "giftEligible": true
+  },
+  {
+    "id": 50,
+    "slug": "floral-flower-box-candle",
+    "name": "pink bouquet candle",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Floral Flower Box Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-01",
+    "status": "draft",
+    "price": null,
+    "image": "/products/candles/01-floral-flower-box-candle.jpg",
+    "material": "Poured wax"
+  },
+  {
+    "id": 51,
+    "slug": "pink-and-cream-floral-bowl-candle",
+    "name": "Pink & Cream Floral Bowl Candle",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Pink & Cream Floral Bowl Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-02",
+    "status": "draft",
+    "price": null,
+    "image": "/products/candles/02-pink-and-cream-floral-bowl-candle.jpg",
+    "material": "Poured wax"
+  },
+  {
+    "id": 52,
+    "slug": "blue-and-white-floral-bowl-candle",
+    "name": "Blue & White Floral Bowl Candle",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Blue & White Floral Bowl Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-03",
+    "status": "draft",
+    "price": null,
+    "image": "/products/candles/03-blue-and-white-floral-bowl-candle.jpg",
+    "material": "Poured wax"
+  },
+  {
+    "id": 53,
+    "slug": "pink-floral-bouquet-candle",
+    "name": "Pink Floral Bouquet Candle",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Pink Floral Bouquet Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-04",
+    "status": "draft",
+    "price": null,
+    "image": "/products/candles/04-pink-floral-bouquet-candle.jpg",
+    "material": "Poured wax"
+  },
+  {
+    "id": 54,
+    "slug": "orange-floral-bouquet-candle",
+    "name": "golden bouquet",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Orange Floral Bouquet Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-05",
+    "status": "draft",
+    "price": null,
+    "image": "/products/candles/05-orange-floral-bouquet-candle.jpg",
+    "material": "Poured wax"
+  },
+  {
+    "id": 55,
+    "slug": "pastel-blue-bowl-candle",
+    "name": "Pastel Blue Bowl Candle",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Pastel Blue Bowl Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-06",
+    "status": "draft",
+    "price": 2280,
+    "image": "/products/candles/06-pastel-blue-bowl-candle.jpg",
+    "material": "Poured wax",
+    "sellingPrice": 2280,
+    "mrp": 2850,
+    "isPurchasable": true
+  },
+  {
+    "id": 56,
+    "slug": "ocean-bowl-candle",
+    "name": "Ocean Bowl Candle",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Ocean Bowl Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-07",
+    "status": "draft",
+    "price": null,
+    "image": "/products/candles/07-ocean-bowl-candle.jpg",
+    "material": "Poured wax"
+  },
+  {
+    "id": 57,
+    "slug": "orange-pumpkin-bowl-candle",
+    "name": "Orange Pumpkin Bowl Candle",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Orange Pumpkin Bowl Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-08",
+    "status": "draft",
+    "price": null,
+    "image": "/products/candles/08-orange-pumpkin-bowl-candle.jpg",
+    "material": "Poured wax"
+  },
+  {
+    "id": 58,
+    "slug": "pumpkin-boat-candle",
+    "name": "Pumpkin Boat Candle",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Pumpkin Boat Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-09",
+    "status": "draft",
+    "price": null,
+    "image": "/products/candles/09-pumpkin-boat-candle.jpg",
+    "material": "Poured wax"
+  },
+  {
+    "id": 59,
+    "slug": "hearty-gel-wax-jar-candle",
+    "name": "Hearty Gel Wax Jar Candle",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Hearty Gel Wax Jar Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-10",
+    "status": "draft",
+    "price": 740,
+    "image": "/products/candles/10-hearty-gel-wax-jar-candle.jpg",
+    "material": "Poured wax",
+    "sellingPrice": 740,
+    "mrp": 925,
+    "isPurchasable": true
+  },
+  {
+    "id": 60,
+    "slug": "peony-boat-candle",
+    "name": "Peony Boat Candle",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Peony Boat Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-11",
+    "status": "draft",
+    "price": null,
+    "image": "/products/candles/11-peony-boat-candle.jpg",
+    "material": "Poured wax"
+  },
+  {
+    "id": 61,
+    "slug": "bubble-jar-candle",
+    "name": "Bubble Jar Candle",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Bubble Jar Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-12",
+    "status": "draft",
+    "price": 880,
+    "image": "/products/candles/12-bubble-jar-candle.jpg",
+    "material": "Poured wax",
+    "sellingPrice": 880,
+    "mrp": 1100,
+    "isPurchasable": true
+  },
+  {
+    "id": 62,
+    "slug": "blue-love-jar-candle",
+    "name": "Blue Love Jar Candle",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Blue Love Jar Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-13",
+    "status": "draft",
+    "price": null,
+    "image": "/products/candles/13-blue-love-jar-candle.jpg",
+    "material": "Poured wax"
+  },
+  {
+    "id": 63,
+    "slug": "caffe-latte-jar-candle",
+    "name": "Caffè Latte Jar Candle",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Caffè Latte Jar Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-14",
+    "status": "draft",
+    "price": 769,
+    "image": "/products/candles/14-caffe-latte-jar-candle.jpg",
+    "material": "Poured wax",
+    "sellingPrice": 769,
+    "mrp": 961,
+    "isPurchasable": true
+  },
+  {
+    "id": 64,
+    "slug": "3-shade-flower-jar-candle",
+    "name": "3-Shade Flower Jar Candle",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured 3-Shade Flower Jar Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-15",
+    "status": "draft",
+    "price": null,
+    "image": "/products/candles/15-3-shade-flower-jar-candle.jpg",
+    "material": "Poured wax"
+  },
+  {
+    "id": 65,
+    "slug": "whipped-floral-jar-candle",
+    "name": "Whipped Floral Jar Candle",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Whipped Floral Jar Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-16",
+    "status": "draft",
+    "price": 660,
+    "image": "/products/candles/16-whipped-floral-jar-candle.jpg",
+    "material": "Poured wax",
+    "sellingPrice": 660,
+    "mrp": 825,
+    "isPurchasable": true
+  },
+  {
+    "id": 66,
+    "slug": "ocean-jar-candle",
+    "name": "Ocean Jar Candle",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Ocean Jar Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-17",
+    "status": "draft",
+    "price": 1280,
+    "image": "/products/candles/17-ocean-jar-candle.jpg",
+    "material": "Poured wax",
+    "sellingPrice": 1280,
+    "mrp": 1600,
+    "isPurchasable": true
+  },
+  {
+    "id": 67,
+    "slug": "mini-floral-candle-bouquet",
+    "name": "Mini Floral Candle Bouquet",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Mini Floral Candle Bouquet, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-18",
+    "status": "draft",
+    "price": 1000,
+    "image": "/products/candles/18-mini-floral-candle-bouquet.jpg",
+    "material": "Poured wax",
+    "sellingPrice": 1000,
+    "mrp": 1250,
+    "isPurchasable": true
+  },
+  {
+    "id": 68,
+    "slug": "diamond-jar-candle",
+    "name": "Diamond Jar Candle",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Diamond Jar Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-19",
+    "status": "draft",
+    "price": null,
+    "image": "/products/candles/19-diamond-jar-candle.jpg",
+    "material": "Poured wax"
+  },
+  {
+    "id": 69,
+    "slug": "rose-garden-jar-candle",
+    "name": "Rose Garden Jar Candle",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Rose Garden Jar Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-20",
+    "status": "draft",
+    "price": 1440,
+    "image": "/products/candles/20-rose-garden-jar-candle.jpg",
+    "material": "Poured wax",
+    "sellingPrice": 1440,
+    "mrp": 1800,
+    "isPurchasable": true
+  },
+  {
+    "id": 70,
+    "slug": "matcha-latte-jar-candle",
+    "name": "Matcha Latte Jar Candle",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Matcha Latte Jar Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-21",
+    "status": "draft",
+    "price": null,
+    "image": "/products/candles/21-matcha-latte-jar-candle.jpg",
+    "material": "Poured wax"
+  },
+  {
+    "id": 71,
+    "slug": "3-rose-candle-bouquet",
+    "name": "3-Rose Candle Bouquet",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured 3-Rose Candle Bouquet, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-22",
+    "status": "draft",
+    "price": 1196,
+    "image": "/products/candles/22-3-rose-candle-bouquet.jpg",
+    "material": "Poured wax",
+    "sellingPrice": 1196,
+    "mrp": 1495,
+    "isPurchasable": true
+  },
+  {
+    "id": 72,
+    "slug": "blushing-rose-candle-bouquet",
+    "name": "Blushing Rose Candle Bouquet",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Blushing Rose Candle Bouquet, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-23",
+    "status": "draft",
+    "price": 480,
+    "image": "/products/candles/23-blushing-rose-candle-bouquet.jpg",
+    "material": "Poured wax",
+    "sellingPrice": 480,
+    "mrp": 600,
+    "isPurchasable": true
+  },
+  {
+    "id": 73,
+    "slug": "tulip-sapphire-candle-bouquet",
+    "name": "Tulip Sapphire Candle Bouquet",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Tulip Sapphire Candle Bouquet, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-24",
+    "status": "draft",
+    "price": null,
+    "image": "/products/candles/24-tulip-sapphire-candle-bouquet.jpg",
+    "material": "Poured wax"
+  },
+  {
+    "id": 74,
+    "slug": "royal-red-peony-candle",
+    "name": "Royal Red Peony Candle",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Royal Red Peony Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-25",
+    "status": "draft",
+    "price": 480,
+    "image": "/products/candles/25-royal-red-peony-candle.jpg",
+    "material": "Poured wax",
+    "sellingPrice": 480,
+    "mrp": 600,
+    "isPurchasable": true
+  },
+  {
+    "id": 75,
+    "slug": "white-chocolate-and-strawberry-jar-candle",
+    "name": "White Chocolate & Strawberry Jar Candle",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured White Chocolate & Strawberry Jar Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-26",
+    "status": "draft",
+    "price": null,
+    "image": "/products/candles/26-white-chocolate-and-strawberry-jar-candle.jpg",
+    "material": "Poured wax"
+  },
+  {
+    "id": 76,
+    "slug": "sunflower-jar-candle",
+    "name": "Sunflower Jar Candle",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Sunflower Jar Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-27",
+    "status": "draft",
+    "price": null,
+    "image": "/products/candles/27-sunflower-jar-candle.jpg",
+    "material": "Poured wax"
+  },
+  {
+    "id": 77,
+    "slug": "floral-jar-candle-and-sachet-combo",
+    "name": "Floral Jar Candle & Sachet Combo",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Floral Jar Candle & Sachet Combo, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-28",
+    "status": "draft",
+    "price": 1120,
+    "image": "/products/candles/28-floral-jar-candle-and-sachet-combo.jpg",
+    "material": "Poured wax",
+    "sellingPrice": 1120,
+    "mrp": 1400,
+    "isPurchasable": true
+  },
+  {
+    "id": 78,
+    "slug": "succulent-jar-candle-small",
+    "name": "Succulent Jar Candle – Small",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Succulent Jar Candle – Small, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-29",
+    "status": "draft",
+    "price": null,
+    "image": "/products/candles/29-succulent-jar-candle-small.jpg",
+    "material": "Poured wax"
+  },
+  {
+    "id": 79,
+    "slug": "red-mini-heart-jar-candle",
+    "name": "Red Mini Heart Jar Candle",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Red Mini Heart Jar Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-30",
+    "status": "draft",
+    "price": null,
+    "image": "/products/candles/30-red-mini-heart-jar-candle.jpg",
+    "material": "Poured wax"
+  },
+  {
+    "id": 80,
+    "slug": "cute-teddy-jar-candle",
+    "name": "Cute Teddy Jar Candle",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Cute Teddy Jar Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-31",
+    "status": "draft",
+    "price": null,
+    "image": "/products/candles/31-cute-teddy-jar-candle.jpg",
+    "material": "Poured wax"
+  },
+  {
+    "id": 81,
+    "slug": "seashell-gel-wax-candle",
+    "name": "Seashell Gel Wax Candle",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Seashell Gel Wax Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-32",
+    "status": "draft",
+    "price": null,
+    "image": "/products/candles/32-seashell-gel-wax-candle.jpg",
+    "material": "Poured wax"
+  },
+  {
+    "id": 82,
+    "slug": "floral-boat-candle-collection",
+    "name": "Floral Boat Candle Collection",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Floral Boat Candle Collection, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-33",
+    "status": "draft",
+    "price": null,
+    "image": "/products/candles/33-floral-boat-candle-collection.jpg",
+    "material": "Poured wax"
+  },
+  {
+    "id": 83,
+    "slug": "orange-caramel-layered-jar-candle",
+    "name": "Orange Caramel Layered Jar Candle",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Orange Caramel Layered Jar Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-34",
+    "status": "draft",
+    "price": 769,
+    "image": "/products/candles/34-orange-caramel-layered-jar-candle.jpg",
+    "material": "Poured wax",
+    "sellingPrice": 769,
+    "mrp": 961,
+    "isPurchasable": true
+  },
+  {
+    "id": 84,
+    "slug": "succulent-jar-candle",
+    "name": "Succulent Jar Candle",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Succulent Jar Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-35",
+    "status": "draft",
+    "price": null,
+    "image": "/products/candles/35-succulent-jar-candle.jpg",
+    "material": "Poured wax"
+  },
+  {
+    "id": 89,
+    "slug": "wavy-sculptural-pillar-candle",
+    "name": "Wavy Sculptural Pillar Candle",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Wavy Sculptural Pillar Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-40",
+    "status": "draft",
+    "price": null,
+    "image": "/products/candles/40-wavy-sculptural-pillar-candle.jpg",
+    "material": "Poured wax"
+  },
+  {
+    "id": 90,
+    "slug": "crescent-moon-candle",
+    "name": "Crescent Moon jar Candle",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Crescent Moon Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-41",
+    "status": "draft",
+    "price": null,
+    "image": "/products/candles/41-crescent-moon-candle.jpg",
+    "material": "Poured wax"
+  },
+  {
+    "id": 94,
+    "slug": "couple-embrace-sculptural-candle",
+    "name": "Couple Embrace Sculptural Candle",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Couple Embrace Sculptural Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-45",
+    "status": "draft",
+    "price": null,
+    "image": "/products/candles/45-couple-embrace-sculptural-candle.jpg",
+    "material": "Poured wax"
+  },
+  {
+    "id": 96,
+    "slug": "faceted-bowl-candle",
+    "name": "Concrete Hexa Jar Candle",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Faceted Bowl Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-47",
+    "status": "draft",
+    "price": null,
+    "image": "/products/candles/47-faceted-bowl-candle.jpg",
+    "material": "Poured wax"
+  },
+  {
+    "id": 98,
+    "slug": "seashell-sculptural-candle",
+    "name": "concrete ocean theme jar candle",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Seashell Sculptural Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-49",
+    "status": "draft",
+    "price": null,
+    "image": "/products/candles/49-seashell-sculptural-candle.jpg",
+    "material": "Poured wax"
+  },
+  {
+    "id": 99,
+    "slug": "lavender-botanical-pillar-candle",
+    "name": "Lavender Botanical Pillar Candle",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Lavender Botanical Pillar Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-50",
+    "status": "draft",
+    "price": 1000,
+    "image": "/products/candles/50-lavender-botanical-pillar-candle.jpg",
+    "material": "Poured wax",
+    "sellingPrice": 1000,
+    "mrp": 1250,
+    "isPurchasable": true
+  },
+  {
+    "id": 100,
+    "slug": "sculptural-animal-bowl-candle",
+    "name": "Sculptural Animal Bowl Candle",
+    "collection": "Gifting Collection",
+    "subcategory": "Candles",
+    "category": "Candle",
+    "description": "Hand-poured Sculptural Animal Bowl Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "sku_ref": "PDF-51",
+    "status": "draft",
+    "price": null,
+    "image": "/products/candles/51-sculptural-animal-bowl-candle.jpg",
+    "material": "Poured wax"
+  },
+  {
+    "id": 77,
+    "slug": "fridge-covers",
+    "name": "Fridge covers",
+    "category": "Home Furnishing",
+    "collection": "Home Furnishing",
+    "subcategory": "Cushion",
+    "tagline": "Protect. Style. Simplify.",
+    "description": "Give your kitchen a cleaner and more coordinated appearance with a stylish fridge cover designed to add a decorative layer around your refrigerator. It helps protect the surface from everyday dust and marks while introducing visual character to the kitchen. A practical décor accessory for keeping one of the busiest areas of your home looking organized.",
+    "features": [
+      {
+        "title": "Dust & Stain Protection",
+        "description": "Shields your fridge from dust, spills and scratches."
+      },
+      {
+        "title": "Quality Fabric",
+        "description": "Made from durable, washable & long-lasting material."
+      },
+      {
+        "title": "Convenient Pockets",
+        "description": "Extra storage for notes, bills, pens & more."
+      },
+      {
+        "title": "Stylish Design",
+        "description": "Beautiful prints to enhance your kitchen décor."
+      }
+    ],
+    "closing_line": "Style that protects.",
+    "material": "Quilted · Kitchen"
+  }
+]

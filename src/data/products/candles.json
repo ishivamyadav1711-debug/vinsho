@@ -1,0 +1,1732 @@
+[
+  {
+    "sku_ref": "PDF-06",
+    "slug": "pastel-blue-bowl-candle",
+    "name": "Pastel Blue Bowl Candle",
+    "category": "Bowl Candle",
+    "description": "Bring a soft and calming touch to your décor with this hand-poured Pastel Blue Bowl Candle. Its bowl-inspired shape and gentle color make it a beautiful decorative accent for bedside tables, consoles, coffee tables, or gifting. Whether enjoyed as ambient décor or saved for special moments, it adds a subtle sense of warmth and tranquility.",
+    "price": 2280,
+    "image": "/products/candles/06-pastel-blue-bowl-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Pastel Serenity",
+        "description": "A soft blue palette creates a calm and understated visual identity."
+      },
+      {
+        "title": "Rounded Bowl Form",
+        "description": "The bowl silhouette gives the candle a smooth decorative presence."
+      },
+      {
+        "title": "Contemporary Softness",
+        "description": "Its gentle appearance complements minimal and modern interiors."
+      },
+      {
+        "title": "Relaxed Accent",
+        "description": "Perfect for quiet corners, tablescapes, and subtle decorative styling."
+      }
+    ],
+    "closing_line": "Soft blue, softer moments.",
+    "sellingPrice": 2280,
+    "mrp": 2850,
+    "isPurchasable": true
+  },
+  {
+    "sku_ref": "PDF-08",
+    "slug": "orange-pumpkin-bowl-candle",
+    "name": "Orange Pumpkin Bowl Candle",
+    "category": "Bowl Candle",
+    "description": "Celebrate cozy seasonal styling with this hand-poured Orange Pumpkin Bowl Candle, designed to combine playful form with decorative warmth. Its pumpkin-inspired silhouette makes it especially charming for festive displays, autumn-inspired décor, gifting, or cozy corners. A visually distinctive candle that adds warmth and character even before it is lit.",
+    "price": 2200,
+    "image": "/products/candles/08-orange-pumpkin-bowl-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Pumpkin-Inspired Form",
+        "description": "A playful pumpkin silhouette creates a distinctive seasonal character."
+      },
+      {
+        "title": "Warm Orange Accent",
+        "description": "The orange presentation adds energy and warmth to the setting."
+      },
+      {
+        "title": "Festive Personality",
+        "description": "Ideal for autumn-inspired displays, celebrations, and seasonal styling."
+      },
+      {
+        "title": "Sculptural Appeal",
+        "description": "Its bowl-like form gives the candle a decorative presence beyond its function."
+      }
+    ],
+    "closing_line": "A warm glow with a festive soul.",
+    "sellingPrice": 2200,
+    "mrp": 2750
+  },
+  {
+    "sku_ref": "PDF-07",
+    "slug": "ocean-bowl-candle",
+    "name": "Ocean Bowl Candle",
+    "category": "Bowl Candle",
+    "description": "Bring a calming coastal mood into your space with the Ocean Bowl Candle, hand-poured to create a decorative centerpiece inspired by the beauty of the sea. Its bowl-shaped presentation makes it ideal for tables, shelves, or gifting. A soothing accent for relaxed interiors, it combines artistic candle design with an inviting sense of tranquility.",
+    "price": 2200,
+    "image": "/products/candles/07-ocean-bowl-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Bowl-Shaped Character",
+        "description": "The distinctive bowl form creates a strong decorative silhouette."
+      },
+      {
+        "title": "Ocean-Inspired Mood",
+        "description": "Its theme evokes the calm and openness associated with the sea."
+      },
+      {
+        "title": "Sculptural Presence",
+        "description": "The form works beautifully as a decorative object even before it is lit."
+      },
+      {
+        "title": "Relaxed Styling",
+        "description": "A natural fit for calm, contemporary, and coastal-inspired interiors."
+      }
+    ],
+    "closing_line": "The calm of the ocean, in a sculptural form.",
+    "sellingPrice": 2200,
+    "mrp": 2750
+  },
+  {
+    "sku_ref": "PDF-09",
+    "slug": "pumpkin-boat-candle",
+    "name": "Pumpkin Boat Candle",
+    "category": "Boat Candle",
+    "description": "Add playful seasonal character to your décor with the Pumpkin Boat Candle, a hand-poured piece designed to stand out as a decorative accent. Its distinctive shape makes it suitable for festive arrangements, gifting, shelves, or tables. Whether displayed alone or paired with other candles, it creates a warm and charming visual centerpiece.",
+    "price": null,
+    "image": "/products/candles/09-pumpkin-boat-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Sculptural Pumpkin Form",
+        "description": "A playful pumpkin concept meets a distinctive boat-like silhouette."
+      },
+      {
+        "title": "Seasonal Character",
+        "description": "Its design naturally complements festive and seasonal décor."
+      },
+      {
+        "title": "Warm Visual Appeal",
+        "description": "The form brings a cosy decorative feeling to tables and displays."
+      },
+      {
+        "title": "Conversation Piece",
+        "description": "A distinctive shape designed to catch attention even when unlit."
+      }
+    ],
+    "closing_line": "A little festive character, beautifully afloat."
+  },
+  {
+    "sku_ref": "PDF-05",
+    "slug": "green-succulent-jar-candle",
+    "name": "Green Succulent Jar Candle",
+    "category": "Jar Candle",
+    "description": "Inspired by miniature desert gardens, this Green Succulent Jar Candle blends realistic botanical wax art with calming floral scents, creating a delightful decorative accent for desks and vanity tables.",
+    "price": null,
+    "image": "/images/vinsho/products/25-terrarium-decor-unconfirmed.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Botanical Inspiration",
+        "description": "A succulent-inspired design brings a fresh botanical character to the candle."
+      },
+      {
+        "title": "Natural Visual Language",
+        "description": "Its green presentation creates a calm and organic decorative mood."
+      },
+      {
+        "title": "Garden-Inspired Accent",
+        "description": "A charming addition to desks, shelves, bedside tables, and curated corners."
+      },
+      {
+        "title": "Nature Meets Candlelight",
+        "description": "Combines the visual appeal of greenery with the warmth of candle décor."
+      }
+    ],
+    "closing_line": "A touch of green, a glow of warmth."
+  },
+  {
+    "sku_ref": "PDF-13",
+    "slug": "blue-love-jar-candle",
+    "name": "Blue Love Jar Candle",
+    "category": "Jar Candle",
+    "description": "Add a romantic touch to special moments with the Blue Love Jar Candle, designed to combine expressive styling with warm candlelight. Its charming presentation makes it suitable for gifting, anniversaries, date nights, or personal décor. A thoughtful decorative piece that adds softness and personality to bedside tables, shelves, celebrations, and intimate spaces.",
+    "price": 740,
+    "image": "/products/candles/13-blue-love-jar-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Love-Inspired Form",
+        "description": "A charming design created around the warmth and symbolism of love."
+      },
+      {
+        "title": "Serene Blue Palette",
+        "description": "The blue tone brings a calm, contemporary character to the piece."
+      },
+      {
+        "title": "Statement Jar",
+        "description": "Its distinctive form makes it equally suited to gifting and decorative display."
+      },
+      {
+        "title": "Intimate Ambience",
+        "description": "A thoughtful accent for bedrooms, celebrations, and cosy personal spaces."
+      }
+    ],
+    "closing_line": "A little glow, wrapped in love.",
+    "sellingPrice": 740,
+    "mrp": 925
+  },
+  {
+    "sku_ref": "PDF-12",
+    "slug": "bubble-jar-candle",
+    "name": "Bubble Jar Candle",
+    "category": "Jar Candle",
+    "description": "Make your candle display more playful with the Bubble Jar Candle, featuring a distinctive bubbly form that creates visual texture. Its artistic appearance makes it suitable for modern interiors, bedside styling, shelves, or gifting. Whether displayed as a centerpiece or enjoyed for its warm glow, it adds personality to spaces that appreciate unique décor.",
+    "price": 880,
+    "image": "/products/candles/12-bubble-jar-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Playful Silhouette",
+        "description": "A bubble-inspired form gives this candle its distinctive visual personality."
+      },
+      {
+        "title": "Sculptural Texture",
+        "description": "Rounded detailing creates depth and makes the jar interesting from every angle."
+      },
+      {
+        "title": "Contemporary Accent",
+        "description": "Its playful design works naturally with modern decorative settings."
+      },
+      {
+        "title": "Decorative Presence",
+        "description": "Designed to stand beautifully on its own as a small statement piece."
+      }
+    ],
+    "closing_line": "Playful form, beautiful glow.",
+    "sellingPrice": 880,
+    "mrp": 1100,
+    "isPurchasable": true
+  },
+  {
+    "sku_ref": "PDF-11",
+    "slug": "peony-boat-candle",
+    "name": "Peony Boat Candle",
+    "category": "Boat Candle",
+    "description": "Bring floral elegance to your décor with the Peony Boat Candle, a hand-poured piece inspired by the delicate beauty of peony flowers. Its boat-shaped presentation creates an artistic focal point for tables, shelves, celebrations, or gifting. Designed to feel decorative even when unlit, it adds softness, romance, and a handcrafted character to your surroundings.",
+    "price": null,
+    "image": "/products/candles/11-peony-boat-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Peony-Inspired Detail",
+        "description": "A floral concept brings elegance and softness to the candle design."
+      },
+      {
+        "title": "Boat-Shaped Silhouette",
+        "description": "The distinctive form creates an unexpected sculptural character."
+      },
+      {
+        "title": "Floral Statement",
+        "description": "Designed to stand out as both candle and decorative object."
+      },
+      {
+        "title": "Graceful Styling",
+        "description": "A refined addition to tables, celebrations, and curated displays."
+      }
+    ],
+    "closing_line": "A floral journey in a beautiful form."
+  },
+  {
+    "sku_ref": "PDF-10",
+    "slug": "hearty-gel-wax-jar-candle",
+    "name": "Hearty Gel Wax Jar Candle",
+    "category": "Jar Candle",
+    "description": "Create a warm and expressive atmosphere with the Hearty Gel Wax Jar Candle, designed around a charming heart-inspired aesthetic. Its clear gel-wax presentation adds visual depth while making it an attractive decorative accent. Ideal for gifting, romantic occasions, bedrooms, or cozy corners, it combines heartfelt design with the inviting glow of candlelight.",
+    "price": 740,
+    "image": "/products/candles/10-hearty-gel-wax-jar-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Heart-Inspired Character",
+        "description": "A heart-led design brings an affectionate visual quality to the jar."
+      },
+      {
+        "title": "Gel-Inspired Appeal",
+        "description": "Its specialty candle format creates a distinctive decorative identity."
+      },
+      {
+        "title": "Giftable Expression",
+        "description": "A thoughtful choice for romantic gestures and meaningful occasions."
+      },
+      {
+        "title": "Decorative Warmth",
+        "description": "Designed to bring both personality and ambience to intimate spaces."
+      }
+    ],
+    "closing_line": "A little heart, a little light, a lot of feeling.",
+    "sellingPrice": 740,
+    "mrp": 925,
+    "isPurchasable": true
+  },
+  {
+    "sku_ref": "PDF-15",
+    "slug": "3-shade-flower-jar-candle",
+    "name": "3-Shade Flower Jar Candle",
+    "category": "Jar Candle",
+    "description": "Bring colorful floral character to your interiors with the 3-Shade Flower Jar Candle. Its layered flower-inspired design creates an eye-catching presentation, making it suitable for shelves, bedside tables, celebrations, or gifting. A decorative piece that blends multiple tones with handcrafted candle artistry, adding a cheerful and elegant touch to your surroundings.",
+    "price": null,
+    "image": "/products/candles/15-3-shade-flower-jar-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Three-Tone Charm",
+        "description": "A graceful combination of three soft shades creates a layered and distinctive visual presence."
+      },
+      {
+        "title": "Floral Character",
+        "description": "Flower-inspired detailing adds a delicate decorative touch to the candle silhouette."
+      },
+      {
+        "title": "Sculptural Jar Form",
+        "description": "The shaped jar gives the candle an elegant presence even when displayed unlit."
+      },
+      {
+        "title": "Soft Decorative Glow",
+        "description": "Designed to bring warmth and visual softness to intimate corners and styled spaces."
+      }
+    ],
+    "closing_line": "Three shades, one graceful statement."
+  },
+  {
+    "sku_ref": "PDF-17",
+    "slug": "ocean-jar-candle",
+    "name": "Ocean Jar Candle",
+    "category": "Jar Candle",
+    "description": "Create a calming coastal-inspired atmosphere with the Ocean Jar Candle, designed to bring sea-inspired visual character into your décor. Its jar format makes it easy to display on tables, shelves, desks, or bedside corners. A thoughtful decorative choice for relaxed interiors, it combines artistic presentation with the warm ambience associated with candlelight.",
+    "price": 1280,
+    "image": "/products/candles/17-ocean-jar-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Oceanic Inspiration",
+        "description": "A design inspired by the peaceful visual character of the sea."
+      },
+      {
+        "title": "Calm Aesthetic",
+        "description": "Its theme brings a relaxed and tranquil mood to interiors."
+      },
+      {
+        "title": "Coastal Character",
+        "description": "Pairs naturally with contemporary and coastal-inspired décor."
+      },
+      {
+        "title": "Serene Accent",
+        "description": "A subtle decorative piece for spaces designed around calm and comfort."
+      }
+    ],
+    "closing_line": "Let your space breathe with the sea.",
+    "sellingPrice": 1280,
+    "mrp": 1600,
+    "isPurchasable": true
+  },
+  {
+    "sku_ref": "PDF-12",
+    "slug": "caff-latte-jar-candle",
+    "name": "Caffé Latte Jar Candle",
+    "category": "Jar Candle",
+    "description": "A glass jar candle designed to resemble an iced café latte, with layered tan and cream wax and translucent ice-cube shapes throughout. A fun, realistic dessert-inspired novelty candle for coffee lovers.",
+    "price": null,
+    "image": "/images/vinsho/products/41-caff-latte-jar-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Café-Inspired Aesthetic",
+        "description": "Inspired by the warm visual language of a comforting café moment."
+      },
+      {
+        "title": "Warm Character",
+        "description": "Its presentation brings a cosy and inviting quality to decorative spaces."
+      },
+      {
+        "title": "Dessert-Like Appeal",
+        "description": "The jar design adds an indulgent visual character without overwhelming the setting."
+      },
+      {
+        "title": "Everyday Elegance",
+        "description": "A charming choice for coffee corners, tablescapes, and relaxed interiors."
+      }
+    ],
+    "closing_line": "A little café warmth, beautifully captured."
+  },
+  {
+    "sku_ref": "PDF-16",
+    "slug": "whipped-floral-jar-candle",
+    "name": "Whipped Floral Jar Candle",
+    "category": "Jar Candle",
+    "description": "Add a soft and luxurious floral accent to your space with the Whipped Floral Jar Candle. Its whipped-style decorative presentation creates a delicate, dessert-inspired visual while floral details add charm. Ideal for gifting, bedrooms, dressing tables, or shelves, it works beautifully as a decorative piece that brings softness, personality, and handcrafted character into your surroundings.",
+    "price": 660,
+    "image": "/products/candles/16-whipped-floral-jar-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Whipped-Inspired Form",
+        "description": "A soft, layered visual treatment gives the candle a distinctive character."
+      },
+      {
+        "title": "Floral Detailing",
+        "description": "Floral elements add delicacy and decorative charm."
+      },
+      {
+        "title": "Dessert-Like Aesthetic",
+        "description": "Its presentation creates an indulgent visual appeal."
+      },
+      {
+        "title": "Decorative Treat",
+        "description": "Designed to look beautiful as part of a styled tabletop or gifting arrangement."
+      }
+    ],
+    "closing_line": "A sweet-looking bloom with a gentle glow.",
+    "sellingPrice": 660,
+    "mrp": 825,
+    "isPurchasable": true
+  },
+  {
+    "sku_ref": "PDF-19",
+    "slug": "diamond-jar-candle-gift",
+    "name": "Diamond Jar Candle (Gift)",
+    "category": "Jar Candle",
+    "description": "Designed to make gifting feel extra special, the Diamond Jar Candle combines a distinctive diamond-inspired presentation with the warmth of candle décor. Its elegant appearance makes it suitable for birthdays, celebrations, anniversaries, festive occasions, or thoughtful surprises. A decorative candle that feels personal and premium while adding a stylish touch to any space.",
+    "price": 960,
+    "image": "/products/candles/19-diamond-jar-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Diamond-Inspired Form",
+        "description": "A distinctive design inspired by the elegance and brilliance of a diamond."
+      },
+      {
+        "title": "Faceted Character",
+        "description": "Its structured appearance creates visual interest across the surface."
+      },
+      {
+        "title": "Gift-Ready Presence",
+        "description": "Designed to make a memorable impression when presented as a thoughtful gift."
+      },
+      {
+        "title": "Elegant Display",
+        "description": "A refined decorative accent for celebrations and special occasions."
+      }
+    ],
+    "closing_line": "A little brilliance for every celebration.",
+    "sellingPrice": 960,
+    "mrp": 1200,
+    "isPurchasable": true
+  },
+  {
+    "sku_ref": "PDF-21",
+    "slug": "matcha-latte-jar-candle",
+    "name": "Matcha Latte Jar Candle",
+    "category": "Jar Candle",
+    "description": "Bring the calming aesthetic of a matcha café moment into your home with the Matcha Latte Jar Candle. Its soft, refreshing visual character makes it an appealing addition to desks, bedside tables, shelves, or cozy corners. Ideal for gifting or personal décor, it combines a contemporary beverage-inspired theme with the warmth and charm of candle styling.",
+    "price": null,
+    "image": "/products/candles/21-matcha-latte-jar-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Matcha-Inspired Aesthetic",
+        "description": "A fresh visual interpretation inspired by the calming character of matcha."
+      },
+      {
+        "title": "Contemporary Appeal",
+        "description": "Its distinctive theme gives the candle a modern lifestyle aesthetic."
+      },
+      {
+        "title": "Café Culture",
+        "description": "A playful decorative piece for coffee stations and relaxed spaces."
+      },
+      {
+        "title": "Soft Everyday Accent",
+        "description": "Designed to add personality without overpowering its surroundings."
+      }
+    ],
+    "closing_line": "Calm, creamy, and quietly charming."
+  },
+  {
+    "sku_ref": "PDF-27",
+    "slug": "sunflower-jar-candle",
+    "name": "Sunflower Jar Candle",
+    "category": "Jar Candle",
+    "description": "Brighten your surroundings with the cheerful Sunflower Jar Candle, designed around the uplifting beauty of sunflower-inspired décor. Its floral presentation makes it a charming addition to shelves, tables, bedrooms, or gifting collections. A thoughtful decorative candle for anyone who loves flowers, warm interiors, and handcrafted pieces that add a little brightness to everyday spaces.",
+    "price": null,
+    "image": "/products/candles/27-sunflower-jar-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Sunflower Inspiration",
+        "description": "A sunflower-inspired design brings cheerful floral energy to the piece."
+      },
+      {
+        "title": "Bright Character",
+        "description": "Its floral identity creates an uplifting decorative presence."
+      },
+      {
+        "title": "Joyful Accent",
+        "description": "Ideal for celebrations, gifting, and spaces that need a little personality."
+      },
+      {
+        "title": "Floral Centrepiece",
+        "description": "Designed to stand out naturally on tables and styled surfaces."
+      }
+    ],
+    "closing_line": "Bring a little sunshine indoors."
+  },
+  {
+    "sku_ref": "PDF-20",
+    "slug": "rose-garden-jar-candle",
+    "name": "Rose Garden Jar Candle",
+    "category": "Jar Candle",
+    "description": "Bring the romantic charm of a blooming rose garden into your décor with this beautifully styled jar candle. Its rose-inspired presentation creates an elegant focal point for bedrooms, dressing tables, shelves, or special occasions. Suitable for gifting or personal use, it adds softness, floral character, and a warm decorative presence to thoughtfully styled interiors.",
+    "price": 1440,
+    "image": "/products/candles/20-rose-garden-jar-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Garden-Inspired Design",
+        "description": "A rose garden concept brings floral elegance into the candle form."
+      },
+      {
+        "title": "Romantic Character",
+        "description": "The floral identity gives the piece a graceful and expressive presence."
+      },
+      {
+        "title": "Decorative Sophistication",
+        "description": "Designed to complement refined tablescapes and intimate interiors."
+      },
+      {
+        "title": "Floral Statement",
+        "description": "A beautiful choice when you want your candle to feel like part of the décor."
+      }
+    ],
+    "closing_line": "A garden of roses, made for your space.",
+    "sellingPrice": 1440,
+    "mrp": 1800,
+    "isPurchasable": true
+  },
+  {
+    "sku_ref": "PDF-18",
+    "slug": "mini-floral-candle-bouquet",
+    "name": "Mini Floral Candle Bouquet",
+    "category": "Bouquet Candle",
+    "description": "Combine the charm of flowers with the warmth of handcrafted candle décor in this Mini Floral Candle Bouquet. Its bouquet-inspired arrangement makes it an especially thoughtful choice for birthdays, anniversaries, celebrations, or simple surprises. Decorative even when unlit, it offers a lasting floral-inspired presentation that brings color, personality, and warmth into any setting.",
+    "price": 1000,
+    "image": "/products/candles/18-mini-floral-candle-bouquet.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Mini Floral Composition",
+        "description": "A compact bouquet-inspired design brings floral charm into a smaller format."
+      },
+      {
+        "title": "Delicate Detailing",
+        "description": "Floral elements give the candle an expressive decorative character."
+      },
+      {
+        "title": "Giftable Size",
+        "description": "Its compact presentation makes it suitable for thoughtful gifting."
+      },
+      {
+        "title": "Petite Centrepiece",
+        "description": "Perfect for smaller tables, shelves, and intimate decorative corners."
+      }
+    ],
+    "closing_line": "A little bouquet, beautifully lit.",
+    "sellingPrice": 1000,
+    "mrp": 1250,
+    "isPurchasable": true
+  },
+  {
+    "sku_ref": "PDF-25",
+    "slug": "royal-red-peony-candle",
+    "name": "Royal Red Peony Candle",
+    "category": "Specialty Candle",
+    "description": "Make a bold floral statement with the Royal Red Peony Candle, designed to capture the richness and elegance of a blooming peony. Its deep, expressive presentation makes it ideal for romantic décor, celebrations, gifting, or statement displays. A handcrafted accent that brings drama, warmth, and sophisticated floral character to tables, shelves, or special occasions.",
+    "price": 480,
+    "image": "/products/candles/25-royal-red-peony-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Royal Floral Character",
+        "description": "The peony-inspired design creates a rich and expressive identity."
+      },
+      {
+        "title": "Red Statement",
+        "description": "A bold red presentation gives the candle visual confidence."
+      },
+      {
+        "title": "Sculptural Bloom",
+        "description": "The floral form turns the candle into a decorative centrepiece."
+      },
+      {
+        "title": "Celebration Ready",
+        "description": "A striking addition to festive tables and special occasions."
+      }
+    ],
+    "closing_line": "A royal bloom with a warm glow.",
+    "sellingPrice": 480,
+    "mrp": 600,
+    "isPurchasable": true
+  },
+  {
+    "sku_ref": "PDF-23",
+    "slug": "blushing-rose-candle-bouquet",
+    "name": "Blushing Rose Candle Bouquet",
+    "category": "Bouquet Candle",
+    "description": "Add a romantic and delicate touch to gifting with the Blushing Rose Candle Bouquet. Designed to resemble a charming floral arrangement while serving as decorative candle art, it makes a memorable choice for anniversaries, birthdays, celebrations, or thoughtful surprises. Its soft floral character brings warmth and elegance while offering an alternative to traditional bouquets.",
+    "price": 480,
+    "image": "/products/candles/23-blushing-rose-candle-bouquet.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Blushing Rose Aesthetic",
+        "description": "A soft rose-inspired design creates an elegant and romantic character."
+      },
+      {
+        "title": "Bouquet Composition",
+        "description": "The grouped floral arrangement gives the candle a gift-like presentation."
+      },
+      {
+        "title": "Delicate Expression",
+        "description": "Designed to bring softness and charm to decorative spaces."
+      },
+      {
+        "title": "Celebration Accent",
+        "description": "A thoughtful choice for romantic occasions and meaningful gifting."
+      }
+    ],
+    "closing_line": "A bouquet that glows with feeling.",
+    "sellingPrice": 480,
+    "mrp": 600,
+    "isPurchasable": true
+  },
+  {
+    "sku_ref": "PDF-22",
+    "slug": "3-rose-candle-bouquet",
+    "name": "3-Rose Candle Bouquet",
+    "category": "Bouquet Candle",
+    "description": "Create a timeless floral-inspired gift with the 3-Rose Candle Bouquet, featuring three beautifully styled rose candles arranged like a decorative bouquet. Ideal for romantic occasions, birthdays, anniversaries, or special surprises, it combines the visual charm of roses with handcrafted candle artistry. A thoughtful keepsake-style gift that adds warmth and personality to any setting.",
+    "price": 1196,
+    "image": "/products/candles/22-3-rose-candle-bouquet.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Triple Rose Composition",
+        "description": "Three rose-inspired elements create a balanced floral arrangement."
+      },
+      {
+        "title": "Bouquet-Inspired Form",
+        "description": "Designed to capture the visual language of a floral bouquet."
+      },
+      {
+        "title": "Romantic Character",
+        "description": "A graceful decorative choice for intimate spaces and gifting."
+      },
+      {
+        "title": "Floral Centrepiece",
+        "description": "Its arrangement gives the candle a naturally expressive presence."
+      }
+    ],
+    "closing_line": "Three roses, one beautiful gesture.",
+    "sellingPrice": 1196,
+    "mrp": 1495,
+    "isPurchasable": true
+  },
+  {
+    "sku_ref": "PDF-24",
+    "slug": "tulip-sapphire-candle-bouquet",
+    "name": "Tulip Sapphire Candle Bouquet",
+    "category": "Bouquet Candle",
+    "description": "Bring sophisticated floral character to your décor with the Tulip Sapphire Candle Bouquet. Inspired by the graceful form of tulips, its distinctive sapphire-inspired presentation makes it a striking decorative accent. Perfect for gifting, celebrations, or personal styling, it combines the elegance of a floral arrangement with the lasting decorative appeal of handcrafted candle art.",
+    "price": 3600,
+    "image": "/products/candles/24-tulip-sapphire-candle-bouquet.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Tulip-Inspired Design",
+        "description": "A tulip-led composition creates a graceful floral identity."
+      },
+      {
+        "title": "Sapphire Character",
+        "description": "The name and colour direction suggest a richer, jewel-like visual mood."
+      },
+      {
+        "title": "Bouquet Presentation",
+        "description": "Its arrangement gives the candle the presence of a miniature floral display."
+      },
+      {
+        "title": "Refined Gifting",
+        "description": "A distinctive choice for elegant gifting and celebratory moments."
+      }
+    ],
+    "closing_line": "A sapphire mood in a bouquet of light.",
+    "sellingPrice": 3600,
+    "mrp": 4500
+  },
+  {
+    "sku_ref": "PDF-26",
+    "slug": "white-chocolate-strawberry-jar-candle",
+    "name": "White Chocolate & Strawberry Jar Candle",
+    "category": "Jar Candle",
+    "description": "Add a playful dessert-inspired touch to your décor with the White Chocolate & Strawberry Jar Candle. Its sweet visual theme makes it an appealing gift for birthdays, celebrations, or anyone who enjoys charming decorative pieces. Styled like a delightful treat while functioning as candle décor, it brings warmth, personality, and a whimsical character to your space.",
+    "price": null,
+    "image": "/products/candles/26-white-chocolate-and-strawberry-jar-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Dessert-Inspired Design",
+        "description": "A playful interpretation inspired by the visual language of white chocolate and strawberry."
+      },
+      {
+        "title": "Sweet Visual Character",
+        "description": "Its dessert theme gives the candle an instantly inviting personality."
+      },
+      {
+        "title": "Charming Presentation",
+        "description": "A distinctive choice for playful interiors and gifting moments."
+      },
+      {
+        "title": "Decorative Indulgence",
+        "description": "Designed to bring a sense of sweetness to the display."
+      }
+    ],
+    "closing_line": "A sweet little indulgence, made to glow."
+  },
+  {
+    "sku_ref": "PDF-28",
+    "slug": "floral-jar-candle-sachet-combo",
+    "name": "Floral Jar Candle & Sachet Combo",
+    "category": "Gift Combo",
+    "description": "Combine decorative candle charm with a thoughtful gifting touch through this Floral Jar Candle and Sachet Combo. Its floral-inspired presentation creates an elegant visual while the accompanying sachet adds another layer to the experience. Ideal for celebrations, festive gifting, self-care moments, or thoughtful surprises, it offers a beautifully coordinated collection with a warm, handcrafted feel.",
+    "price": 1120,
+    "image": "/products/candles/28-floral-jar-candle-and-sachet-combo.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Floral Candle Design",
+        "description": "A floral-inspired candle creates the centre of this coordinated set."
+      },
+      {
+        "title": "Thoughtful Pairing",
+        "description": "The candle and sachet come together as a more complete gifting experience."
+      },
+      {
+        "title": "Decorative Presentation",
+        "description": "The floral character gives the set a refined visual identity."
+      },
+      {
+        "title": "Ready-to-Gift Appeal",
+        "description": "A considered combination for celebrations and thoughtful occasions."
+      }
+    ],
+    "closing_line": "Two little pleasures, beautifully brought together.",
+    "sellingPrice": 1120,
+    "mrp": 1400,
+    "isPurchasable": true
+  },
+  {
+    "sku_ref": "PDF-30",
+    "slug": "red-mini-heart-jar-candle",
+    "name": "Red Mini Heart Jar Candle",
+    "category": "Jar Candle",
+    "description": "Add a small but expressive touch to special moments with the Red Mini Heart Jar Candle. Its heart-inspired design and rich red character make it especially suitable for romantic gifting, anniversaries, date nights, or festive occasions. Compact and decorative, it creates a warm accent while conveying a thoughtful sentiment through its charming presentation.",
+    "price": 600,
+    "image": "/products/candles/30-red-mini-heart-jar-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Heart-Shaped Inspiration",
+        "description": "A heart-led design gives this candle an immediate emotional character."
+      },
+      {
+        "title": "Bold Red Accent",
+        "description": "The red tone adds warmth and visual energy to the piece."
+      },
+      {
+        "title": "Celebration Ready",
+        "description": "Perfectly suited to romantic moments, special occasions, and gifting."
+      },
+      {
+        "title": "Small Statement Piece",
+        "description": "Its compact form makes it easy to style almost anywhere."
+      }
+    ],
+    "closing_line": "A small heart with a warm glow.",
+    "sellingPrice": 600,
+    "mrp": 750
+  },
+  {
+    "sku_ref": "PDF-29",
+    "slug": "succulent-jar-candle-small",
+    "name": "Succulent Jar Candle (Small)",
+    "category": "Jar Candle",
+    "description": "A collection of small glass jar candles topped with detailed succulent wax florals in teal, pink, navy, and lavender. A fresh botanical set perfect for shelf styling or group gifting.",
+    "price": 740,
+    "image": "/products/candles/29-succulent-jar-candle-small.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Succulent Character",
+        "description": "A compact succulent-inspired design adds botanical personality."
+      },
+      {
+        "title": "Natural Appeal",
+        "description": "Its organic theme creates a refreshing decorative impression."
+      },
+      {
+        "title": "Small-Space Friendly",
+        "description": "Ideal for desks, shelves, bedside tables, and compact corners."
+      },
+      {
+        "title": "Botanical Glow",
+        "description": "A charming way to combine greenery-inspired design with candle décor."
+      }
+    ],
+    "closing_line": "A tiny garden with a gentle glow.",
+    "sellingPrice": 740,
+    "mrp": 925
+  },
+  {
+    "sku_ref": "PDF-31",
+    "slug": "cute-teddy-jar-candle",
+    "name": "Cute Teddy Jar Candle",
+    "category": "Jar Candle",
+    "description": "A glass jar candle featuring an adorable sculpted wax teddy bear perched on the rim with tiny heart accents. A sweet, whimsical design perfect for baby showers, nurseries, or kids' gifts.",
+    "price": null,
+    "image": "/products/candles/31-cute-teddy-jar-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Teddy-Inspired Character",
+        "description": "A playful teddy design gives the candle an instantly charming personality."
+      },
+      {
+        "title": "Whimsical Detailing",
+        "description": "Its character-led form makes it stand apart from conventional candle designs."
+      },
+      {
+        "title": "Giftable Appeal",
+        "description": "A delightful choice for thoughtful gifting and cheerful occasions."
+      },
+      {
+        "title": "Decorative Personality",
+        "description": "Perfect for adding a softer, more playful touch to personal spaces."
+      }
+    ],
+    "closing_line": "A little teddy, a little warmth."
+  },
+  {
+    "sku_ref": "PDF-32",
+    "slug": "seashell-gel-wax-candle",
+    "name": "Seashell Gel Wax Candle",
+    "category": "Specialty Candle",
+    "description": "A ceramic seashell-shaped candle filled with sparkling blue or purple gel wax, glitter, and a mini shell charm. A magical coastal-fantasy design, perfect as a unique gift or decor accent.",
+    "price": 440,
+    "image": "/products/candles/32-seashell-gel-wax-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Seashell Inspiration",
+        "description": "A seashell-inspired form brings coastal character into the design."
+      },
+      {
+        "title": "Organic Silhouette",
+        "description": "Its natural-inspired shape creates visual softness and detail."
+      },
+      {
+        "title": "Coastal Accent",
+        "description": "A charming addition to relaxed, beach-inspired, and contemporary spaces."
+      },
+      {
+        "title": "Decorative Story",
+        "description": "The specialty form gives the candle an identity beyond traditional candle shapes."
+      }
+    ],
+    "closing_line": "A piece of the shore, made to glow.",
+    "sellingPrice": 440,
+    "mrp": 550
+  },
+  {
+    "sku_ref": "WA-24",
+    "slug": "concrete-ocean-theme-jar-candle",
+    "name": "ocean theme pillar candle",
+    "category": "Jar Candle",
+    "description": "A concrete jar candle capturing an ocean shoreline in swirling teal and blue wax, accented with tiny embedded seashells. A textured coastal design that brings serene beach vibes to any space.",
+    "price": 1080,
+    "image": "/images/vinsho/products/60-concrete-ocean-theme-jar-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Ocean-Inspired Story",
+        "description": "A design that brings the visual calm of the ocean into an interior setting."
+      },
+      {
+        "title": "Textural Character",
+        "description": "Its concrete-inspired presentation creates an earthy decorative identity."
+      },
+      {
+        "title": "Coastal Mood",
+        "description": "A natural choice for relaxed, contemporary, and coastal-inspired spaces."
+      },
+      {
+        "title": "Statement Form",
+        "description": "Its distinctive theme gives ordinary surfaces a more expressive character."
+      }
+    ],
+    "closing_line": "A quiet ocean, captured in form.",
+    "sellingPrice": 1080,
+    "mrp": 1350
+  },
+  {
+    "sku_ref": "WA-07",
+    "slug": "teddy-boy-candle",
+    "name": "Teddy Boy Candle",
+    "category": "Figure Candle",
+    "description": "A finely textured wax candle sculpted as a teddy bear dressed in overalls, capturing a soft, fuzzy fur finish throughout. An adorable nursery or gifting piece full of playful charm.",
+    "price": 1160,
+    "image": "/images/vinsho/products/57-teddy-boy-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Teddy Character",
+        "description": "A teddy-inspired silhouette creates a warm and playful personality."
+      },
+      {
+        "title": "Sculptural Detail",
+        "description": "The character form makes the candle visually distinctive."
+      },
+      {
+        "title": "Cheerful Gift",
+        "description": "A natural choice for playful gifting and special occasions."
+      },
+      {
+        "title": "Charming Display",
+        "description": "Designed to add personality to shelves, bedside tables, and cosy corners."
+      }
+    ],
+    "closing_line": "A charming character made for warm moments.",
+    "sellingPrice": 1160,
+    "mrp": 1450
+  },
+  {
+    "sku_ref": "WA-06",
+    "slug": "teddy-girl-candle",
+    "name": "Teddy Girl Candle",
+    "category": "Figure Candle",
+    "description": "A textured wax teddy bear candle dressed in a bow and apron-style outfit, finished with a soft fuzzy texture. A sweet, feminine companion piece to pair with the Teddy Boy candle.",
+    "price": 1160,
+    "image": "/images/vinsho/products/17-teddy-girl-candle.jpg",
+    "status": "draft",
+    "sellingPrice": 1160,
+    "mrp": 1450
+  },
+  {
+    "sku_ref": "WA-11",
+    "slug": "dog-candle",
+    "name": "Dog Candle",
+    "category": "Figure Candle",
+    "description": "A wax candle sculpted into a sleeping puppy curled into a round shape, with gentle carved fur and facial detailing. A calming, adorable design perfect for pet lovers and cozy décor.",
+    "price": 680,
+    "image": "/images/vinsho/products/50-dog-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Character-Led Design",
+        "description": "A dog-inspired form gives the candle an instantly recognisable personality."
+      },
+      {
+        "title": "Playful Sculpture",
+        "description": "The sculptural silhouette makes it visually engaging even when unlit."
+      },
+      {
+        "title": "Pet-Lover Appeal",
+        "description": "A charming decorative and gifting choice for animal enthusiasts."
+      },
+      {
+        "title": "Whimsical Accent",
+        "description": "Adds a playful touch to desks, shelves, and personal spaces."
+      }
+    ],
+    "closing_line": "A little companion that brings warmth.",
+    "sellingPrice": 680,
+    "mrp": 850
+  },
+  {
+    "sku_ref": "WA-05",
+    "slug": "couple-pillar-candle",
+    "name": "Couple Pillar Candle",
+    "category": "Pillar Candle",
+    "description": "A pillar candle embossed with a bride and groom embracing beneath an ornate lattice archway. A romantic keepsake design, perfect for weddings, anniversaries, or engagement celebration gifting.",
+    "price": 880,
+    "image": "/images/vinsho/products/52-couple-pillar-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Couple-Inspired Form",
+        "description": "A design centred around togetherness gives this pillar candle emotional character."
+      },
+      {
+        "title": "Sculptural Silhouette",
+        "description": "Its form transforms the traditional pillar candle into a decorative statement."
+      },
+      {
+        "title": "Symbolic Gift",
+        "description": "A meaningful choice for couples, anniversaries, and special moments."
+      },
+      {
+        "title": "Intimate Décor",
+        "description": "Designed to add personality to romantic and personal spaces."
+      }
+    ],
+    "closing_line": "Made for moments shared.",
+    "sellingPrice": 880,
+    "mrp": 1100
+  },
+  {
+    "sku_ref": "WA-31",
+    "slug": "black-beauty-candle",
+    "name": "Black Beauty Candle",
+    "category": "Specialty Candle",
+    "description": "Crafted with dramatic dark wax tones and a sleek silhouette, the Black Beauty Candle brings a sophisticated aesthetic and a mysterious ambient glow to modern interiors, executive desks, and moody lounge spaces.",
+    "price": 1000,
+    "image": "/images/vinsho/products/51-black-beauty-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Striking Black Aesthetic",
+        "description": "A bold black presentation gives this candle a sophisticated identity."
+      },
+      {
+        "title": "Dramatic Character",
+        "description": "Its darker visual language creates contrast within lighter interiors."
+      },
+      {
+        "title": "Contemporary Statement",
+        "description": "Designed for spaces that embrace confident and modern décor."
+      },
+      {
+        "title": "Minimal Impact",
+        "description": "A strong decorative piece without relying on excessive detailing."
+      }
+    ],
+    "closing_line": "Dark, distinctive, undeniably elegant.",
+    "sellingPrice": 1000,
+    "mrp": 1250
+  },
+  {
+    "sku_ref": "WA-09",
+    "slug": "snowman-pillar-candle",
+    "name": "Snowman Pillar Candle",
+    "category": "Pillar Candle",
+    "description": "A festive pillar candle featuring a charming snowman in a top hat and scarf, framed with ornate silver-toned detailing. A joyful holiday centerpiece for winter and Christmas décor.",
+    "price": 760,
+    "image": "/images/vinsho/products/21-snowman-pillar-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Winter-Inspired Character",
+        "description": "A snowman form brings instant seasonal personality."
+      },
+      {
+        "title": "Playful Silhouette",
+        "description": "The sculptural design creates a cheerful decorative accent."
+      },
+      {
+        "title": "Festive Styling",
+        "description": "Ideal for winter displays, holiday settings, and seasonal gifting."
+      },
+      {
+        "title": "Whimsical Glow",
+        "description": "A charming piece designed to bring warmth to colder-season décor."
+      }
+    ],
+    "closing_line": "A little winter wonder, warmly lit.",
+    "sellingPrice": 760,
+    "mrp": 950
+  },
+  {
+    "sku_ref": "WA-PJ",
+    "slug": "pink-jar-candle",
+    "name": "Pink Jar Candle",
+    "category": "Jar Candle",
+    "description": "A scalloped ceramic jar candle in pink and white with a delicate hand-painted heart print pattern. A sweet, playful design that adds a soft pop of color to any room.",
+    "price": 1280,
+    "image": "/images/vinsho/products/61-wave-pillar-candle-unconfirmed.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Soft Pink Character",
+        "description": "A gentle pink presentation gives the candle a delicate visual identity."
+      },
+      {
+        "title": "Feminine Accent",
+        "description": "Its soft appearance works beautifully within romantic and refined interiors."
+      },
+      {
+        "title": "Decorative Simplicity",
+        "description": "A clean jar format keeps the design elegant without excessive detailing."
+      },
+      {
+        "title": "Warm Personal Touch",
+        "description": "Ideal for bedrooms, dressing spaces, celebrations, and gifting."
+      }
+    ],
+    "closing_line": "Soft colour, warm moments.",
+    "sellingPrice": 1280,
+    "mrp": 1600
+  },
+  {
+    "sku_ref": "WA-03",
+    "slug": "rose-pillar-candle",
+    "name": "Rose Pillar Candle",
+    "category": "Pillar Candle",
+    "description": "A pillar candle carved with layered wax roses cascading down its surface, finished in soft ivory tones. An elegant, romantic design that doubles as a decorative sculpture when unlit.",
+    "price": 760,
+    "image": "/images/vinsho/products/47-rose-pillar-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Rose-Inspired Form",
+        "description": "The timeless rose becomes the defining visual element of this pillar candle."
+      },
+      {
+        "title": "Romantic Character",
+        "description": "Its floral identity creates an elegant and intimate mood."
+      },
+      {
+        "title": "Sculptural Beauty",
+        "description": "The rose detailing gives the candle a decorative presence when unlit."
+      },
+      {
+        "title": "Thoughtful Gift",
+        "description": "A graceful choice for romantic occasions and floral lovers."
+      }
+    ],
+    "closing_line": "A rose that stays beautifully in bloom.",
+    "sellingPrice": 760,
+    "mrp": 950
+  },
+  {
+    "sku_ref": "WA-04",
+    "slug": "floral-pillar-candle",
+    "name": "Floral Pillar Candle",
+    "category": "Pillar Candle",
+    "description": "A pillar candle intricately carved with tulips and blossoms in relief across its entire surface. A refined botanical design that brings timeless elegance to shelves, tables, and mantels.",
+    "price": 1040,
+    "image": "/images/vinsho/products/46-floral-pillar-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Floral Embellishment",
+        "description": "Flower-inspired detailing brings softness to the classic pillar form."
+      },
+      {
+        "title": "Sculptural Character",
+        "description": "The design adds decorative depth beyond a conventional candle silhouette."
+      },
+      {
+        "title": "Elegant Centrepiece",
+        "description": "A natural choice for tablescapes and carefully styled interiors."
+      },
+      {
+        "title": "Timeless Floral Mood",
+        "description": "Combines classic candle form with expressive botanical character."
+      }
+    ],
+    "closing_line": "Where timeless form meets floral beauty.",
+    "sellingPrice": 1040,
+    "mrp": 1300
+  },
+  {
+    "sku_ref": "PDF-35",
+    "slug": "succulent-jar-candle",
+    "name": "Succulent Jar Candle",
+    "category": "Jar Candle",
+    "description": "Hand-poured into a textured ceramic vessel, this succulent-themed jar candle features detailed wax botanical toppers and a clean-burning cotton wick that fills your home with soothing natural scents.",
+    "price": 740,
+    "image": "/products/candles/35-succulent-jar-candle.jpg",
+    "status": "draft",
+    "sellingPrice": 740,
+    "mrp": 925
+  },
+  {
+    "sku_ref": "WA-21",
+    "slug": "concrete-hexa-jar-candle",
+    "name": "wood log jar candle",
+    "category": "Jar Candle",
+    "description": "A geometric concrete-style jar candle with a faceted hexagonal exterior and a smooth cream wax pour with double wicks. A modern sculptural design ideal for minimalist, contemporary interiors.",
+    "price": 1520,
+    "image": "/images/vinsho/products/59-concrete-hexa-jar-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Geometric Identity",
+        "description": "A hexagonal-inspired silhouette gives the candle a strong architectural character."
+      },
+      {
+        "title": "Structured Form",
+        "description": "Clean geometry creates a refined contrast against softer interior elements."
+      },
+      {
+        "title": "Modern Expression",
+        "description": "Designed for contemporary spaces that appreciate distinctive shapes."
+      },
+      {
+        "title": "Sculptural Accent",
+        "description": "More than a candle, it works as a compact decorative object."
+      }
+    ],
+    "closing_line": "Geometry meets the glow.",
+    "sellingPrice": 1520,
+    "mrp": 1900
+  },
+  {
+    "sku_ref": "WA-22",
+    "slug": "concrete-ribbed-jar-candle-with-lid",
+    "name": "Concrete Ribbed Jar Candle with Lid",
+    "category": "Jar Candle",
+    "description": "A ribbed, concrete-textured jar candle with a matching sculpted lid for easy reuse after burning. A refined, tactile design that blends seamlessly into neutral, elegant home décor schemes.",
+    "price": 1000,
+    "image": "/images/vinsho/products/54-concrete-ribbed-jar-candle-with-lid.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Ribbed Detailing",
+        "description": "Vertical ribbing creates a refined texture across the jar."
+      },
+      {
+        "title": "Defined Silhouette",
+        "description": "The structured form gives this piece a clean and architectural presence."
+      },
+      {
+        "title": "Functional Lid Design",
+        "description": "The accompanying lid adds another layer to the overall presentation."
+      },
+      {
+        "title": "Modern Table Accent",
+        "description": "A sophisticated addition to consoles, coffee tables, and curated corners."
+      }
+    ],
+    "closing_line": "Texture, structure, and understated elegance.",
+    "sellingPrice": 1000,
+    "mrp": 1250
+  },
+  {
+    "sku_ref": "WA-14A",
+    "slug": "mini-teddy-jar-candle",
+    "name": "MINI CAT CANDLE",
+    "category": "Jar Candle",
+    "description": "A glass jar candle topped with a miniature wax teddy bear and tiny heart accents on a stick. A cute, gift-ready design perfect for kids' rooms, baby showers, or sweet surprises.",
+    "price": 360,
+    "image": "/images/vinsho/products/53-cat-candle-unconfirmed.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Miniature Charm",
+        "description": "A compact teddy-inspired design brings instant visual warmth."
+      },
+      {
+        "title": "Playful Character",
+        "description": "Its small-scale form makes it an expressive decorative accent."
+      },
+      {
+        "title": "Thoughtful Gift",
+        "description": "An easy choice for small gestures, celebrations, and cheerful gifting."
+      },
+      {
+        "title": "Compact Display",
+        "description": "Perfect for shelves, bedside tables, desks, and smaller decorative spaces."
+      }
+    ],
+    "closing_line": "Small in size, big on charm.",
+    "sellingPrice": 360,
+    "mrp": 450,
+    "isPurchasable": true
+  },
+  {
+    "sku_ref": "PDF-01",
+    "slug": "floral-flower-box-candle",
+    "name": "pink bouquet candle",
+    "category": "Candle",
+    "description": "Hand-poured Floral Flower Box Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "price": null,
+    "image": "/products/candles/01-floral-flower-box-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Artisanal Craftsmanship",
+        "description": "Hand-poured with careful attention to form and detail."
+      },
+      {
+        "title": "Ambient Warmth",
+        "description": "Designed to enhance mood and aesthetic decor."
+      }
+    ],
+    "closing_line": "Elegance captured in candlelight."
+  },
+  {
+    "sku_ref": "PDF-02",
+    "slug": "pink-and-cream-floral-bowl-candle",
+    "name": "Pink & Cream Floral Bowl Candle",
+    "category": "Candle",
+    "description": "Hand-poured Pink & Cream Floral Bowl Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "price": null,
+    "image": "/products/candles/02-pink-and-cream-floral-bowl-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Artisanal Craftsmanship",
+        "description": "Hand-poured with careful attention to form and detail."
+      },
+      {
+        "title": "Ambient Warmth",
+        "description": "Designed to enhance mood and aesthetic decor."
+      }
+    ],
+    "closing_line": "Elegance captured in candlelight."
+  },
+  {
+    "sku_ref": "PDF-03",
+    "slug": "blue-and-white-floral-bowl-candle",
+    "name": "Blue & White Floral Bowl Candle",
+    "category": "Candle",
+    "description": "Hand-poured Blue & White Floral Bowl Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "price": null,
+    "image": "/products/candles/03-blue-and-white-floral-bowl-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Artisanal Craftsmanship",
+        "description": "Hand-poured with careful attention to form and detail."
+      },
+      {
+        "title": "Ambient Warmth",
+        "description": "Designed to enhance mood and aesthetic decor."
+      }
+    ],
+    "closing_line": "Elegance captured in candlelight."
+  },
+  {
+    "sku_ref": "PDF-04",
+    "slug": "pink-floral-bouquet-candle",
+    "name": "Pink Floral Bouquet Candle",
+    "category": "Candle",
+    "description": "Hand-poured Pink Floral Bouquet Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "price": null,
+    "image": "/products/candles/04-pink-floral-bouquet-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Artisanal Craftsmanship",
+        "description": "Hand-poured with careful attention to form and detail."
+      },
+      {
+        "title": "Ambient Warmth",
+        "description": "Designed to enhance mood and aesthetic decor."
+      }
+    ],
+    "closing_line": "Elegance captured in candlelight."
+  },
+  {
+    "sku_ref": "PDF-05",
+    "slug": "orange-floral-bouquet-candle",
+    "name": "golden bouquet",
+    "category": "Candle",
+    "description": "Hand-poured Orange Floral Bouquet Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "price": null,
+    "image": "/products/candles/05-orange-floral-bouquet-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Artisanal Craftsmanship",
+        "description": "Hand-poured with careful attention to form and detail."
+      },
+      {
+        "title": "Ambient Warmth",
+        "description": "Designed to enhance mood and aesthetic decor."
+      }
+    ],
+    "closing_line": "Elegance captured in candlelight."
+  },
+  {
+    "sku_ref": "PDF-14",
+    "slug": "caffe-latte-jar-candle",
+    "name": "Caffè Latte Jar Candle",
+    "category": "Candle",
+    "description": "Hand-poured Caffè Latte Jar Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "price": 769,
+    "image": "/products/candles/14-caffe-latte-jar-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Artisanal Craftsmanship",
+        "description": "Hand-poured with careful attention to form and detail."
+      },
+      {
+        "title": "Ambient Warmth",
+        "description": "Designed to enhance mood and aesthetic decor."
+      }
+    ],
+    "closing_line": "Elegance captured in candlelight.",
+    "sellingPrice": 769,
+    "mrp": 961,
+    "isPurchasable": true
+  },
+  {
+    "sku_ref": "PDF-33",
+    "slug": "floral-boat-candle-collection",
+    "name": "Floral Boat Candle Collection",
+    "category": "Candle",
+    "description": "Hand-poured Floral Boat Candle Collection, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "price": null,
+    "image": "/products/candles/33-floral-boat-candle-collection.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Artisanal Craftsmanship",
+        "description": "Hand-poured with careful attention to form and detail."
+      },
+      {
+        "title": "Ambient Warmth",
+        "description": "Designed to enhance mood and aesthetic decor."
+      }
+    ],
+    "closing_line": "Elegance captured in candlelight."
+  },
+  {
+    "sku_ref": "PDF-34",
+    "slug": "orange-caramel-layered-jar-candle",
+    "name": "Orange Caramel Layered Jar Candle",
+    "category": "Candle",
+    "description": "Hand-poured Orange Caramel Layered Jar Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "price": 769,
+    "image": "/products/candles/34-orange-caramel-layered-jar-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Artisanal Craftsmanship",
+        "description": "Hand-poured with careful attention to form and detail."
+      },
+      {
+        "title": "Ambient Warmth",
+        "description": "Designed to enhance mood and aesthetic decor."
+      }
+    ],
+    "closing_line": "Elegance captured in candlelight.",
+    "sellingPrice": 769,
+    "mrp": 961,
+    "isPurchasable": true
+  },
+  {
+    "sku_ref": "PDF-36",
+    "slug": "floral-relief-pillar-candle",
+    "name": "Floral Relief Pillar Candle",
+    "category": "Candle",
+    "description": "Hand-poured Floral Relief Pillar Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "price": null,
+    "image": "/products/candles/36-floral-relief-pillar-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Artisanal Craftsmanship",
+        "description": "Hand-poured with careful attention to form and detail."
+      },
+      {
+        "title": "Ambient Warmth",
+        "description": "Designed to enhance mood and aesthetic decor."
+      }
+    ],
+    "closing_line": "Elegance captured in candlelight."
+  },
+  {
+    "sku_ref": "PDF-37",
+    "slug": "rose-sculpture-pillar-candle",
+    "name": "Rose Sculpture Pillar Candle",
+    "category": "Candle",
+    "description": "Hand-poured Rose Sculpture Pillar Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "price": null,
+    "image": "/products/candles/37-rose-sculpture-pillar-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Artisanal Craftsmanship",
+        "description": "Hand-poured with careful attention to form and detail."
+      },
+      {
+        "title": "Ambient Warmth",
+        "description": "Designed to enhance mood and aesthetic decor."
+      }
+    ],
+    "closing_line": "Elegance captured in candlelight."
+  },
+  {
+    "sku_ref": "PDF-38",
+    "slug": "snowman-christmas-candle",
+    "name": "Snowman Christmas Candle",
+    "category": "Candle",
+    "description": "Hand-poured Snowman Christmas Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "price": null,
+    "image": "/products/candles/38-snowman-christmas-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Artisanal Craftsmanship",
+        "description": "Hand-poured with careful attention to form and detail."
+      },
+      {
+        "title": "Ambient Warmth",
+        "description": "Designed to enhance mood and aesthetic decor."
+      }
+    ],
+    "closing_line": "Elegance captured in candlelight."
+  },
+  {
+    "sku_ref": "PDF-39",
+    "slug": "pink-heart-scallop-jar-candle",
+    "name": "Pink Heart Scallop Jar Candle",
+    "category": "Candle",
+    "description": "Hand-poured Pink Heart Scallop Jar Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "price": null,
+    "image": "/products/candles/39-pink-heart-scallop-jar-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Artisanal Craftsmanship",
+        "description": "Hand-poured with careful attention to form and detail."
+      },
+      {
+        "title": "Ambient Warmth",
+        "description": "Designed to enhance mood and aesthetic decor."
+      }
+    ],
+    "closing_line": "Elegance captured in candlelight."
+  },
+  {
+    "sku_ref": "PDF-40",
+    "slug": "wavy-sculptural-pillar-candle",
+    "name": "Wavy Sculptural Pillar Candle",
+    "category": "Candle",
+    "description": "Hand-poured Wavy Sculptural Pillar Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "price": null,
+    "image": "/products/candles/40-wavy-sculptural-pillar-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Artisanal Craftsmanship",
+        "description": "Hand-poured with careful attention to form and detail."
+      },
+      {
+        "title": "Ambient Warmth",
+        "description": "Designed to enhance mood and aesthetic decor."
+      }
+    ],
+    "closing_line": "Elegance captured in candlelight."
+  },
+  {
+    "sku_ref": "PDF-41",
+    "slug": "crescent-moon-candle",
+    "name": "Crescent Moon jar Candle",
+    "category": "Candle",
+    "description": "Hand-poured Crescent Moon Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "price": null,
+    "image": "/products/candles/41-crescent-moon-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Artisanal Craftsmanship",
+        "description": "Hand-poured with careful attention to form and detail."
+      },
+      {
+        "title": "Ambient Warmth",
+        "description": "Designed to enhance mood and aesthetic decor."
+      }
+    ],
+    "closing_line": "Elegance captured in candlelight."
+  },
+  {
+    "sku_ref": "PDF-42",
+    "slug": "swan-sculptural-candle",
+    "name": "Swan Sculptural Candle",
+    "category": "Candle",
+    "description": "Hand-poured Swan Sculptural Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "price": null,
+    "image": "/products/candles/42-swan-sculptural-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Artisanal Craftsmanship",
+        "description": "Hand-poured with careful attention to form and detail."
+      },
+      {
+        "title": "Ambient Warmth",
+        "description": "Designed to enhance mood and aesthetic decor."
+      }
+    ],
+    "closing_line": "Elegance captured in candlelight."
+  },
+  {
+    "sku_ref": "PDF-43",
+    "slug": "black-abstract-sculptural-candle",
+    "name": "Black Abstract Sculptural Candle",
+    "category": "Candle",
+    "description": "Hand-poured Black Abstract Sculptural Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "price": null,
+    "image": "/products/candles/43-black-abstract-sculptural-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Artisanal Craftsmanship",
+        "description": "Hand-poured with careful attention to form and detail."
+      },
+      {
+        "title": "Ambient Warmth",
+        "description": "Designed to enhance mood and aesthetic decor."
+      }
+    ],
+    "closing_line": "Elegance captured in candlelight."
+  },
+  {
+    "sku_ref": "PDF-45",
+    "slug": "couple-embrace-sculptural-candle",
+    "name": "Couple Embrace Sculptural Candle",
+    "category": "Candle",
+    "description": "Hand-poured Couple Embrace Sculptural Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "price": null,
+    "image": "/products/candles/45-couple-embrace-sculptural-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Artisanal Craftsmanship",
+        "description": "Hand-poured with careful attention to form and detail."
+      },
+      {
+        "title": "Ambient Warmth",
+        "description": "Designed to enhance mood and aesthetic decor."
+      }
+    ],
+    "closing_line": "Elegance captured in candlelight."
+  },
+  {
+    "sku_ref": "PDF-47",
+    "slug": "faceted-bowl-candle",
+    "name": "Concrete Hexa Jar Candle",
+    "category": "Candle",
+    "description": "Hand-poured Faceted Bowl Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "price": null,
+    "image": "/products/candles/47-faceted-bowl-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Artisanal Craftsmanship",
+        "description": "Hand-poured with careful attention to form and detail."
+      },
+      {
+        "title": "Ambient Warmth",
+        "description": "Designed to enhance mood and aesthetic decor."
+      }
+    ],
+    "closing_line": "Elegance captured in candlelight."
+  },
+  {
+    "sku_ref": "PDF-49",
+    "slug": "seashell-sculptural-candle",
+    "name": "concrete ocean theme jar candle",
+    "category": "Candle",
+    "description": "Hand-poured Seashell Sculptural Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "price": null,
+    "image": "/products/candles/49-seashell-sculptural-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Artisanal Craftsmanship",
+        "description": "Hand-poured with careful attention to form and detail."
+      },
+      {
+        "title": "Ambient Warmth",
+        "description": "Designed to enhance mood and aesthetic decor."
+      }
+    ],
+    "closing_line": "Elegance captured in candlelight."
+  },
+  {
+    "sku_ref": "PDF-50",
+    "slug": "lavender-botanical-pillar-candle",
+    "name": "Lavender Botanical Pillar Candle",
+    "category": "Candle",
+    "description": "Hand-poured Lavender Botanical Pillar Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "price": 1000,
+    "image": "/products/candles/50-lavender-botanical-pillar-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Artisanal Craftsmanship",
+        "description": "Hand-poured with careful attention to form and detail."
+      },
+      {
+        "title": "Ambient Warmth",
+        "description": "Designed to enhance mood and aesthetic decor."
+      }
+    ],
+    "closing_line": "Elegance captured in candlelight.",
+    "sellingPrice": 1000,
+    "mrp": 1250,
+    "isPurchasable": true
+  },
+  {
+    "sku_ref": "PDF-51",
+    "slug": "sculptural-animal-bowl-candle",
+    "name": "Sculptural Animal Bowl Candle",
+    "category": "Candle",
+    "description": "Hand-poured Sculptural Animal Bowl Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "price": null,
+    "image": "/products/candles/51-sculptural-animal-bowl-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Artisanal Craftsmanship",
+        "description": "Hand-poured with careful attention to form and detail."
+      },
+      {
+        "title": "Ambient Warmth",
+        "description": "Designed to enhance mood and aesthetic decor."
+      }
+    ],
+    "closing_line": "Elegance captured in candlelight."
+  },
+  {
+    "sku_ref": "PDF-52",
+    "slug": "teddy-bear-sculptural-candle",
+    "name": "Teddy Bear Sculptural Candle",
+    "category": "Candle",
+    "description": "Hand-poured Teddy Bear Sculptural Candle, crafted with premium wax and delicate detailing to add warmth, elegance, and ambience to any space.",
+    "price": null,
+    "image": "/products/candles/52-teddy-bear-sculptural-candle.jpg",
+    "status": "draft",
+    "features": [
+      {
+        "title": "Artisanal Craftsmanship",
+        "description": "Hand-poured with careful attention to form and detail."
+      },
+      {
+        "title": "Ambient Warmth",
+        "description": "Designed to enhance mood and aesthetic decor."
+      }
+    ],
+    "closing_line": "Elegance captured in candlelight."
+  }
+]

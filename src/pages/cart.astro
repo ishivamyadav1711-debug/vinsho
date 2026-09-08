@@ -1,0 +1,901 @@
+---
+import Base from '../layouts/Base.astro';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+import Modal from '../components/Modal.astro';
+import CustomCursor from '../components/motion/CustomCursor.astro';
+import { getProductsByCollection } from '../utils/taxonomy';
+
+const upsellProducts = getProductsByCollection('gifting-collection').slice(0, 4);
+---
+
+<Base 
+  title="Your Cart | VINSHO Luxury Home Décor & Furnishings" 
+  description="Review your selected handcrafted home furnishings, décor, and gifting items in your VINSHO cart."
+>
+  <CustomCursor />
+  <Nav />
+
+  <main id="main-content" class="v-cart-page">
+    <div class="v-cart-wrapper">
+      
+      <!-- CART TOP BREADCRUMB & HEADER -->
+      <div class="v-cart-top-bar">
+        <div class="v-cart-breadcrumb">
+          <span class="step active">Cart</span>
+          <span class="sep">&rarr;</span>
+          <span class="step">Shipping</span>
+          <span class="sep">&rarr;</span>
+          <span class="step">Payment</span>
+        </div>
+
+        <div class="v-cart-header-title-group">
+          <h1 class="v-cart-heading">Your Cart</h1>
+          <span class="v-cart-count-badge" id="v-cart-count-label">0 items</span>
+        </div>
+      </div>
+
+      <!-- MAIN DESKTOP / MOBILE GRID LAYOUT -->
+      <div class="v-cart-layout-grid">
+        
+        <!-- LEFT COLUMN: SCROLLABLE PRODUCT LIST -->
+        <div class="v-cart-left-column">
+          
+          <!-- Empty Cart State -->
+          <div id="v-cart-empty-state" class="v-cart-empty-box" hidden>
+            <div class="v-empty-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M6 7h12l-1 13H7L6 7Z"/>
+                <path d="M9 7a3 3 0 0 1 6 0"/>
+              </svg>
+            </div>
+            <h2 class="v-empty-title">Your cart is empty</h2>
+            <p class="v-empty-sub">Explore our luxury handcrafted gifting collection and home décor pieces.</p>
+            <a href="/products" class="v-empty-btn">CONTINUE SHOPPING &rarr;</a>
+          </div>
+
+          <!-- SCROLLABLE PRODUCT ITEMS CONTAINER -->
+          <div class="v-cart-items-scroll-area" id="v-cart-items-scroll-area">
+            <div class="v-cart-items-list" id="v-cart-items-list">
+              <!-- Dynamically populated horizontal cards -->
+            </div>
+          </div>
+
+          <!-- CONTINUE SHOPPING LINK -->
+          <div class="v-continue-shopping-bar" id="v-continue-shopping-bar">
+            <a href="/products" class="v-continue-link">&larr; Continue Shopping</a>
+          </div>
+
+          <!-- ADD TO YOUR ORDER (UPSELL SECTION) -->
+          <section class="v-upsell-section" id="v-upsell-section">
+            <h2 class="v-upsell-heading">Add to your order</h2>
+            <p class="v-upsell-sub">Handcrafted items from our Gifting Collection eligible for instant online checkout</p>
+            
+            <div class="v-upsell-grid">
+              {upsellProducts.map((p) => (
+                <div class="v-upsell-card">
+                  <div class="v-upsell-img-wrap">
+                    <img src={p.image} alt={p.name} loading="lazy" />
+                  </div>
+                  <div class="v-upsell-info">
+                    <h3 class="v-upsell-title">{p.name}</h3>
+                    <span class="v-upsell-price">₹{(p.price || 499).toLocaleString('en-IN')}</span>
+                    <button 
+                      type="button" 
+                      class="v-upsell-add-btn"
+                      data-upsell-slug={p.slug}
+                      data-upsell-name={p.name}
+                      data-upsell-price={p.price || 499}
+                      data-upsell-image={p.image}
+                    >
+                      + Add
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+        </div>
+
+        <!-- RIGHT COLUMN: FIXED STICKY ORDER SUMMARY -->
+        <aside class="v-cart-right-column" id="v-cart-summary-aside">
+          
+          <div class="v-summary-sticky-card">
+            <h2 class="v-summary-title">ORDER SUMMARY</h2>
+
+            <div class="v-summary-lines">
+              <div class="v-summary-row">
+                <span class="lbl">Subtotal</span>
+                <span class="val" id="v-subtotal-val">₹0</span>
+              </div>
+
+              <div class="v-summary-row">
+                <span class="lbl">Shipping</span>
+                <span class="val free-tag">FREE</span>
+              </div>
+
+              <div class="v-summary-row">
+                <span class="lbl">Estimated Tax</span>
+                <span class="val">Included</span>
+              </div>
+            </div>
+
+            <div class="v-summary-divider"></div>
+
+            <div class="v-summary-total-row">
+              <span class="total-lbl">TOTAL</span>
+              <span class="total-val" id="v-total-val">₹0</span>
+            </div>
+
+            <button type="button" id="v-checkout-btn" class="v-checkout-btn" style="width: 100%; border: none; cursor: pointer;">
+              Order on WhatsApp &rarr;
+            </button>
+            <p class="v-whatsapp-support-text" style="font-size: 0.813rem; color: #6b7280; text-align: center; margin-top: 0.5rem; margin-bottom: 0;">Complete your order directly with us on WhatsApp.</p>
+
+            <div class="v-summary-trust-perks">
+              <div class="perk-item">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                <span>Encrypted &amp; Secure Checkout</span>
+              </div>
+
+              <div class="perk-item">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="1" y="3" width="15" height="13"/>
+                  <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+                  <circle cx="5.5" cy="18.5" r="2.5"/>
+                  <circle cx="18.5" cy="18.5" r="2.5"/>
+                </svg>
+                <span>Express Dispatch Across India</span>
+              </div>
+
+              <div class="perk-item">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                <span>100% Handcrafted Luxury Quality</span>
+              </div>
+            </div>
+
+          </div>
+
+        </aside>
+
+      </div>
+
+    </div>
+  </main>
+
+  <Footer />
+  <Modal />
+</Base>
+
+<script>
+  import { 
+    getLocalCartState, 
+    updateLocalCartItemQty, 
+    removeLocalCartItem, 
+    addLocalCartItem,
+    initCartStore,
+    buildWhatsAppOrderUrl
+  } from '../scripts/cart-store';
+
+  document.addEventListener('DOMContentLoaded', () => {
+    initCartStore();
+
+    const countLabel = document.getElementById('v-cart-count-label');
+    const emptyState = document.getElementById('v-cart-empty-state');
+    const scrollArea = document.getElementById('v-cart-items-scroll-area');
+    const itemsList = document.getElementById('v-cart-items-list');
+    const summaryAside = document.getElementById('v-cart-summary-aside');
+    const continueBar = document.getElementById('v-continue-shopping-bar');
+    const upsellSection = document.getElementById('v-upsell-section');
+
+    const subtotalVal = document.getElementById('v-subtotal-val');
+    const totalVal = document.getElementById('v-total-val');
+
+    function renderCart() {
+      const state = getLocalCartState();
+
+      if (countLabel) {
+        countLabel.textContent = `${state.totalQuantity} item${state.totalQuantity === 1 ? '' : 's'}`;
+      }
+
+      if (state.items.length === 0) {
+        if (emptyState) emptyState.hidden = false;
+        if (scrollArea) scrollArea.hidden = true;
+        if (summaryAside) summaryAside.hidden = true;
+        if (continueBar) continueBar.hidden = true;
+      } else {
+        if (emptyState) emptyState.hidden = true;
+        if (scrollArea) scrollArea.hidden = false;
+        if (summaryAside) summaryAside.hidden = false;
+        if (continueBar) continueBar.hidden = false;
+
+        if (itemsList) {
+          itemsList.innerHTML = state.items.map((item) => {
+            const lineTotal = item.price * item.quantity;
+            const displayName = (item.name && item.name !== item.slug)
+              ? item.name
+              : item.slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            const displayImg = item.image && item.image !== '/placeholder.png' ? item.image : `/images/candles/${item.slug}.jpg`;
+
+            return `
+              <div class="v-cart-item-card" data-id="${item.id}">
+                
+                <!-- LEFT: PRODUCT IMAGE -->
+                <div class="v-card-img-box" style="width: 90px; height: 90px; min-width: 90px; max-width: 90px; min-height: 90px; max-height: 90px; flex-shrink: 0; border-radius: 8px; overflow: hidden; background: #FAF6F0;">
+                  <img src="${displayImg}" alt="${displayName}" class="v-card-img" style="width: 100%; height: 100%; object-fit: cover; display: block;" onerror="this.onerror=null; this.src='/placeholder.png';" />
+                </div>
+
+                <!-- MIDDLE: PRODUCT DETAILS -->
+                <div class="v-card-details-box">
+                  <h3 class="v-card-title">
+                    <a href="/product/${item.slug}">${displayName}</a>
+                  </h3>
+                  
+                  <p class="v-card-meta">${item.variantTitle || 'Gifting Collection &middot; Handcrafted'}</p>
+                  
+                  <div class="v-card-stock-tag">
+                    <span class="stock-dot"></span> In Stock
+                  </div>
+
+                  <div class="v-card-actions-line">
+                    <div class="v-card-stepper">
+                      <button type="button" class="v-step-btn dec" data-dec="${item.id}" aria-label="Decrease quantity">&minus;</button>
+                      <span class="v-step-val">${item.quantity}</span>
+                      <button type="button" class="v-step-btn inc" data-inc="${item.id}" aria-label="Increase quantity">+</button>
+                    </div>
+
+                    <button type="button" class="v-card-remove-btn" data-remove="${item.id}">
+                      Remove
+                    </button>
+                  </div>
+                </div>
+
+                <!-- RIGHT: PRODUCT PRICE -->
+                <div class="v-card-price-box">
+                  <span class="v-card-price-val">₹${lineTotal.toLocaleString('en-IN')}</span>
+                </div>
+
+              </div>
+            `;
+          }).join('');
+
+          // Stepper Listeners
+          itemsList.querySelectorAll('[data-dec]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              const id = (e.currentTarget as HTMLElement).dataset.dec || '';
+              const item = state.items.find(i => i.id === id);
+              if (item) updateLocalCartItemQty(id, item.quantity - 1);
+            });
+          });
+
+          itemsList.querySelectorAll('[data-inc]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              const id = (e.currentTarget as HTMLElement).dataset.inc || '';
+              const item = state.items.find(i => i.id === id);
+              if (item) updateLocalCartItemQty(id, item.quantity + 1);
+            });
+          });
+
+          itemsList.querySelectorAll('[data-remove]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              const id = (e.currentTarget as HTMLElement).dataset.remove || '';
+              removeLocalCartItem(id);
+            });
+          });
+        }
+
+        const subtotal = state.subtotal || 0;
+        const finalTotal = subtotal;
+
+        if (subtotalVal) subtotalVal.textContent = `₹${subtotal.toLocaleString('en-IN')}`;
+        if (totalVal) totalVal.textContent = `₹${finalTotal.toLocaleString('en-IN')}`;
+      }
+    }
+
+    // Upsell Add to Cart Listeners
+    document.querySelectorAll('[data-upsell-slug]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const target = e.currentTarget as HTMLElement;
+        const slug = target.dataset.upsellSlug || '';
+        const name = target.dataset.upsellName || '';
+        const price = parseFloat(target.dataset.upsellPrice || '499');
+        const image = target.dataset.upsellImage || '/placeholder.png';
+
+        addLocalCartItem({ slug, name, price, image, quantity: 1 });
+      });
+    });
+
+    const checkoutBtn = document.getElementById('v-checkout-btn');
+    checkoutBtn?.addEventListener('click', () => {
+      const state = getLocalCartState();
+      if (!state.items || state.items.length === 0) return;
+
+      const whatsappUrl = buildWhatsAppOrderUrl(state.items, state.subtotal);
+      const win = window.open(whatsappUrl, '_blank');
+      if (!win || win.closed || typeof win.closed === 'undefined') {
+        window.location.href = whatsappUrl;
+      }
+    });
+
+    window.addEventListener('vinsho:cart-updated', renderCart);
+    renderCart();
+  });
+</script>
+
+<style is:global>
+  /* ----------------------------------------------------
+     VINSHO LUXURY CART PAGE - REBUILT STYLES
+  ---------------------------------------------------- */
+  .v-cart-page {
+    background-color: #FAF6F0;
+    color: #3E3336;
+    padding-block: clamp(2rem, 4vw, 4rem);
+    min-height: 85vh;
+  }
+
+  .v-cart-wrapper {
+    max-width: 1280px;
+    margin-inline: auto;
+    padding-inline: clamp(1rem, 3.5vw, 2.5rem);
+  }
+
+  /* TOP BREADCRUMB & HEADER */
+  .v-cart-top-bar {
+    margin-bottom: 2rem;
+  }
+
+  .v-cart-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.813rem;
+    color: #8A7D77;
+    margin-bottom: 0.75rem;
+  }
+
+  .v-cart-breadcrumb .step.active {
+    color: #8A174B;
+    font-weight: 700;
+  }
+
+  .v-cart-breadcrumb .sep {
+    color: #8A7D77;
+    opacity: 0.6;
+  }
+
+  .v-cart-header-title-group {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    border-bottom: 1px solid rgba(138, 23, 75, 0.12);
+    padding-bottom: 1.25rem;
+  }
+
+  .v-cart-heading {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    color: #8A174B;
+    margin: 0;
+    font-weight: 600;
+  }
+
+  .v-cart-count-badge {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #8A7D77;
+    letter-spacing: 0.05em;
+  }
+
+  /* LAYOUT GRID: LEFT PRODUCT COLUMN + RIGHT SUMMARY COLUMN */
+  .v-cart-layout-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 380px;
+    gap: 2.5rem;
+    align-items: start;
+  }
+
+  @media (max-width: 992px) {
+    .v-cart-layout-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* ----------------------------------------------------
+     LEFT COLUMN: SCROLLABLE PRODUCT LIST
+  ---------------------------------------------------- */
+  .v-cart-left-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    min-width: 0;
+  }
+
+  /* DESKTOP SCROLLABLE CONTAINER FOR PRODUCTS */
+  @media (min-width: 993px) {
+    .v-cart-items-scroll-area {
+      max-height: clamp(500px, 68vh, 800px);
+      overflow-y: auto;
+      padding-right: 0.75rem;
+    }
+
+    /* Custom Scrollbar for Luxury Aesthetics */
+    .v-cart-items-scroll-area::-webkit-scrollbar {
+      width: 6px;
+    }
+    .v-cart-items-scroll-area::-webkit-scrollbar-track {
+      background: rgba(138, 23, 75, 0.04);
+      border-radius: 999px;
+    }
+    .v-cart-items-scroll-area::-webkit-scrollbar-thumb {
+      background: rgba(138, 23, 75, 0.25);
+      border-radius: 999px;
+    }
+    .v-cart-items-scroll-area::-webkit-scrollbar-thumb:hover {
+      background: #8A174B;
+    }
+  }
+
+  .v-cart-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  /* HORIZONTAL PRODUCT CARD STRUCTURE */
+  .v-cart-item-card {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    background: #ffffff;
+    border: 1px solid rgba(138, 23, 75, 0.12);
+    border-radius: 12px;
+    padding: 1.25rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .v-cart-item-card:hover {
+    box-shadow: 0 4px 16px rgba(138, 23, 75, 0.08);
+  }
+
+  /* 1. PRODUCT IMAGE */
+  .v-card-img-box {
+    width: 90px !important;
+    height: 90px !important;
+    min-width: 90px !important;
+    max-width: 90px !important;
+    min-height: 90px !important;
+    max-height: 90px !important;
+    flex-shrink: 0 !important;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #FAF6F0;
+  }
+
+  .v-card-img {
+    width: 100% !important;
+    height: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+  }
+
+  /* 2. PRODUCT DETAILS */
+  .v-card-details-box {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .v-card-title {
+    margin: 0 0 0.25rem;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .v-card-title a {
+    text-decoration: none;
+    color: #3E3336;
+    transition: color 0.2s;
+  }
+
+  .v-card-title a:hover {
+    color: #8A174B;
+  }
+
+  .v-card-meta {
+    font-size: 0.813rem;
+    color: #8A7D77;
+    margin: 0 0 0.5rem;
+  }
+
+  .v-card-stock-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #166534;
+    margin-bottom: 0.75rem;
+  }
+
+  .v-card-stock-tag .stock-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: #22c55e;
+  }
+
+  /* STEPPER & REMOVE BUTTONS LINE */
+  .v-card-actions-line {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+  }
+
+  .v-card-stepper {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: #FAF6F0;
+    border: 1px solid rgba(138, 23, 75, 0.15);
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+  }
+
+  .v-step-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #8A174B;
+    line-height: 1;
+    padding: 0 0.2rem;
+  }
+
+  .v-step-val {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #3E3336;
+    min-width: 1.2rem;
+    text-align: center;
+  }
+
+  .v-card-remove-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 0.813rem;
+    color: #8A7D77;
+    text-decoration: underline;
+    transition: color 0.2s;
+  }
+
+  .v-card-remove-btn:hover {
+    color: #b91c1c;
+  }
+
+  /* 3. PRICE ALIGNED TO RIGHT */
+  .v-card-price-box {
+    text-align: right;
+    padding-left: 0.5rem;
+  }
+
+  .v-card-price-val {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #8A174B;
+    white-space: nowrap;
+  }
+
+  /* CONTINUE SHOPPING BAR */
+  .v-continue-shopping-bar {
+    padding-top: 0.5rem;
+  }
+
+  .v-continue-link {
+    display: inline-block;
+    color: #8A174B;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: opacity 0.2s;
+  }
+
+  .v-continue-link:hover {
+    text-decoration: underline;
+  }
+
+  /* UPSELL "ADD TO YOUR ORDER" SECTION */
+  .v-upsell-section {
+    margin-top: 1.5rem;
+    background: #ffffff;
+    border: 1px solid rgba(138, 23, 75, 0.12);
+    border-radius: 12px;
+    padding: 1.5rem;
+  }
+
+  .v-upsell-heading {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.25rem;
+    color: #8A174B;
+    margin: 0 0 0.25rem;
+  }
+
+  .v-upsell-sub {
+    font-size: 0.813rem;
+    color: #8A7D77;
+    margin: 0 0 1.25rem;
+  }
+
+  .v-upsell-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 1rem;
+  }
+
+  .v-upsell-card {
+    background: #FAF6F0;
+    border: 1px solid rgba(138, 23, 75, 0.1);
+    border-radius: 8px;
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .v-upsell-img-wrap {
+    width: 70px;
+    height: 70px;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+  }
+
+  .v-upsell-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .v-upsell-title {
+    font-size: 0.781rem;
+    font-weight: 600;
+    margin: 0 0 0.25rem;
+    color: #3E3336;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    height: 2.2em;
+  }
+
+  .v-upsell-price {
+    font-size: 0.813rem;
+    font-weight: 700;
+    color: #8A174B;
+    margin-bottom: 0.5rem;
+    display: block;
+  }
+
+  .v-upsell-add-btn {
+    width: 100%;
+    padding: 0.35rem 0.5rem;
+    background: #8A174B;
+    color: #ffffff;
+    border: none;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .v-upsell-add-btn:hover {
+    opacity: 0.9;
+  }
+
+  /* EMPTY CART STATE */
+  .v-cart-empty-box {
+    background: #ffffff;
+    border: 1px solid rgba(138, 23, 75, 0.12);
+    border-radius: 12px;
+    padding: 4rem 2rem;
+    text-align: center;
+  }
+
+  .v-empty-icon {
+    color: #8A174B;
+    margin-bottom: 1rem;
+  }
+
+  .v-empty-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    color: #8A174B;
+    margin: 0 0 0.5rem;
+  }
+
+  .v-empty-sub {
+    color: #8A7D77;
+    font-size: 0.9rem;
+    margin: 0 0 1.5rem;
+  }
+
+  .v-empty-btn {
+    display: inline-block;
+    padding: 0.85rem 2rem;
+    background: #8A174B;
+    color: #ffffff;
+    border-radius: 999px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.813rem;
+    letter-spacing: 0.05em;
+  }
+
+  /* ----------------------------------------------------
+     RIGHT COLUMN: FIXED STICKY ORDER SUMMARY
+  ---------------------------------------------------- */
+  .v-cart-right-column {
+    min-width: 0;
+  }
+
+  .v-summary-sticky-card {
+    position: sticky;
+    top: 100px; /* Remains fixed on desktop while product list scrolls! */
+    background: #ffffff;
+    border: 1px solid rgba(138, 23, 75, 0.12);
+    border-radius: 12px;
+    padding: 1.75rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
+  }
+
+  .v-summary-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem;
+    color: #8A174B;
+    margin: 0 0 1.25rem;
+    font-weight: 600;
+  }
+
+  .v-summary-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .v-summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: #3E3336;
+  }
+
+  .v-summary-row .free-tag {
+    color: #166534;
+    font-weight: 700;
+  }
+
+  .v-summary-divider {
+    height: 1px;
+    background: rgba(138, 23, 75, 0.12);
+    margin-block: 1.25rem;
+  }
+
+  .v-summary-total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 1.5rem;
+  }
+
+  .v-summary-total-row .total-lbl {
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: 0.05em;
+  }
+
+  .v-summary-total-row .total-val {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #8A174B;
+  }
+
+  .v-checkout-btn {
+    display: block;
+    width: 100%;
+    text-align: center;
+    background: #8A174B;
+    color: #ffffff;
+    padding: 1rem;
+    border-radius: 999px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 0.875rem;
+    letter-spacing: 0.1em;
+    box-shadow: 0 4px 12px rgba(138, 23, 75, 0.25);
+    transition: opacity 0.2s, transform 0.2s;
+  }
+
+  .v-checkout-btn:hover {
+    opacity: 0.95;
+    transform: translateY(-1px);
+  }
+
+  /* TRUST & DELIVERY PERKS */
+  .v-summary-trust-perks {
+    margin-top: 1.75rem;
+    padding-top: 1.25rem;
+    border-top: 1px dashed rgba(138, 23, 75, 0.15);
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .perk-item {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    font-size: 0.813rem;
+    color: #8A7D77;
+  }
+
+  .perk-item svg {
+    color: #8A174B;
+    flex-shrink: 0;
+  }
+
+  /* ----------------------------------------------------
+     RESPONSIVE MOBILE STYLES (<= 767px)
+  ---------------------------------------------------- */
+  @media (max-width: 767px) {
+    .v-cart-item-card {
+      padding: 1rem;
+      gap: 0.85rem;
+      position: relative;
+      flex-wrap: wrap;
+    }
+
+    .v-card-img-box {
+      width: 80px;
+      height: 80px;
+    }
+
+    .v-card-details-box {
+      flex: 1;
+    }
+
+    .v-card-price-box {
+      width: 100%;
+      text-align: left;
+      border-top: 1px solid rgba(138, 23, 75, 0.08);
+      padding-top: 0.5rem;
+      margin-top: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .v-card-price-box::before {
+      content: 'Item Subtotal:';
+      font-size: 0.813rem;
+      color: #8A7D77;
+      font-weight: 500;
+    }
+
+    .v-summary-sticky-card {
+      position: static;
+    }
+  }
+</style>

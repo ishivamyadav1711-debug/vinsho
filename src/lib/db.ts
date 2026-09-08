@@ -51,6 +51,9 @@ export function initDatabase() {
       subcategory_id INTEGER NOT NULL,
       description TEXT DEFAULT '',
       description_source TEXT DEFAULT 'placeholder',
+      tagline TEXT DEFAULT '',
+      features TEXT DEFAULT '[]',
+      closing_line TEXT DEFAULT '',
       material TEXT DEFAULT '',
       shipping_class TEXT NOT NULL DEFAULT 'standard',
       launch_phase INTEGER NOT NULL DEFAULT 1,
@@ -176,11 +179,25 @@ export function initDatabase() {
       last_order_at TEXT DEFAULT NULL,
       total_orders INTEGER DEFAULT 0,
       total_spend REAL DEFAULT 0,
+      password_hash TEXT DEFAULT NULL,
+      reset_token TEXT DEFAULT NULL,
+      reset_expires INTEGER DEFAULT NULL,
       consent_at TEXT DEFAULT NULL,
       consent_purpose TEXT DEFAULT NULL,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL,
       deleted_at TEXT DEFAULT NULL
+    );
+
+    -- Customer Sessions Table
+    CREATE TABLE IF NOT EXISTS customer_sessions (
+      token TEXT PRIMARY KEY,
+      customer_id INTEGER NOT NULL,
+      expires_at INTEGER NOT NULL,
+      ip TEXT DEFAULT '',
+      user_agent TEXT DEFAULT '',
+      created_at TEXT NOT NULL,
+      FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE CASCADE
     );
 
     -- M2 Table 2: Enquiries
@@ -250,7 +267,7 @@ export function initDatabase() {
     CREATE TABLE IF NOT EXISTS tags (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT UNIQUE NOT NULL,
-      colour TEXT NOT NULL DEFAULT '#670832',
+      colour TEXT NOT NULL DEFAULT '#8A174B',
       created_at TEXT NOT NULL
     );
 
@@ -284,30 +301,6 @@ export function initDatabase() {
       attempts INTEGER DEFAULT 1,
       first_attempt_at INTEGER NOT NULL,
       blocked_until INTEGER DEFAULT 0
-    );
-
-    -- M3 Table 1: Carts
-    CREATE TABLE IF NOT EXISTS carts (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      customer_id INTEGER DEFAULT NULL,
-      session_token TEXT UNIQUE NOT NULL,
-      status TEXT NOT NULL DEFAULT 'ACTIVE',
-      expires_at TEXT NOT NULL,
-      created_at TEXT NOT NULL,
-      updated_at TEXT NOT NULL,
-      FOREIGN KEY (customer_id) REFERENCES customers(id) ON DELETE SET NULL
-    );
-
-    -- M3 Table 2: Cart Items
-    CREATE TABLE IF NOT EXISTS cart_items (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      cart_id INTEGER NOT NULL,
-      variant_id INTEGER NOT NULL,
-      qty INTEGER NOT NULL DEFAULT 1,
-      unit_price_snapshot REAL NOT NULL,
-      created_at TEXT NOT NULL,
-      FOREIGN KEY (cart_id) REFERENCES carts(id) ON DELETE CASCADE,
-      FOREIGN KEY (variant_id) REFERENCES product_variants(id) ON DELETE CASCADE
     );
 
     -- M3 Table 3: Customer Addresses
@@ -380,9 +373,48 @@ export function initDatabase() {
       amount REAL NOT NULL,
       status TEXT NOT NULL,
       method TEXT DEFAULT 'HOSTED_CHECKOUT',
+      refund_amount REAL DEFAULT 0,
+      refund_status TEXT DEFAULT 'NONE',
+      refunded_at TEXT DEFAULT NULL,
+      failure_reason TEXT DEFAULT NULL,
       raw_payload TEXT DEFAULT NULL,
       created_at TEXT NOT NULL,
       FOREIGN KEY (order_id) REFERENCES orders(id)
+    );
+
+    -- Quotations Table
+    CREATE TABLE IF NOT EXISTS quotations (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      quote_number TEXT UNIQUE NOT NULL,
+      customer_id INTEGER NOT NULL,
+      enquiry_id INTEGER DEFAULT NULL,
+      created_by INTEGER NOT NULL,
+      status TEXT NOT NULL DEFAULT 'DRAFT',
+      subtotal REAL NOT NULL DEFAULT 0,
+      discount_total REAL NOT NULL DEFAULT 0,
+      tax_total REAL NOT NULL DEFAULT 0,
+      shipping_total REAL NOT NULL DEFAULT 0,
+      grand_total REAL NOT NULL DEFAULT 0,
+      valid_until TEXT NOT NULL,
+      notes TEXT DEFAULT '',
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY (customer_id) REFERENCES customers(id),
+      FOREIGN KEY (created_by) REFERENCES admin_users(id)
+    );
+
+    -- Quotation Line Items Table
+    CREATE TABLE IF NOT EXISTS quotation_items (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      quotation_id INTEGER NOT NULL,
+      variant_id INTEGER NOT NULL,
+      product_name_snapshot TEXT NOT NULL,
+      variant_label_snapshot TEXT NOT NULL,
+      unit_price REAL NOT NULL,
+      qty INTEGER NOT NULL DEFAULT 1,
+      discount REAL DEFAULT 0,
+      line_total REAL NOT NULL,
+      FOREIGN KEY (quotation_id) REFERENCES quotations(id) ON DELETE CASCADE
     );
 
     -- M3 Table 7: Payment Events (Webhook Idempotency)
@@ -500,6 +532,71 @@ export function initDatabase() {
     CREATE INDEX IF NOT EXISTS idx_returns_order ON returns(order_id);
     CREATE INDEX IF NOT EXISTS idx_returns_status ON returns(status);
   `);
+
+  // Auto-migrate new product text columns if missing
+  const cols = db.prepare("PRAGMA table_info(products)").all() as any[];
+  const colNames = new Set(cols.map((c) => c.name));
+  if (!colNames.has('tagline')) {
+    db.exec("ALTER TABLE products ADD COLUMN tagline TEXT DEFAULT ''");
+  }
+  if (!colNames.has('features')) {
+    db.exec("ALTER TABLE products ADD COLUMN features TEXT DEFAULT '[]'");
+  }
+  if (!colNames.has('closing_line')) {
+    db.exec("ALTER TABLE products ADD COLUMN closing_line TEXT DEFAULT ''");
+  }
+  if (!colNames.has('gift_eligible')) {
+    db.exec("ALTER TABLE products ADD COLUMN gift_eligible INTEGER NOT NULL DEFAULT 0");
+  }
+
+  // Auto-migrate orders columns if missing
+  const orderCols = db.prepare("PRAGMA table_info(orders)").all() as any[];
+  const orderColNames = new Set(orderCols.map((c) => c.name));
+  if (!orderColNames.has('discount_total')) {
+    db.exec("ALTER TABLE orders ADD COLUMN discount_total REAL DEFAULT 0");
+  }
+  if (!orderColNames.has('currency')) {
+    db.exec("ALTER TABLE orders ADD COLUMN currency TEXT NOT NULL DEFAULT 'INR'");
+  }
+  if (!orderColNames.has('is_interstate')) {
+    db.exec("ALTER TABLE orders ADD COLUMN is_interstate INTEGER NOT NULL DEFAULT 0");
+  }
+  if (!orderColNames.has('idempotency_key')) {
+    db.exec("ALTER TABLE orders ADD COLUMN idempotency_key TEXT UNIQUE DEFAULT NULL");
+  }
+  if (!orderColNames.has('coupon_code')) {
+    db.exec("ALTER TABLE orders ADD COLUMN coupon_code TEXT DEFAULT NULL");
+  }
+
+  // Auto-migrate combo_items table if missing
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS combo_items (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      combo_variant_id INTEGER NOT NULL,
+      component_variant_id INTEGER NOT NULL,
+      quantity INTEGER NOT NULL DEFAULT 1 CHECK (quantity > 0),
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      FOREIGN KEY (combo_variant_id) REFERENCES product_variants(id) ON DELETE CASCADE,
+      FOREIGN KEY (component_variant_id) REFERENCES product_variants(id) ON DELETE CASCADE,
+      UNIQUE(combo_variant_id, component_variant_id)
+    );
+    CREATE INDEX IF NOT EXISTS idx_combo_items_combo ON combo_items(combo_variant_id);
+    CREATE INDEX IF NOT EXISTS idx_combo_items_component ON combo_items(component_variant_id);
+  `);
+
+  // Auto-migrate customers columns if missing
+  const custCols = db.prepare("PRAGMA table_info(customers)").all() as any[];
+  const custColNames = new Set(custCols.map((c) => c.name));
+  if (!custColNames.has('password_hash')) {
+    db.exec("ALTER TABLE customers ADD COLUMN password_hash TEXT DEFAULT NULL");
+  }
+  if (!custColNames.has('reset_token')) {
+    db.exec("ALTER TABLE customers ADD COLUMN reset_token TEXT DEFAULT NULL");
+  }
+  if (!custColNames.has('reset_expires')) {
+    db.exec("ALTER TABLE customers ADD COLUMN reset_expires INTEGER DEFAULT NULL");
+  }
 }
 
 /**
@@ -569,3 +666,23 @@ export function logAuditAction(params: {
 
 // Initialize tables on load
 initDatabase();
+
+// Graceful Shutdown Handler: Closes SQLite WAL checkpoints cleanly on server termination
+function gracefulShutdown(signal: string) {
+  console.log(`[SERVER SHUTDOWN] Received ${signal}. Closing SQLite database connection cleanly...`);
+  try {
+    if (db && db.open) {
+      db.pragma('wal_checkpoint(TRUNCATE)');
+      db.close();
+      console.log('[SERVER SHUTDOWN] SQLite database closed successfully.');
+    }
+  } catch (err: any) {
+    console.error('[SERVER SHUTDOWN ERROR]', err);
+  }
+}
+
+if (typeof process !== 'undefined') {
+  process.once('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.once('SIGINT', () => gracefulShutdown('SIGINT'));
+}
+

@@ -1,0 +1,791 @@
+---
+import Base from '../../layouts/Base.astro';
+import Nav from '../../components/Nav.astro';
+import Footer from '../../components/Footer.astro';
+import { getCustomerFromSession } from '../../lib/customerAuth';
+import { db } from '../../lib/db';
+
+const customer = getCustomerFromSession(Astro.request);
+if (!customer) {
+  return Astro.redirect('/login?redirect=/account');
+}
+
+// Fetch orders belonging to authenticated customer
+const orders = db.prepare(`
+  SELECT id, order_number, status, payment_status, subtotal, tax_total, shipping_total, discount_total, grand_total, currency, placed_at, created_at
+  FROM orders
+  WHERE customer_id = ?
+  ORDER BY id DESC
+`).all(customer.id) as any[];
+
+const enrichedOrders = orders.map((o) => {
+  const items = db.prepare(`
+    SELECT oi.id, oi.product_name_snapshot, oi.variant_label_snapshot, oi.unit_price_snapshot, oi.qty, oi.line_total, p_img.url as image_url
+    FROM order_items oi
+    LEFT JOIN product_variants pv ON oi.variant_id = pv.id
+    LEFT JOIN product_images p_img ON (p_img.product_id = pv.product_id AND p_img.is_primary = 1)
+    WHERE oi.order_id = ?
+  `).all(o.id);
+  return { ...o, items };
+});
+
+// Fetch customer saved addresses
+const addresses = db.prepare(`
+  SELECT * FROM addresses WHERE customer_id = ? ORDER BY id DESC
+`).all(customer.id);
+---
+
+<Base title="My Account | VINSHO" description="Manage your VINSHO profile, saved addresses and view order history.">
+  <Nav />
+
+  <main class="account-page-wrapper">
+    <div class="account-container wrap">
+      
+      <!-- Top Account Hero Banner -->
+      <div class="account-header-card">
+        <div class="user-greeting-group">
+          <div class="user-avatar-circle">
+            {customer.name ? customer.name.charAt(0).toUpperCase() : 'U'}
+          </div>
+          <div>
+            <span class="acc-eyebrow">MY ACCOUNT</span>
+            <h1 class="acc-greeting-title">Hello, {customer.name}</h1>
+            <p class="acc-meta-info">{customer.email || 'No email registered'} &bull; {customer.phone}</p>
+          </div>
+        </div>
+
+        <button id="account-logout-btn" class="acc-logout-header-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          <span>LOGOUT</span>
+        </button>
+      </div>
+
+      <!-- Main Account Layout (Navigation Tabs + Content Panel) -->
+      <div class="account-main-grid">
+        
+        <!-- Navigation Sidebar / Tabs -->
+        <aside class="account-nav-aside" aria-label="Account Menu">
+          <div class="nav-pill-list" role="tablist">
+            <button class="acc-tab-btn active" data-tab="orders" role="tab" aria-selected="true" aria-controls="panel-orders">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <path d="M16 10a4 4 0 0 1-8 0"/>
+              </svg>
+              <span>My Orders</span>
+              <span class="tab-badge">{enrichedOrders.length}</span>
+            </button>
+
+            <button class="acc-tab-btn" data-tab="addresses" role="tab" aria-selected="false" aria-controls="panel-addresses">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+              <span>Saved Addresses</span>
+              <span class="tab-badge">{addresses.length}</span>
+            </button>
+
+            <button class="acc-tab-btn" data-tab="profile" role="tab" aria-selected="false" aria-controls="panel-profile">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+              <span>Personal Profile</span>
+            </button>
+          </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="account-content-area">
+          
+          <!-- TAB PANEL 1: MY ORDERS -->
+          <section id="panel-orders" class="acc-tab-panel active" role="tabpanel">
+            <div class="panel-head-bar">
+              <h2>My Orders ({enrichedOrders.length})</h2>
+              <p>View and track all your previous purchases</p>
+            </div>
+
+            {enrichedOrders.length === 0 ? (
+              <div class="acc-empty-card">
+                <div class="empty-icon-wrap">
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                    <line x1="3" y1="6" x2="21" y2="6"/>
+                    <path d="M16 10a4 4 0 0 1-8 0"/>
+                  </svg>
+                </div>
+                <h3>No orders placed yet</h3>
+                <p>Your purchased products will appear here once you place an order.</p>
+                <a href="/products" class="acc-empty-cta">BROWSE CATALOGUE &rarr;</a>
+              </div>
+            ) : (
+              <div class="orders-card-list">
+                {enrichedOrders.map((ord) => {
+                  const formattedDate = ord.placed_at ? new Date(ord.placed_at).toLocaleDateString('en-IN', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric'
+                  }) : 'Recently';
+
+                  return (
+                    <article class="order-summary-card">
+                      <div class="order-card-header">
+                        <div class="ord-meta-left">
+                          <span class="ord-num">Order #{ord.order_number}</span>
+                          <span class="ord-date">{formattedDate}</span>
+                        </div>
+                        <div class="ord-status-tags">
+                          <span class={`status-badge ${ord.status.toLowerCase()}`}>
+                            {ord.status}
+                          </span>
+                          <span class={`payment-badge ${ord.payment_status.toLowerCase()}`}>
+                            {ord.payment_status === 'paid' ? 'Paid' : 'Payment Pending'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div class="order-items-preview">
+                        {ord.items.slice(0, 3).map((item: any) => (
+                          <div class="preview-item">
+                            <div class="item-img-box">
+                              <img src={item.image_url || '/placeholder.png'} alt={item.product_name_snapshot} onerror="this.onerror=null; this.src='/placeholder.png';" />
+                            </div>
+                            <div class="item-info-box">
+                              <h4 class="item-title">{item.product_name_snapshot}</h4>
+                              <span class="item-spec">{item.variant_label_snapshot} &bull; Qty: {item.qty}</span>
+                            </div>
+                            <span class="item-price">₹{item.line_total.toLocaleString('en-IN')}</span>
+                          </div>
+                        ))}
+                        {ord.items.length > 3 && (
+                          <div class="more-items-note">
+                            + {ord.items.length - 3} more item(s) in this order
+                          </div>
+                        )}
+                      </div>
+
+                      <div class="order-card-footer">
+                        <div class="total-box">
+                          <span class="total-lbl">Total Amount</span>
+                          <span class="total-val">₹{ord.grand_total.toLocaleString('en-IN')}</span>
+                        </div>
+
+                        <a href={`/account/orders/${ord.id}`} class="view-ord-btn">
+                          VIEW ORDER DETAILS &rarr;
+                        </a>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+
+          <!-- TAB PANEL 2: SAVED ADDRESSES -->
+          <section id="panel-addresses" class="acc-tab-panel" role="tabpanel" hidden>
+            <div class="panel-head-bar">
+              <h2>Saved Addresses</h2>
+              <p>Your default shipping addresses for fast checkout</p>
+            </div>
+
+            {addresses.length === 0 ? (
+              <div class="acc-empty-card">
+                <h3>No saved addresses yet</h3>
+                <p>Addresses used during checkout will automatically be saved here.</p>
+              </div>
+            ) : (
+              <div class="addresses-grid">
+                {addresses.map((addr: any) => (
+                  <div class="address-card">
+                    <div class="addr-header">
+                      <strong>{addr.name}</strong>
+                      <span class="addr-tag">{addr.type}</span>
+                    </div>
+                    <p class="addr-lines">
+                      {addr.line1}{addr.line2 ? `, ${addr.line2}` : ''}<br />
+                      {addr.city}, {addr.state} &ndash; {addr.pincode}<br />
+                      {addr.country}
+                    </p>
+                    <p class="addr-phone">Phone: {addr.phone}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <!-- TAB PANEL 3: PERSONAL PROFILE -->
+          <section id="panel-profile" class="acc-tab-panel" role="tabpanel" hidden>
+            <div class="panel-head-bar">
+              <h2>Personal Profile</h2>
+              <p>Manage your account details and contact information</p>
+            </div>
+
+            <div class="profile-card">
+              <div class="profile-row">
+                <span class="prof-lbl">Full Name:</span>
+                <strong class="prof-val">{customer.name}</strong>
+              </div>
+              <div class="profile-row">
+                <span class="prof-lbl">Email Address:</span>
+                <strong class="prof-val">{customer.email || 'Not provided'}</strong>
+              </div>
+              <div class="profile-row">
+                <span class="prof-lbl">Phone Number:</span>
+                <strong class="prof-val">{customer.phone}</strong>
+              </div>
+              <div class="profile-row">
+                <span class="prof-lbl">Account Status:</span>
+                <span class="status-badge active">Active Customer</span>
+              </div>
+            </div>
+          </section>
+
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <Footer />
+</Base>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Tab Switching Logic
+    const tabBtns = document.querySelectorAll('.acc-tab-btn');
+    const tabPanels = document.querySelectorAll('.acc-tab-panel');
+
+    tabBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const targetTab = btn.getAttribute('data-tab');
+
+        tabBtns.forEach(b => {
+          b.classList.remove('active');
+          b.setAttribute('aria-selected', 'false');
+        });
+
+        tabPanels.forEach(p => {
+          (p as HTMLElement).hidden = true;
+          p.classList.remove('active');
+        });
+
+        btn.classList.add('active');
+        btn.setAttribute('aria-selected', 'true');
+
+        const activePanel = document.getElementById(`panel-${targetTab}`);
+        if (activePanel) {
+          activePanel.hidden = false;
+          activePanel.classList.add('active');
+        }
+      });
+    });
+
+    // Logout Button Handler
+    const logoutBtn = document.getElementById('account-logout-btn');
+    logoutBtn?.addEventListener('click', async () => {
+      if (!confirm('Are you sure you want to log out?')) return;
+
+      try {
+        await fetch('/api/account', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'logout' })
+        });
+        window.location.href = '/login';
+      } catch (err) {
+        window.location.href = '/login';
+      }
+    });
+  });
+</script>
+
+<style>
+  .account-page-wrapper {
+    background-color: #FAF6F0;
+    padding-block: clamp(1.75rem, 4vw, 3.5rem);
+    min-height: 80vh;
+  }
+
+  .account-container {
+    max-width: 1200px;
+    margin-inline: auto;
+  }
+
+  /* TOP HERO CARD */
+  .account-header-card {
+    background: #ffffff;
+    border: 1px solid rgba(138, 23, 75, 0.12);
+    border-radius: 16px;
+    padding: clamp(1.25rem, 3vw, 2rem);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    box-shadow: 0 4px 20px rgba(138, 23, 75, 0.04);
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .user-greeting-group {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+  }
+
+  .user-avatar-circle {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #8A174B;
+    color: #ffffff;
+    font-family: var(--serif, serif);
+    font-size: 1.75rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(138, 23, 75, 0.2);
+  }
+
+  .acc-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    color: var(--pink, #CD788F);
+  }
+
+  .acc-greeting-title {
+    font-family: var(--serif, serif);
+    font-size: clamp(1.5rem, 3vw, 2.1rem);
+    color: var(--maroon, #8A174B);
+    margin: 0.15rem 0 0.25rem;
+    font-weight: 600;
+  }
+
+  .acc-meta-info {
+    font-size: 0.844rem;
+    color: var(--ink-soft, #7C6B6E);
+    margin: 0;
+  }
+
+  .acc-logout-header-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: transparent;
+    border: 1.5px solid rgba(138, 23, 75, 0.2);
+    color: var(--maroon, #8A174B);
+    padding: 0.6rem 1.15rem;
+    border-radius: 999px;
+    font-size: 0.781rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .acc-logout-header-btn:hover {
+    background: #8A174B;
+    border-color: #8A174B;
+    color: #ffffff;
+  }
+
+  /* MAIN GRID LAYOUT */
+  .account-main-grid {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 2rem;
+    align-items: start;
+  }
+
+  @media (max-width: 860px) {
+    .account-main-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* ASIDE NAV TABS */
+  .account-nav-aside {
+    background: #ffffff;
+    border: 1px solid rgba(138, 23, 75, 0.12);
+    border-radius: 12px;
+    padding: 0.75rem;
+  }
+
+  .nav-pill-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .acc-tab-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border-radius: 8px;
+    background: transparent;
+    border: none;
+    color: var(--ink, #3E3336);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    text-align: left;
+  }
+
+  .acc-tab-btn:hover {
+    background: #FAF6F0;
+    color: var(--maroon, #8A174B);
+  }
+
+  .acc-tab-btn.active {
+    background: #8A174B;
+    color: #ffffff;
+  }
+
+  .tab-badge {
+    margin-left: auto;
+    background: rgba(138, 23, 75, 0.1);
+    color: var(--maroon, #8A174B);
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+  }
+
+  .acc-tab-btn.active .tab-badge {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+  }
+
+  /* CONTENT AREA */
+  .account-content-area {
+    min-width: 0;
+  }
+
+  .panel-head-bar {
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(138, 23, 75, 0.1);
+    padding-bottom: 0.85rem;
+  }
+
+  .panel-head-bar h2 {
+    font-family: var(--serif, serif);
+    font-size: 1.45rem;
+    color: var(--maroon, #8A174B);
+    margin: 0 0 0.25rem;
+  }
+
+  .panel-head-bar p {
+    font-size: 0.844rem;
+    color: var(--ink-soft, #7C6B6E);
+    margin: 0;
+  }
+
+  /* EMPTY CARD STATE */
+  .acc-empty-card {
+    background: #ffffff;
+    border: 1px solid rgba(138, 23, 75, 0.12);
+    border-radius: 12px;
+    padding: 3.5rem 2rem;
+    text-align: center;
+  }
+
+  .empty-icon-wrap {
+    color: var(--maroon, #8A174B);
+    margin-bottom: 1rem;
+  }
+
+  .acc-empty-card h3 {
+    font-family: var(--serif, serif);
+    font-size: 1.4rem;
+    color: var(--maroon, #8A174B);
+    margin: 0 0 0.5rem;
+  }
+
+  .acc-empty-card p {
+    font-size: 0.875rem;
+    color: var(--ink-soft, #7C6B6E);
+    margin: 0 0 1.5rem;
+  }
+
+  .acc-empty-cta {
+    display: inline-block;
+    background: #8A174B;
+    color: #ffffff;
+    padding: 0.75rem 1.75rem;
+    border-radius: 999px;
+    font-size: 0.813rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-decoration: none;
+  }
+
+  /* ORDERS LIST */
+  .orders-card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .order-summary-card {
+    background: #ffffff;
+    border: 1px solid rgba(138, 23, 75, 0.12);
+    border-radius: 12px;
+    padding: 1.25rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+  }
+
+  .order-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(138, 23, 75, 0.08);
+    padding-bottom: 0.75rem;
+    margin-bottom: 0.85rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .ord-meta-left {
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+  }
+
+  .ord-num {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--maroon, #8A174B);
+  }
+
+  .ord-date {
+    font-size: 0.813rem;
+    color: var(--ink-soft, #7C6B6E);
+  }
+
+  .ord-status-tags {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .status-badge {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+    text-transform: uppercase;
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .status-badge.delivered, .status-badge.active {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .payment-badge.paid {
+    background: #dbeafe;
+    color: #1e40af;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+  }
+
+  .payment-badge.pending {
+    background: #fef3c7;
+    color: #92400e;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+  }
+
+  /* PREVIEW ITEMS */
+  .order-items-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    margin-bottom: 1rem;
+  }
+
+  .preview-item {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+  }
+
+  .item-img-box {
+    width: 48px;
+    height: 48px;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #FAF6F0;
+    flex-shrink: 0;
+  }
+
+  .item-img-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .item-info-box {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .item-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--ink, #3E3336);
+    margin: 0 0 0.15rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .item-spec {
+    font-size: 0.75rem;
+    color: var(--ink-soft, #7C6B6E);
+  }
+
+  .item-price {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--maroon, #8A174B);
+  }
+
+  .more-items-note {
+    font-size: 0.781rem;
+    color: var(--ink-soft, #7C6B6E);
+    font-style: italic;
+  }
+
+  /* FOOTER BAR */
+  .order-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px dashed rgba(138, 23, 75, 0.12);
+    padding-top: 0.85rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .total-box {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .total-lbl {
+    font-size: 0.72rem;
+    color: var(--ink-soft, #7C6B6E);
+    text-transform: uppercase;
+  }
+
+  .total-val {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--maroon, #8A174B);
+  }
+
+  .view-ord-btn {
+    background: #FAF6F0;
+    color: #8A174B;
+    border: 1px solid rgba(138, 23, 75, 0.15);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.781rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .view-ord-btn:hover {
+    background: #8A174B;
+    color: #ffffff;
+  }
+
+  /* ADDRESSES GRID */
+  .addresses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+  }
+
+  .address-card {
+    background: #ffffff;
+    border: 1px solid rgba(138, 23, 75, 0.12);
+    border-radius: 12px;
+    padding: 1.25rem;
+  }
+
+  .addr-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.65rem;
+  }
+
+  .addr-tag {
+    font-size: 0.688rem;
+    font-weight: 700;
+    background: #8A174B;
+    color: #fff;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+  }
+
+  .addr-lines {
+    font-size: 0.844rem;
+    color: var(--ink-soft, #7C6B6E);
+    line-height: 1.5;
+    margin: 0 0 0.5rem;
+  }
+
+  .addr-phone {
+    font-size: 0.813rem;
+    font-weight: 600;
+    color: var(--ink, #3E3336);
+    margin: 0;
+  }
+
+  /* PROFILE CARD */
+  .profile-card {
+    background: #ffffff;
+    border: 1px solid rgba(138, 23, 75, 0.12);
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-width: 540px;
+  }
+
+  .profile-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px dashed rgba(138, 23, 75, 0.08);
+    padding-bottom: 0.65rem;
+  }
+
+  .prof-lbl {
+    font-size: 0.844rem;
+    color: var(--ink-soft, #7C6B6E);
+  }
+
+  .prof-val {
+    font-size: 0.875rem;
+    color: var(--maroon, #8A174B);
+  }
+</style>

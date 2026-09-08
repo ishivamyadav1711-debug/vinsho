@@ -118,10 +118,11 @@ function test(name, fn) {
 
 // 1. Concurrency Test (§10 Test 1)
 test('Concurrency Protection: Atomic decrement prevents negative stock on last unit', () => {
-  // Create variant with exactly 1 unit stock
   const nowStr = new Date().toISOString();
+  const targetProduct = db.prepare('SELECT id FROM products LIMIT 1').get();
+  const prodId = targetProduct ? targetProduct.id : 1;
   db.prepare("DELETE FROM product_variants WHERE sku = 'M3_CONCURRENCY_TEST'").run();
-  const res = db.prepare("INSERT INTO product_variants (product_id, sku, stock, created_at, updated_at) VALUES (1, 'M3_CONCURRENCY_TEST', 1, ?, ?)").run(nowStr, nowStr);
+  const res = db.prepare("INSERT INTO product_variants (product_id, sku, stock, created_at, updated_at) VALUES (?, 'M3_CONCURRENCY_TEST', 1, ?, ?)").run(prodId, nowStr, nowStr);
   const varId = res.lastInsertRowid;
 
   function atomicDecrement(vId, qty) {
@@ -183,8 +184,14 @@ test('Webhook Idempotency: Replaying same event 5 times produces 1 payment recor
   db.prepare('DELETE FROM payments WHERE provider_payment_id = ?').run(providerPayId);
   db.prepare("DELETE FROM orders WHERE idempotency_key = 'key_replay'").run();
 
+  // Setup dummy customer & address for FK constraints
+  const custRes = db.prepare("INSERT INTO customers (name, phone, created_at, updated_at) VALUES ('Replay User', '9999900000', ?, ?)").run(now, now);
+  const testCustId = custRes.lastInsertRowid;
+  const addrRes = db.prepare("INSERT INTO addresses (customer_id, type, name, phone, line1, city, state, pincode, created_at) VALUES (?, 'SHIPPING', 'Replay User', '9999900000', 'Line 1', 'City', 'Haryana', '122001', ?)").run(testCustId, now);
+  const testAddrId = addrRes.lastInsertRowid;
+
   // Setup order & item
-  const ordRes = db.prepare("INSERT INTO orders (order_number, customer_id, subtotal, tax_total, shipping_total, grand_total, idempotency_key, created_at, updated_at) VALUES ('VIN-TEST-REPLAY', 1, 1000, 180, 150, 1330, 'key_replay', ?, ?)").run(now, now);
+  const ordRes = db.prepare("INSERT INTO orders (order_number, customer_id, subtotal, tax_total, shipping_total, grand_total, shipping_address_id, billing_address_id, placed_at, idempotency_key, created_at, updated_at) VALUES ('VIN-TEST-REPLAY', ?, 1000, 180, 150, 1330, ?, ?, ?, 'key_replay', ?, ?)").run(testCustId, testAddrId, testAddrId, now, now, now);
   const orderId = ordRes.lastInsertRowid;
 
   const payRes = db.prepare("INSERT INTO payments (order_id, provider_payment_id, amount, status, created_at) VALUES (?, ?, 1330, 'pending', ?)").run(orderId, providerPayId, now);

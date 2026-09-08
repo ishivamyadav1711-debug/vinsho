@@ -3,58 +3,60 @@
     "name": "VINSHO",
     "tagline": "Where Every Corner Tells a Story",
     "established": 1997,
-    "phone": "+91 8527406482",
-    "whatsapp": "918527406482",
-    "email": "info@vinsho.com",
+    "phone": "+91 9625515351",
+    "whatsapp": "919625515351",
+    "email": "vinvks@gmail.com",
+    "instagram": "https://www.instagram.com/vinsho_26",
+    "facebook": "https://www.facebook.com/share/1Ed5e9L9sk/",
     "address": "India Expo Plaza, First Floor, Plot No. C-03 & C-04, Knowledge Park-II, Greater Noida, U.P. 201310",
     "legacySite": "https://vinsho.in"
   },
   "siteImages": {
     "hero": "/hero-bg.png",
-    "artisanalInset": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-21-at-10.23.07-2.jpeg",
-    "exploreLarge": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-21-at-10.23.08-1.jpeg",
-    "statement": "https://vinsho.in/wp-content/uploads/2025/10/1-1.png",
-    "uspQuality": "https://vinsho.in/wp-content/uploads/2025/09/Best-Quality-1.jpg",
-    "uspPayments": "https://vinsho.in/wp-content/uploads/2025/09/Secure-Payments-1.jpg"
+    "artisanalInset": "/images/vinsho/site/WhatsApp-Image-2026-01-21-at-10.23.07-2.jpeg",
+    "exploreLarge": "/images/vinsho/site/WhatsApp-Image-2026-01-21-at-10.23.08-1.jpeg",
+    "statement": "/images/vinsho/site/1-1.png",
+    "uspQuality": "/images/vinsho/site/Best-Quality-1.jpg",
+    "uspPayments": "/images/vinsho/site/Secure-Payments-1.jpg"
   },
   "lookbook": [
     {
-      "image": "https://vinsho.in/wp-content/uploads/2025/10/Bedsheet1.jpeg",
+      "image": "/images/vinsho/site/Bedsheet1.jpeg",
       "tag": "Bedroom",
       "title": "Bedroom Sanctuary",
       "description": "Layered cotton bedsheets, a comforter set and muted throw pillows for a room built around rest.",
       "stylingNote": "Featured items can be custom dimensioned to suit your bed. WhatsApp our team for fabric swatches and bulk quotes."
     },
     {
-      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-21-at-10.23.07.jpeg",
+      "image": "/images/vinsho/site/WhatsApp-Image-2026-01-21-at-10.23.07.jpeg",
       "tag": "Living",
       "title": "Living Room Harmony",
       "description": "Cushions, throws and a handwoven carpet that pull a seating area into one composition.",
       "stylingNote": "Cushion covers come in matched sets. Ask us for coordinated palettes across sofa and floor."
     },
     {
-      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-21-at-10.23.07-3.jpeg",
+      "image": "/images/vinsho/site/WhatsApp-Image-2026-01-21-at-10.23.07-3.jpeg",
       "tag": "Table setting",
       "title": "Artisanal Table Setting",
       "description": "Runners, placemats and napkin sets layered for everyday meals and for guests.",
       "stylingNote": "Table linen is made to order in your table's exact length. Send us measurements for a quote."
     },
     {
-      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-21-at-10.23.08.jpeg",
+      "image": "/images/vinsho/site/WhatsApp-Image-2026-01-21-at-10.23.08.jpeg",
       "tag": "Décor",
       "title": "Minimalist Décor Accents",
       "description": "Showpieces, vases and metal accents arranged so a shelf reads considered rather than crowded.",
       "stylingNote": "Pieces are sold individually — we can help you build a grouping that works at your shelf height."
     },
     {
-      "image": "https://vinsho.in/wp-content/uploads/2025/10/Untitled-design-3.png",
+      "image": "/images/vinsho/site/Untitled-design-3.png",
       "tag": "Furnishings",
       "title": "Custom Furnishings",
       "description": "Upholstery, blinds and made-to-measure furnishing across a full room.",
       "stylingNote": "Custom wallpaper and blinds are quoted per square foot. Site measurement available in Delhi NCR."
     },
     {
-      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-21-at-10.23.07-1.jpeg",
+      "image": "/images/vinsho/site/WhatsApp-Image-2026-01-21-at-10.23.07-1.jpeg",
       "tag": "Gifting",
       "title": "Curated Gifting Box",
       "description": "Candles, diaries, pens and frames assembled into a box that doesn't look last-minute.",
@@ -89,94 +91,199 @@
       "name": "Anti skid rubber mat",
       "collection": "Home Decor",
       "collectionKey": "home-decor",
-      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-21-at-12.21.55.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2026-01-21-at-12.21.55.jpeg",
       "sourceUrl": "https://vinsho.in/product/anti-skid-rubber-mat/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "Add an extra layer of everyday safety and practicality with an anti-skid rubber mat designed for areas where stable footing matters. Its functional surface helps provide better grip while also protecting the floor beneath. Suitable for entrances, kitchens, bathrooms, or utility areas, it combines practical performance with a simple design that fits naturally into everyday spaces.",
       "material": "Rubber · Entryway",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Showpiece",
       "subcategoryKey": "showpiece",
       "mainCategory": "Home Decor",
       "subCategory": "Showpiece",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Safety You Can Feel. Comfort You Can Trust.",
+      "features": [
+        {
+          "title": "Anti Skid Surface",
+          "description": "Superior grip for maximum safety."
+        },
+        {
+          "title": "Durable & Long Lasting",
+          "description": "Made from high-quality rubber for extended use."
+        },
+        {
+          "title": "Easy to Clean",
+          "description": "Water-resistant and low maintenance."
+        },
+        {
+          "title": "Perfect for Every Space",
+          "description": "Ideal for bathrooms, kitchens, entryways & more."
+        }
+      ],
+      "closing_line": "Crafted for safety. Made for every home.",
+      "closingLine": "Crafted for safety. Made for every home."
     },
     {
       "slug": "aprons",
       "name": "Aprons",
       "collection": "Home Furnishing",
       "collectionKey": "home-furnishing",
-      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2025-12-30-at-16.54.14.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2025-12-30-at-16.54.14.jpeg",
       "sourceUrl": "https://vinsho.in/product/aprons/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "Designed to bring both practicality and style to everyday kitchen routines, this apron helps keep your outfit protected while you cook, bake, or prepare meals. Its comfortable design makes it easy to wear for longer periods, while the clean appearance adds a polished touch to your kitchen essentials. A useful blend of function and everyday convenience.",
       "material": "Cotton · Kitchen",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Cushion",
       "subcategoryKey": "cushion",
       "mainCategory": "Home Furnishing",
       "subCategory": "Cushion",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Cook in style. Live in comfort.",
+      "features": [
+        {
+          "title": "Durable & Washable",
+          "description": "Made from high-quality fabric for long-lasting use."
+        },
+        {
+          "title": "Protective & Practical",
+          "description": "Shields your clothes from spills and stains with ease."
+        },
+        {
+          "title": "Perfect for Any Occasion",
+          "description": "Ideal for home chefs, bakers and professionals alike."
+        },
+        {
+          "title": "Stylish & Functional",
+          "description": "Thoughtfully designed for comfort and everyday use."
+        }
+      ],
+      "closing_line": "Crafted to elevate every moment.",
+      "closingLine": "Crafted to elevate every moment."
     },
     {
       "slug": "artificial-flowers",
       "name": "Artificial Flowers",
       "collection": "Home Decor",
       "collectionKey": "home-decor",
-      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2025-12-30-at-13.52.38-1.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2025-12-30-at-13.52.38-1.jpeg",
       "sourceUrl": "https://vinsho.in/product/artificial-flowers/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "Bring the beauty of floral décor into your home without the need for constant maintenance. These artificial flowers add color, softness, and natural-inspired character to tables, shelves, consoles, and corners. Easy to style throughout the year, they create a welcoming atmosphere while offering a long-lasting decorative solution for homes, offices, and thoughtfully curated interiors.",
       "material": "Silk · Accent",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Artificial Flowers",
       "subcategoryKey": "artificial-flowers",
       "mainCategory": "Home Decor",
       "subCategory": "Artificial Flowers",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Timeless beauty for every corner.",
+      "features": [
+        {
+          "title": "Realistic Look",
+          "description": "Natural texture and vibrant colors for a lifelike feel."
+        },
+        {
+          "title": "Long Lasting",
+          "description": "Stays fresh and beautiful all year round without wilting or fading."
+        },
+        {
+          "title": "Perfect Decor",
+          "description": "Ideal for vases, centerpieces, shelves or wall accents."
+        },
+        {
+          "title": "Maintenance Free",
+          "description": "No watering or special care required. Just lasting beauty."
+        }
+      ],
+      "closing_line": "Decor that stays. Beauty that lasts.",
+      "closingLine": "Decor that stays. Beauty that lasts."
     },
     {
       "slug": "bathmats",
       "name": "Bathmats",
       "collection": "Home Furnishing",
       "collectionKey": "home-furnishing",
-      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2026-01-21-at-12.21.44.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2026-01-21-at-12.21.44.jpeg",
       "sourceUrl": "https://vinsho.in/product/bathmats/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "Add comfort and character to your bathroom with a thoughtfully designed bathmat that creates a softer landing after every shower. Its practical surface helps keep the surrounding floor area cleaner and more comfortable, while its understated appearance blends easily with different bathroom interiors. A simple everyday essential that combines functionality, comfort, and decorative appeal.",
       "material": "Cotton tufted · Bath",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Bathmat",
       "subcategoryKey": "bathmat",
       "mainCategory": "Home Furnishing",
       "subCategory": "Bathmat",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Softer steps. Better mornings.",
+      "features": [
+        {
+          "title": "Ultra Soft & Absorbent",
+          "description": "Plush texture that feels gentle underfoot and absorbs water in seconds."
+        },
+        {
+          "title": "Non-Slip Backing",
+          "description": "Secure grip design keeps the mat firmly in place for safety."
+        },
+        {
+          "title": "Quick Drying",
+          "description": "Dries fast to keep your bathroom fresh, clean and odour-free."
+        },
+        {
+          "title": "Easy to Clean",
+          "description": "Machine washable and built to stay soft and durable after every wash."
+        }
+      ],
+      "closing_line": "Crafted to elevate every moment.",
+      "closingLine": "Crafted to elevate every moment."
     },
     {
       "slug": "bedcover",
       "name": "Bedcover",
       "collection": "Home Furnishing",
       "collectionKey": "home-furnishing",
-      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-03-at-16.13.11.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2026-01-03-at-16.13.11.jpeg",
       "sourceUrl": "https://vinsho.in/product/bedcover/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "Give your bedroom an instant refresh with an elegant bedcover designed to add warmth, texture, and visual appeal. Draped neatly across the bed, it creates a more finished and inviting look while complementing your existing décor. Ideal for everyday styling or special occasions, it brings together comfort, practicality, and timeless bedroom elegance.",
       "material": "Cotton · Bedroom",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Bedsheet",
       "subcategoryKey": "bedsheet",
       "mainCategory": "Home Furnishing",
       "subCategory": "Bedsheet",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Wrap your bed. Wake up refreshed.",
+      "features": [
+        {
+          "title": "Premium Comfort",
+          "description": "Crafted from ultra-soft, breathable fabric for a cozy and relaxing sleep."
+        },
+        {
+          "title": "Elegant Design",
+          "description": "Timeless patterns and soothing tones to elevate your bedroom decor."
+        },
+        {
+          "title": "Durable & Easy Care",
+          "description": "High-quality fabric that stays soft, vibrant and easy to maintain."
+        },
+        {
+          "title": "Perfect Fit",
+          "description": "Designed to drape beautifully and stay in place all night."
+        }
+      ],
+      "closing_line": "Crafted to inspire every idea.",
+      "closingLine": "Crafted to inspire every idea."
     },
     {
       "slug": "bedsheet",
       "name": "Bedsheet",
       "collection": "Home Furnishing",
       "collectionKey": "home-furnishing",
-      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-03-at-16.13.12.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2026-01-03-at-16.13.12.jpeg",
       "sourceUrl": "https://vinsho.in/product/bedsheet/",
-      "description": "Smooth, breathable cotton that softens with every wash and holds its colour.",
+      "description": "Create a fresh and inviting bedroom with a beautifully styled bedsheet designed for everyday comfort. Its versatile appearance allows it to complement both contemporary and traditional interiors, while the smooth presentation adds a refined touch to your bedding setup. Perfect for refreshing your room effortlessly, it combines everyday usability with understated elegance.",
       "material": "100% cotton · 200 TC",
       "price": null,
       "descriptionSource": "written",
@@ -184,84 +291,189 @@
       "subcategoryKey": "bedsheet",
       "mainCategory": "Home Furnishing",
       "subCategory": "Bedsheet",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Transform your bedroom into a cozy retreat with our Cotton Bedsheets.",
+      "features": [
+        {
+          "title": "Cotton",
+          "description": "Made from 100% high quality cotton for superior softness and durability."
+        },
+        {
+          "title": "Soft & Comfortable",
+          "description": "Smooth, gentle touch for a relaxing and cozy sleep."
+        },
+        {
+          "title": "Breathable Fabric",
+          "description": "Keeps you cool and comfortable all night long."
+        },
+        {
+          "title": "Elegant Design",
+          "description": "Stylish prints that add charm and elegance to your bedroom."
+        }
+      ],
+      "closing_line": "Crafted to elevate every bedroom.",
+      "closingLine": "Crafted to elevate every bedroom."
     },
     {
       "slug": "blanket",
       "name": "Blanket",
       "collection": "Home Furnishing",
       "collectionKey": "home-furnishing",
-      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-03-at-16.13.10.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2026-01-03-at-16.13.10.jpeg",
       "sourceUrl": "https://vinsho.in/product/blanket/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "Wrap yourself in warmth and comfort with a cozy blanket designed for relaxing evenings and restful nights. Its versatile design makes it suitable for bedrooms, living spaces, or simply keeping close during cooler weather. Easy to style with existing interiors, it adds a comforting layer of warmth while maintaining a neat and inviting appearance.",
       "material": "Woven · Bedroom",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Blanket",
       "subcategoryKey": "blanket",
       "mainCategory": "Home Furnishing",
       "subCategory": "Blanket",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Wrap yourself in warmth.",
+      "features": [
+        {
+          "title": "Ultra-Soft & Warm",
+          "description": "Premium insulating fabric that provides exceptional warmth and a gentle touch."
+        },
+        {
+          "title": "Lightweight & Cozy",
+          "description": "Designed to be lightweight yet warm, perfect for year-round comfort."
+        },
+        {
+          "title": "Elegant Weave",
+          "description": "Luxurious texture and refined design that adds beauty to your bedroom."
+        },
+        {
+          "title": "Durable & Long Lasting",
+          "description": "High-quality fabric that stays soft, keeps its shape and lasts through countless uses."
+        }
+      ],
+      "closing_line": "Crafted to inspire every idea.",
+      "closingLine": "Crafted to inspire every idea."
     },
     {
       "slug": "blinds",
       "name": "Blinds",
       "collection": "Home Furnishing",
       "collectionKey": "home-furnishing",
-      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2026-01-05-at-15.50.37-2.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2026-01-05-at-15.50.37-2.jpeg",
       "sourceUrl": "https://vinsho.in/product/blinds/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "Bring privacy, light control, and refined style to your interiors with these versatile blinds. Designed to complement modern living spaces, they help create a more comfortable atmosphere while adding structure to windows. Their clean appearance works beautifully across bedrooms, living rooms, and workspaces, making them a practical décor element that enhances both functionality and visual appeal.",
       "material": "Fabric · Windows",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Curtains",
       "subcategoryKey": "curtains",
       "mainCategory": "Home Furnishing",
       "subCategory": "Curtains",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Style. Privacy. Serenity.",
+      "features": [
+        {
+          "title": "Botanical Beauty",
+          "description": "Soothing green leaf prints inspired by nature."
+        },
+        {
+          "title": "Privacy & Comfort",
+          "description": "Enjoy natural light while keeping your space private."
+        },
+        {
+          "title": "Light Filtering",
+          "description": "Softly filters sunlight for a warm, cozy glow."
+        },
+        {
+          "title": "Premium Quality",
+          "description": "High-quality fabric for durability and style."
+        }
+      ],
+      "closing_line": "Beautiful Windows. Better Living.",
+      "closingLine": "Beautiful Windows. Better Living."
     },
     {
       "slug": "blinds-with-decor",
       "name": "Blinds with decor",
       "collection": "Home Furnishing",
       "collectionKey": "home-furnishing",
-      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-21-at-12.13.59.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2026-01-21-at-12.13.59.jpeg",
       "sourceUrl": "https://vinsho.in/product/blinds-with-decor/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "Transform ordinary windows into stylish focal points with decorative blinds that combine practical window coverage with an elevated aesthetic. Designed to complement your interior décor, they can add softness, structure, and personality to the room. Ideal for living rooms, bedrooms, and curated spaces, these blinds bring together everyday functionality and decorative sophistication.",
       "material": "Fabric · Windows",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Curtains",
       "subcategoryKey": "curtains",
       "mainCategory": "Home Furnishing",
       "subCategory": "Curtains",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Style. Privacy. Serenity.",
+      "features": [
+        {
+          "title": "Botanical Beauty",
+          "description": "Soothing green leaf prints inspired by nature."
+        },
+        {
+          "title": "Privacy & Comfort",
+          "description": "Enjoy natural light while keeping your space private."
+        },
+        {
+          "title": "Light Filtering",
+          "description": "Softly filters sunlight for a warm, cozy glow."
+        },
+        {
+          "title": "Premium Quality",
+          "description": "High-quality fabric for durability and style."
+        }
+      ],
+      "closing_line": "Beautiful Windows. Better Living.",
+      "closingLine": "Beautiful Windows. Better Living."
     },
     {
       "slug": "bonsai-jade-plant",
       "name": "Bonsai - Jade Plant",
       "collection": "Home Decor",
       "collectionKey": "home-decor",
-      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-07-at-18.43.14.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2026-01-07-at-18.43.14.jpeg",
       "sourceUrl": "https://vinsho.in/product/bonsai-jade-plant/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "Introduce a touch of greenery and calm into your interior with a beautifully styled Jade Plant bonsai. Its compact form makes it ideal for desks, shelves, side tables, and decorative corners. Inspired by the timeless appeal of bonsai arrangements, it adds a refined natural element to your surroundings while requiring minimal styling effort.",
       "material": "Live plant · Tabletop",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Artificial Flowers",
       "subcategoryKey": "artificial-flowers",
       "mainCategory": "Home Decor",
       "subCategory": "Artificial Flowers",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Timeless beauty for every corner.",
+      "features": [
+        {
+          "title": "Realistic Look",
+          "description": "Natural texture and vibrant colors for a lifelike feel."
+        },
+        {
+          "title": "Long Lasting",
+          "description": "Stays fresh and beautiful all year round without wilting or fading."
+        },
+        {
+          "title": "Perfect Decor",
+          "description": "Ideal for vases, centerpieces, shelves or wall accents."
+        },
+        {
+          "title": "Maintenance Free",
+          "description": "No watering or special care required. Just lasting beauty."
+        }
+      ],
+      "closing_line": "Decor that stays. Beauty that lasts.",
+      "closingLine": "Decor that stays. Beauty that lasts."
     },
     {
       "slug": "buddha",
       "name": "Buddha",
       "collection": "Home Decor",
       "collectionKey": "home-decor",
-      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-20-at-22.59.56-1.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2026-01-20-at-22.59.56-1.jpeg",
       "sourceUrl": "https://vinsho.in/product/buddha/",
-      "description": "A quiet cast figure for a console, a shelf, or an entryway table.",
+      "description": "Create a peaceful and balanced atmosphere with a Buddha statue designed to bring a sense of calm into your surroundings. Its detailed presence makes it suitable for living rooms, meditation spaces, entrances, or decorative corners. Whether displayed alone or paired with complementary accents, it adds a serene focal point to thoughtfully styled interiors.",
       "material": "Cast resin · Hand-finished",
       "price": null,
       "descriptionSource": "written",
@@ -269,33 +481,75 @@
       "subcategoryKey": "showpiece",
       "mainCategory": "Home Decor",
       "subCategory": "Showpiece",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Grace in stillness. Strength in silence.",
+      "features": [
+        {
+          "title": "Calm That Lasts",
+          "description": "A symbol of peace that brings balance to life."
+        },
+        {
+          "title": "Artistry in Every Detail",
+          "description": "Thoughtfully crafted to reflect beauty, depth, and meaning."
+        },
+        {
+          "title": "Elevate Any Space",
+          "description": "Perfect for homes, offices, or your quiet corner."
+        },
+        {
+          "title": "Beyond Decor",
+          "description": "A daily reminder to pause, breathe, and be present."
+        }
+      ],
+      "closing_line": "Bring peace home. Let your space inspire you.",
+      "closingLine": "Bring peace home. Let your space inspire you."
     },
     {
       "slug": "candles",
       "name": "Candles",
       "collection": "Home Decor",
       "collectionKey": "home-decor",
-      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2025-12-30-at-13.52.37-1.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2025-12-30-at-13.52.37-1.jpeg",
       "sourceUrl": "https://vinsho.in/product/candles/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "Add warmth, personality, and visual charm to your interiors with decorative candles designed to be enjoyed as both décor and ambient accents. Their artistic presentation makes them suitable for shelves, tables, bedside corners, celebrations, and gifting. Whether displayed unlit or glowing softly, they create an inviting atmosphere while adding a distinctive finishing detail.",
       "material": "Wax · Gifting",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Candles",
       "subcategoryKey": "candles",
       "mainCategory": "Home Decor",
       "subCategory": "Candles",
-      "isPurchasable": true
+      "isPurchasable": true,
+      "tagline": "Enrich Your Home's Ambiance With Our Exclusive Décor Candles.",
+      "features": [
+        {
+          "title": "Everyday Candle Edit",
+          "description": "A versatile foundation for exploring VINSHO's candle collection."
+        },
+        {
+          "title": "Decorative Versatility",
+          "description": "Designed to complement a variety of interiors and styling moods."
+        },
+        {
+          "title": "Warm Visual Presence",
+          "description": "Candles bring an inviting sense of warmth to everyday spaces."
+        },
+        {
+          "title": "Curated Collection",
+          "description": "A starting point for discovering distinctive candle designs."
+        }
+      ],
+      "closing_line": "Light your space, your way.",
+      "closingLine": "Warmth that glows, beauty that stays."
     },
     {
       "slug": "carpets",
       "name": "Carpets",
       "collection": "Home Furnishing",
       "collectionKey": "home-furnishing",
-      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2025-10-14-at-17.29.34.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2025-10-14-at-17.29.34.jpeg",
       "sourceUrl": "https://vinsho.in/product/carpets/",
-      "description": "Textured, grounding and nature-led — handwoven to be walked on for years.",
+      "description": "Add warmth, texture, and personality to your interiors with a beautifully designed carpet. Whether placed in the living room, bedroom, or another thoughtfully styled space, it helps define the area while creating a more welcoming atmosphere. Its decorative presence can effortlessly complement existing furniture and décor, making everyday spaces feel more comfortable and complete.",
       "material": "Handwoven pile · Cotton backing",
       "price": null,
       "descriptionSource": "written",
@@ -303,33 +557,75 @@
       "subcategoryKey": "cushion",
       "mainCategory": "Home Furnishing",
       "subCategory": "Cushion",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Bring warmth and sophistication to your space.",
+      "features": [
+        {
+          "title": "Premium Quality",
+          "description": "Crafted from high-quality materials for a soft and luxurious feel."
+        },
+        {
+          "title": "Durable & Comfortable",
+          "description": "Built to last while providing superior comfort underfoot."
+        },
+        {
+          "title": "Stylish Design",
+          "description": "A tasteful design that adds charm and elegance to any living space."
+        },
+        {
+          "title": "Perfect for Any Space",
+          "description": "Ideal for your living room, bedroom, or any corner that needs warmth and character."
+        }
+      ],
+      "closing_line": "Crafted to inspire every idea.",
+      "closingLine": "Crafted to inspire every idea."
     },
     {
       "slug": "comforter-set",
       "name": "Comforter set",
       "collection": "Home Furnishing",
       "collectionKey": "home-furnishing",
-      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-07-at-18.45.08.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2026-01-07-at-18.45.08.jpeg",
       "sourceUrl": "https://vinsho.in/product/comforter-set/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "Create a cozy and coordinated bedroom with a thoughtfully styled comforter set designed to bring comfort and visual harmony together. The coordinated appearance makes bed styling effortless while adding softness and warmth to your space. Ideal for everyday use, it gives your bedroom a polished, inviting look without requiring complicated décor changes.",
       "material": "Microfibre · Bedroom",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Bedsheet",
       "subcategoryKey": "bedsheet",
       "mainCategory": "Home Furnishing",
       "subCategory": "Bedsheet",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Soft Touch. Complete Comfort.",
+      "features": [
+        {
+          "title": "Ultra Soft",
+          "description": "Plush comfort you can feel."
+        },
+        {
+          "title": "Fabric",
+          "description": "Breathable, durable & skin-friendly."
+        },
+        {
+          "title": "Perfect Fit",
+          "description": "Designed to elevate every bedroom."
+        },
+        {
+          "title": "Timeless Style",
+          "description": "Subtle tones that suit every space."
+        }
+      ],
+      "closing_line": "Crafted for comfort. Designed for you.",
+      "closingLine": "Crafted for comfort. Designed for you."
     },
     {
       "slug": "curtains",
       "name": "Curtains",
       "collection": "Home Furnishing",
       "collectionKey": "home-furnishing",
-      "image": "https://vinsho.in/wp-content/uploads/2025/10/Curtain.jpeg",
+      "image": "/images/vinsho/products/Curtain.jpeg",
       "sourceUrl": "https://vinsho.in/product/curtains/",
-      "description": "Drapes that soften daylight and give a window its weight.",
+      "description": "Frame your windows beautifully with curtains that add softness, privacy, and character to your interiors. Their versatile styling makes them suitable for bedrooms, living rooms, and other spaces where atmosphere matters. Beyond covering windows, they help complete the room’s overall look by adding visual depth, warmth, and a more thoughtfully finished interior.",
       "material": "Woven fabric · Eyelet top",
       "price": null,
       "descriptionSource": "written",
@@ -337,50 +633,109 @@
       "subcategoryKey": "curtains",
       "mainCategory": "Home Furnishing",
       "subCategory": "Curtains",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Add grace and warmth to your home.",
+      "features": [
+        {
+          "title": "Finest Fabric",
+          "description": "Made from high-quality fabric for a soft, smooth and luxurious feel."
+        },
+        {
+          "title": "Elegant Design",
+          "description": "Timeless patterns and shades that enhance any interior."
+        },
+        {
+          "title": "Perfect Fit",
+          "description": "Tailored to suit every window beautifully and effortlessly."
+        },
+        {
+          "title": "Privacy & Light Control",
+          "description": "Enjoy the perfect balance of natural light and privacy."
+        }
+      ],
+      "closing_line": "Crafted to inspire every idea.",
+      "closingLine": "Crafted to inspire every idea."
     },
     {
       "slug": "cushions",
       "name": "Cushions",
       "collection": "Home Furnishing",
       "collectionKey": "home-furnishing",
-      "image": "https://vinsho.in/wp-content/uploads/2025/09/Untitled-design-2-1.png",
+      "image": "/images/vinsho/products/Untitled-design-2-1.png",
       "sourceUrl": "https://vinsho.in/product/cushions/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "Add an effortless layer of comfort and personality with decorative cushions designed to enhance sofas, beds, chairs, and lounge spaces. Their versatile styling makes it easy to refresh an interior without changing major furniture pieces. Whether used individually or layered together, they bring softness, texture, and a polished decorative touch to everyday spaces.",
       "material": "Cotton blend · Living",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Cushion",
       "subcategoryKey": "cushion",
       "mainCategory": "Home Furnishing",
       "subCategory": "Cushion",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Comfort in Every Hug.",
+      "features": [
+        {
+          "title": "Plush & Soft",
+          "description": "Made from ultra-soft fabric for maximum comfort."
+        },
+        {
+          "title": "Adorable Designs",
+          "description": "Cute and charming styles kids and adults will love."
+        },
+        {
+          "title": "Perfect for Any Space",
+          "description": "Adds warmth and joy to bedrooms, living rooms, or play areas."
+        }
+      ],
+      "closing_line": "Crafted to elevate every space.",
+      "closingLine": "Crafted to elevate every space."
     },
     {
       "slug": "customised-wall-paper",
       "name": "Customised Wall Paper",
       "collection": "Home Decor",
       "collectionKey": "home-decor",
-      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-05-at-16.38.16.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2026-01-05-at-16.38.16.jpeg",
       "sourceUrl": "https://vinsho.in/product/customised-wall-paper/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "Give your walls a more personal identity with customised wallpaper created around your preferred style and visual theme. It can transform an ordinary wall into an expressive feature while complementing the surrounding furniture and décor. Ideal for bedrooms, living rooms, offices, or creative spaces, it offers a flexible way to create interiors that feel distinctly yours.",
       "material": "Made to order · Walls",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Wall Art",
       "subcategoryKey": "wall-art",
       "mainCategory": "Home Decor",
       "subCategory": "Wall Art",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Elevate Your Living Space With This Stylish Wallpaper.",
+      "features": [
+        {
+          "title": "Botanical Beauty",
+          "description": "Calming, nature-inspired visuals for a fresh interior aesthetic."
+        },
+        {
+          "title": "Soft & Elegant Finish",
+          "description": "Smooth texture that adds warmth, depth and balance to your interiors."
+        },
+        {
+          "title": "Personalised Design",
+          "description": "Customised dimensions crafted to suit your space perfectly."
+        },
+        {
+          "title": "Modern Elegance",
+          "description": "Blends seamlessly with earthy cushions and natural wooden accents."
+        }
+      ],
+      "closing_line": "Bring nature's beauty into your everyday space.",
+      "closingLine": "Bring nature's beauty into your everyday space."
     },
     {
       "slug": "decorative-candles",
       "name": "Decorative Candles",
       "collection": "Home Decor",
       "collectionKey": "home-decor",
-      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2025-12-30-at-13.52.37-2.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2025-12-30-at-13.52.37-2.jpeg",
       "sourceUrl": "https://vinsho.in/product/decorative-candles/",
-      "description": "Sculpted pillar candles in soft neutrals — lit or unlit, they hold a corner together.",
+      "description": "Enrich your home's atmosphere with our collection of artisanal decorative candles, thoughtfully poured into elegant vessels that double as sculpted centerpiece accents even when unlit.",
       "material": "Poured wax · Cotton wick",
       "price": null,
       "descriptionSource": "written",
@@ -388,84 +743,147 @@
       "subcategoryKey": "candles",
       "mainCategory": "Home Decor",
       "subCategory": "Candles",
-      "isPurchasable": true
-    },
-    {
-      "slug": "diaries",
-      "name": "Diaries",
-      "collection": "Gifting Collection",
-      "collectionKey": "gifting-collection",
-      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2026-01-08-at-18.11.50.jpeg",
-      "sourceUrl": "https://vinsho.in/product/diaries/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
-      "material": "Bound paper · Gifting",
-      "price": null,
-      "descriptionSource": "placeholder",
-      "subcategory": "Diary",
-      "subcategoryKey": "diary",
-      "mainCategory": "Gifting Collection",
-      "subCategory": "Diary",
-      "isPurchasable": false
+      "isPurchasable": true,
+      "tagline": "Enrich Your Home's Ambiance With Our Exclusive Décor Candles.",
+      "features": [
+        {
+          "title": "Décor First",
+          "description": "Created to function as expressive decorative pieces within an interior."
+        },
+        {
+          "title": "Distinctive Forms",
+          "description": "Decorative silhouettes add personality beyond conventional candles."
+        },
+        {
+          "title": "Styling Versatility",
+          "description": "Suitable for tables, shelves, consoles, and curated corners."
+        },
+        {
+          "title": "Beauty in the Details",
+          "description": "Designed to complement interiors through form, shape, and visual character."
+        }
+      ],
+      "closing_line": "Where candlelight becomes décor.",
+      "closingLine": "Warmth that glows, beauty that stays."
     },
     {
       "slug": "doormat",
       "name": "Doormat",
       "collection": "Home Decor",
       "collectionKey": "home-decor",
-      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-20-at-22.58.47.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2026-01-20-at-22.58.47.jpeg",
       "sourceUrl": "https://vinsho.in/product/doormat/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "Make a welcoming first impression with a stylish doormat designed for everyday entrances. Its practical surface helps trap dirt and dust while adding decorative character to your doorway. With its attractive design and useful functionality, it works beautifully at home entrances, helping create a cleaner entryway while adding warmth and personality to the first step inside.",
       "material": "Coir · Entryway",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Showpiece",
       "subcategoryKey": "showpiece",
       "mainCategory": "Home Decor",
       "subCategory": "Showpiece",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Welcome Guests in Style With This Elegant Doormat.",
+      "features": [
+        {
+          "title": "Durable & Weather-Resistant",
+          "description": "Made from premium quality material designed to last in all conditions."
+        },
+        {
+          "title": "Attractive Stone-Inspired Design",
+          "description": "Ornate detailing with a bold Welcome message for a warm, inviting look."
+        },
+        {
+          "title": "Keeps Entrance Clean & Welcoming",
+          "description": "Helps trap dirt and dust while enhancing the beauty of your entryway."
+        }
+      ],
+      "closing_line": "A perfect blend of function and timeless style.",
+      "closingLine": "A perfect blend of function and timeless style."
     },
     {
       "slug": "floral-panels",
       "name": "Floral panels",
       "collection": "Home Decor",
       "collectionKey": "home-decor",
-      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-07-at-18.48.12.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2026-01-07-at-18.48.12.jpeg",
       "sourceUrl": "https://vinsho.in/product/floral-panels/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "Add a dramatic botanical touch to your interiors with decorative floral panels designed to create visual impact. Their detailed floral character can transform plain walls and spaces into expressive decorative features. Ideal for bedrooms, living areas, event spaces, or creative corners, they bring depth, color, and a nature-inspired aesthetic into your surroundings.",
       "material": "Fabric · Walls",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Wall Art",
       "subcategoryKey": "wall-art",
       "mainCategory": "Home Decor",
       "subCategory": "Wall Art",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Bring Nature, Beauty & Life to Your Walls.",
+      "features": [
+        {
+          "title": "Natural Beauty",
+          "description": "Realistic foliage and flowers that elevate your décor."
+        },
+        {
+          "title": "Durable & Long Lasting",
+          "description": "Made with premium quality materials for a lasting impression."
+        },
+        {
+          "title": "Perfect for Any Space",
+          "description": "Ideal for homes, offices, cafés, balconies and more."
+        },
+        {
+          "title": "Easy to Maintain",
+          "description": "No watering, no sunlight. Just beauty all year round."
+        }
+      ],
+      "closing_line": "Transform your walls into a breathtaking natural escape.",
+      "closingLine": "Transform your walls into a breathtaking natural escape."
     },
     {
       "slug": "flower-vases",
       "name": "Flower vases",
       "collection": "Home Decor",
       "collectionKey": "home-decor",
-      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2025-12-30-at-13.52.37.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2025-12-30-at-13.52.37.jpeg",
       "sourceUrl": "https://vinsho.in/product/flower-vases/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "Showcase your favorite flowers and botanical arrangements with an elegant vase designed to complement the beauty of the display. Whether filled with fresh blooms, artificial flowers, or used on its own, it adds height and character to tables, shelves, and consoles. A versatile décor piece that turns simple arrangements into thoughtful interior accents.",
       "material": "Ceramic · Tabletop",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Artificial Flowers",
       "subcategoryKey": "artificial-flowers",
       "mainCategory": "Home Decor",
       "subCategory": "Artificial Flowers",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "A perfect blend of elegance and charm.",
+      "features": [
+        {
+          "title": "Artistic Appeal",
+          "description": "Unique designs that bring artistic charm to your décor."
+        },
+        {
+          "title": "Timeless Finish",
+          "description": "High quality finish for a sleek and lasting appeal."
+        },
+        {
+          "title": "Perfect Accent",
+          "description": "Ideal for tables, shelves and console spaces."
+        },
+        {
+          "title": "Made to Elevate",
+          "description": "Designed to complement modern interiors beautifully."
+        }
+      ],
+      "closing_line": "Crafted to elevate every space.",
+      "closingLine": "Crafted to elevate every space."
     },
     {
       "slug": "flowers-bouquet",
       "name": "Flowers bouquet",
       "collection": "Home Decor",
       "collectionKey": "home-decor",
-      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-07-at-18.51.20.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2026-01-07-at-18.51.20.jpeg",
       "sourceUrl": "https://vinsho.in/product/flowers-bouquet/",
-      "description": "Silk stems that stay in season through every month of the year.",
+      "description": "Brighten your surroundings with a decorative flower bouquet designed to bring color and floral charm into everyday spaces. Perfect for tables, consoles, gifting, or special occasions, it creates an inviting visual focal point without requiring complicated styling. Its versatile presentation makes it easy to introduce a fresh, cheerful atmosphere into both modern and traditional interiors.",
       "material": "Silk & wire stems",
       "price": null,
       "descriptionSource": "written",
@@ -473,118 +891,227 @@
       "subcategoryKey": "artificial-flowers",
       "mainCategory": "Home Decor",
       "subCategory": "Artificial Flowers",
-      "isPurchasable": false
-    },
-    {
-      "slug": "fridge-covers",
-      "name": "Fridge covers",
-      "collection": "Home Furnishing",
-      "collectionKey": "home-furnishing",
-      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2025-12-30-at-13.52.38.jpeg",
-      "sourceUrl": "https://vinsho.in/product/fridge-covers/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
-      "material": "Quilted · Kitchen",
-      "price": null,
-      "descriptionSource": "placeholder",
-      "subcategory": "Cushion",
-      "subcategoryKey": "cushion",
-      "mainCategory": "Home Furnishing",
-      "subCategory": "Cushion",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Fresh Blooms. Timeless Beauty.",
+      "features": [
+        {
+          "title": "Natural Elegance",
+          "description": "Handpicked blooms for a fresh and sophisticated look."
+        },
+        {
+          "title": "Artfully Arranged",
+          "description": "Carefully crafted to create harmony and charm."
+        },
+        {
+          "title": "Long Lasting Beauty",
+          "description": "Made to stay fresh and uplift your space."
+        },
+        {
+          "title": "Perfect for Every Occasion",
+          "description": "Ideal for gifting, décor & special moments."
+        }
+      ],
+      "closing_line": "Crafted to elevate every space.",
+      "closingLine": "Crafted to elevate every space."
     },
     {
       "slug": "jaguar",
       "name": "Jaguar",
       "collection": "Home Decor",
       "collectionKey": "home-decor",
-      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-20-at-23.00.58.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2026-01-20-at-23.00.58.jpeg",
       "sourceUrl": "https://vinsho.in/product/jaguar/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "A striking symbol of power and grace, this sculpted jaguar showpiece features a smooth black finish with refined detailing, making it an extraordinary focal point for sideboards, shelves, and executive spaces.",
       "material": "Cast resin · Shelf",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Showpiece",
       "subcategoryKey": "showpiece",
       "mainCategory": "Home Decor",
       "subCategory": "Showpiece",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Bold Design. Timeless Charm.",
+      "features": [
+        {
+          "title": "Striking Appeal",
+          "description": "Command attention with its bold presence."
+        },
+        {
+          "title": "Premium Finish",
+          "description": "Sleek black finish with gold polka detailing."
+        },
+        {
+          "title": "Artistic Excellence",
+          "description": "Beautifully crafted to reflect elegance."
+        },
+        {
+          "title": "Perfect for Any Space",
+          "description": "Ideal for living rooms, offices, and luxury interiors."
+        }
+      ],
+      "closing_line": "Crafted to elevate every wall.",
+      "closingLine": "Crafted to elevate every wall."
     },
     {
       "slug": "jute-placemat",
       "name": "Jute placemat",
       "collection": "Home Furnishing",
       "collectionKey": "home-furnishing",
-      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-20-at-22.58.19.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2026-01-20-at-22.58.19.jpeg",
       "sourceUrl": "https://vinsho.in/product/jute-placemat/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "Bring a natural, earthy touch to your dining table with a jute-inspired placemat designed for everyday table styling. Its textured appearance creates warmth and visual interest while helping define each place setting. Perfect for casual meals, family gatherings, or relaxed entertaining, it combines practical table protection with a charming, organic-inspired aesthetic.",
       "material": "Jute · Dining",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Cushion",
       "subcategoryKey": "cushion",
       "mainCategory": "Home Furnishing",
       "subCategory": "Cushion",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Add a natural, earthy touch to your dining space.",
+      "features": [
+        {
+          "title": "Natural & Eco-Friendly",
+          "description": "Made from sustainable jute fibers, safe for you and the environment."
+        },
+        {
+          "title": "Handcrafted Quality",
+          "description": "Expertly woven by skilled artisans for a unique and premium finish."
+        },
+        {
+          "title": "Durable & Long Lasting",
+          "description": "Strong and sturdy construction designed for everyday use."
+        },
+        {
+          "title": "Elegant Fringed Edges",
+          "description": "Subtle fringe detailing adds charm and enhances your table décor."
+        }
+      ],
+      "closing_line": "Crafted to inspire every idea.",
+      "closingLine": "Crafted to inspire every idea."
     },
     {
       "slug": "kitchen-ware",
       "name": "Kitchen Ware",
       "collection": "Home Furnishing",
       "collectionKey": "home-furnishing",
-      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-14-at-14.42.50.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2026-01-14-at-14.42.50.jpeg",
       "sourceUrl": "https://vinsho.in/product/kitchen-ware/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "Make everyday cooking and serving more organized with thoughtfully selected kitchenware designed around practical use. From preparation to presentation, these essentials help bring convenience into your daily routine while keeping your kitchen visually coordinated. Their functional nature makes them useful for everyday households, while their clean presentation allows them to fit naturally into modern kitchen spaces.",
       "material": "Mixed · Kitchen",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Cushion",
       "subcategoryKey": "cushion",
       "mainCategory": "Home Furnishing",
       "subCategory": "Cushion",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Vintage Charm. Modern Organization.",
+      "features": [
+        {
+          "title": "Premium Ceramic",
+          "description": "Crafted from high-quality ceramic with a smooth pastel finish for lasting durability."
+        },
+        {
+          "title": "Airtight Lids",
+          "description": "Keeps tea, coffee, sugar, and other essentials fresh for longer."
+        },
+        {
+          "title": "Vintage Design",
+          "description": "Rustic typography and timeless craftsmanship add elegance to every kitchen."
+        },
+        {
+          "title": "Functional & Stylish",
+          "description": "Perfect for everyday storage while enhancing your countertop décor."
+        }
+      ],
+      "closing_line": "Vintage Charm. Modern Organization.",
+      "closingLine": "Vintage Charm. Modern Organization."
     },
     {
       "slug": "laughing-buddha",
       "name": "Laughing Buddha",
       "collection": "Home Decor",
       "collectionKey": "home-decor",
-      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-20-at-22.59.56-2.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2026-01-20-at-22.59.56-2.jpeg",
       "sourceUrl": "https://vinsho.in/product/laughing-buddha/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "Invite a cheerful and welcoming presence into your space with a beautifully styled Laughing Buddha décor piece. Its expressive design makes it an eye-catching addition to shelves, consoles, entrances, or living areas. Whether chosen as a decorative accent or a meaningful gift, it brings warmth, personality, and a positive visual energy to the surroundings.",
       "material": "Cast resin · Shelf",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Showpiece",
       "subcategoryKey": "showpiece",
       "mainCategory": "Home Decor",
       "subCategory": "Showpiece",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Grace in stillness. Strength in silence.",
+      "features": [
+        {
+          "title": "Calm That Lasts",
+          "description": "A symbol of peace that brings balance to life."
+        },
+        {
+          "title": "Artistry in Every Detail",
+          "description": "Thoughtfully crafted to reflect beauty, depth, and meaning."
+        },
+        {
+          "title": "Elevate Any Space",
+          "description": "Perfect for homes, offices, or your quiet corner."
+        },
+        {
+          "title": "Beyond Decor",
+          "description": "A daily reminder to pause, breathe, and be present."
+        }
+      ],
+      "closing_line": "Bring peace home. Let your space inspire you.",
+      "closingLine": "Bring peace home. Let your space inspire you."
     },
     {
       "slug": "leafy-hangings",
       "name": "Leafy hangings",
       "collection": "Home Decor",
       "collectionKey": "home-decor",
-      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-07-at-18.49.24.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2026-01-07-at-18.49.24.jpeg",
       "sourceUrl": "https://vinsho.in/product/leafy-hangings/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "Add an effortless botanical element to your interiors with decorative leafy hangings designed to bring texture and movement to walls or vertical spaces. Their nature-inspired appearance works beautifully in living rooms, balconies, bedrooms, and creative corners. Easy to style alongside existing décor, they introduce greenery-inspired charm without requiring the upkeep of real plants.",
       "material": "Silk · Walls",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Wall Art",
       "subcategoryKey": "wall-art",
       "mainCategory": "Home Decor",
       "subCategory": "Wall Art",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Nature. Light. Timeless Ambiance.",
+      "features": [
+        {
+          "title": "Woven Pendant Lights",
+          "description": "Handcrafted woven shades that diffuse warm light and create a cozy atmosphere."
+        },
+        {
+          "title": "Cascading Greenery",
+          "description": "Lush, lifelike green leaves that add freshness and bring nature indoors."
+        },
+        {
+          "title": "Natural Textures",
+          "description": "A perfect blend of rattan and greenery for an earthy, organic charm."
+        },
+        {
+          "title": "Versatile Decor",
+          "description": "Ideal for cafés, restaurants, living spaces, balconies, and more."
+        }
+      ],
+      "closing_line": "Nature. Light. Timeless Ambiance.",
+      "closingLine": "Nature. Light. Timeless Ambiance."
     },
     {
       "slug": "mattresses",
       "name": "Mattresses",
       "collection": "Home Furnishing",
       "collectionKey": "home-furnishing",
-      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2025-12-30-at-18.18.59.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2025-12-30-at-18.18.59.jpeg",
       "sourceUrl": "https://vinsho.in/product/mattresses/",
-      "description": "Supportive foam layers built for Indian summers and long nights.",
+      "description": "Designed with supportive core technology and soft contouring fabrics, our mattresses provide a tranquil sleeping foundation tailored to enhance morning vitality and bedroom comfort.",
       "material": "High-density foam",
       "price": null,
       "descriptionSource": "written",
@@ -592,16 +1119,37 @@
       "subcategoryKey": "bedsheet",
       "mainCategory": "Home Furnishing",
       "subCategory": "Bedsheet",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Better Sleep. Better Life.",
+      "features": [
+        {
+          "title": "Orthopedic Support",
+          "description": "Promotes proper spine alignment and relieves pressure points."
+        },
+        {
+          "title": "Premium Comfort",
+          "description": "Soft, breathable layers for ultimate relaxation."
+        },
+        {
+          "title": "Durable & Reliable",
+          "description": "Made with high-quality materials that last for years."
+        },
+        {
+          "title": "Restful Sleep",
+          "description": "Designed to help you sleep deeper, longer and wake up refreshed."
+        }
+      ],
+      "closing_line": "Crafted for your comfort.",
+      "closingLine": "Crafted for your comfort."
     },
     {
       "slug": "metal-tree",
       "name": "Metal Tree",
       "collection": "Home Decor",
       "collectionKey": "home-decor",
-      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-20-at-23.02.42.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2026-01-20-at-23.02.42.jpeg",
       "sourceUrl": "https://vinsho.in/product/metal-tree/",
-      "description": "A slim metal silhouette for a shelf that needs height rather than colour.",
+      "description": "Create a striking decorative focal point with a sculptural metal tree designed to bring artistic structure into your interior. Its branching form adds visual interest to consoles, shelves, side tables, or display areas. Combining nature-inspired shapes with contemporary decorative character, it works especially well in spaces where you want a distinctive accent without excessive ornamentation.",
       "material": "Powder-coated metal",
       "price": null,
       "descriptionSource": "written",
@@ -609,16 +1157,37 @@
       "subcategoryKey": "showpiece",
       "mainCategory": "Home Decor",
       "subCategory": "Showpiece",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Elegance Crafted in Every Detail",
+      "features": [
+        {
+          "title": "Exquisite Craftsmanship",
+          "description": "Intricate detailing that reflects fine artistry and precision."
+        },
+        {
+          "title": "Durable & Premium Quality",
+          "description": "Made from high-quality metal for long-lasting beauty."
+        },
+        {
+          "title": "Versatile Decor Piece",
+          "description": "Perfect for tabletops, shelves, mantels, or office spaces."
+        },
+        {
+          "title": "Timeless Appeal",
+          "description": "A symbol of strength and growth that complements any interior."
+        }
+      ],
+      "closing_line": "Crafted to elevate every space.",
+      "closingLine": "Crafted to elevate every space."
     },
     {
       "slug": "mirror",
       "name": "Mirror",
       "collection": "Home Decor",
       "collectionKey": "home-decor",
-      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-14-at-14.42.48.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2026-01-14-at-14.42.48.jpeg",
       "sourceUrl": "https://vinsho.in/product/mirror/",
-      "description": "A framed mirror does two jobs — it opens a small room and finishes a wall.",
+      "description": "Enhance your interiors with a decorative mirror that combines everyday usefulness with visual appeal. Strategically placed, it can reflect light and create a greater sense of openness while adding an elegant focal point to the room. Suitable for bedrooms, living spaces, entryways, or dressing areas, it blends naturally with a variety of interior styles.",
       "material": "Framed glass · Wall mount",
       "price": null,
       "descriptionSource": "written",
@@ -626,271 +1195,549 @@
       "subcategoryKey": "wall-art",
       "mainCategory": "Home Decor",
       "subCategory": "Wall Art",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "features": [
+        {
+          "title": "Sunburst Design",
+          "description": "A striking radial design that creates a bold and elegant focal point on the wall."
+        },
+        {
+          "title": "Layered Detailing",
+          "description": "Multiple concentric layers and carefully arranged elements add depth, dimension, and visual richness."
+        },
+        {
+          "title": "Warm Metallic Finish",
+          "description": "A refined golden-toned finish that brings warmth, sophistication, and a luxurious accent to the space."
+        },
+        {
+          "title": "Statement Wall Decor",
+          "description": "Designed to transform living rooms, bedrooms, entryways, and other spaces into visually distinctive interiors."
+        }
+      ],
+      "highlights": [
+        {
+          "title": "Sunburst Design",
+          "description": "A striking radial design that creates a bold and elegant focal point on the wall."
+        },
+        {
+          "title": "Layered Detailing",
+          "description": "Multiple concentric layers and carefully arranged elements add depth, dimension, and visual richness."
+        },
+        {
+          "title": "Warm Metallic Finish",
+          "description": "A refined golden-toned finish that brings warmth, sophistication, and a luxurious accent to the space."
+        },
+        {
+          "title": "Statement Wall Decor",
+          "description": "Designed to transform living rooms, bedrooms, entryways, and other spaces into visually distinctive interiors."
+        }
+      ],
+      "closing_line": "Designed to reflect timeless elegance.",
+      "closingLine": "Designed to reflect timeless elegance.",
+      "highlightsTagline": "Designed to reflect timeless elegance."
     },
     {
       "slug": "napkin-set",
       "name": "Napkin set",
       "collection": "Home Furnishing",
       "collectionKey": "home-furnishing",
-      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-20-at-23.01.39.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2026-01-20-at-23.01.39.jpeg",
       "sourceUrl": "https://vinsho.in/product/napkin-set/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "Complete your dining table with a coordinated napkin set that adds an elegant finishing touch to every meal. Whether used for everyday dining or special gatherings, these napkins help create a more polished table setting. Their versatile styling pairs easily with different tableware and décor, making them a practical yet decorative addition to your dining essentials.",
       "material": "Cotton · Dining",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Cushion",
       "subcategoryKey": "cushion",
       "mainCategory": "Home Furnishing",
       "subCategory": "Cushion",
-      "isPurchasable": false
-    },
-    {
-      "slug": "pen",
-      "name": "Pen",
-      "collection": "Gifting Collection",
-      "collectionKey": "gifting-collection",
-      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2026-01-08-at-18.11.49.jpeg",
-      "sourceUrl": "https://vinsho.in/product/pen/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
-      "material": "Metal · Gifting",
-      "price": null,
-      "descriptionSource": "placeholder",
-      "subcategory": "Pen",
-      "subcategoryKey": "pen",
-      "mainCategory": "Gifting Collection",
-      "subCategory": "Pen",
-      "isPurchasable": false
-    },
-    {
-      "slug": "photo-frames",
-      "name": "Photo Frames",
-      "collection": "Gifting Collection",
-      "collectionKey": "gifting-collection",
-      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2026-01-05-at-15.50.38.jpeg",
-      "sourceUrl": "https://vinsho.in/product/photo-frames/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
-      "material": "Wood · Gifting",
-      "price": null,
-      "descriptionSource": "placeholder",
-      "subcategory": "Photo Frame",
-      "subcategoryKey": "photo-frame",
-      "mainCategory": "Gifting Collection",
-      "subCategory": "Photo Frame",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Dine Beautifully. Live Elegantly.",
+      "features": [
+        {
+          "title": "Premium Quality",
+          "description": "Crafted from high-quality, durable fabric."
+        },
+        {
+          "title": "Easy to Clean",
+          "description": "Stain-resistant & easy to maintain."
+        },
+        {
+          "title": "Stylish Designs",
+          "description": "Vibrant patterns that elevate your table."
+        },
+        {
+          "title": "Protect & Decorate",
+          "description": "Protect your table while adding a decorative touch."
+        }
+      ],
+      "closing_line": "Beautiful Tables. Memorable Moments.",
+      "closingLine": "Beautiful Tables. Memorable Moments."
     },
     {
       "slug": "pillows",
       "name": "Pillows",
       "collection": "Home Furnishing",
       "collectionKey": "home-furnishing",
-      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2026-01-18-at-20.09.37.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2026-01-18-at-20.09.37.jpeg",
       "sourceUrl": "https://vinsho.in/product/pillows/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "Add another layer of comfort to your bedroom or lounge with thoughtfully designed pillows that combine softness and decorative appeal. Perfect for beds, sofas, or reading corners, they help create a more relaxed and inviting environment. Their versatile character makes them easy to coordinate with different interiors while adding subtle texture and visual depth.",
       "material": "Fibre fill · Bedroom",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Bedsheet",
       "subcategoryKey": "bedsheet",
       "mainCategory": "Home Furnishing",
       "subCategory": "Bedsheet",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Softness You Feel. Comfort You Deserve.",
+      "features": [
+        {
+          "title": "Ultra-Soft Fill",
+          "description": "For a cozy, relaxing sleep."
+        },
+        {
+          "title": "Breathable & Fresh",
+          "description": "Airy design keeps you cool through the night."
+        },
+        {
+          "title": "Durable & Long Lasting",
+          "description": "Made with high-quality materials for everyday use."
+        },
+        {
+          "title": "Perfect for Every Sleeper",
+          "description": "Ideal for all sleeping positions and preferences."
+        }
+      ],
+      "closing_line": "Crafted for comfort, designed for you.",
+      "closingLine": "Crafted for comfort, designed for you."
     },
     {
       "slug": "placemats-napkins",
       "name": "Placemats Napkins",
       "collection": "Home Furnishing",
       "collectionKey": "home-furnishing",
-      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2026-01-05-at-15.50.37-1.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2026-01-05-at-15.50.37-1.jpeg",
       "sourceUrl": "https://vinsho.in/product/placemats-napkins/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "Create a beautifully coordinated dining experience with a matching combination of placemats and napkins. Together, they help organize each place setting while adding texture, color, and visual harmony to the table. Suitable for everyday meals or entertaining guests, this pairing brings practical protection and decorative sophistication together in one easy table-setting solution.",
       "material": "Woven · Dining",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Cushion",
       "subcategoryKey": "cushion",
       "mainCategory": "Home Furnishing",
       "subCategory": "Cushion",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Dine Beautifully. Live Elegantly.",
+      "features": [
+        {
+          "title": "Premium Quality",
+          "description": "Crafted from high-quality, durable fabric."
+        },
+        {
+          "title": "Easy to Clean",
+          "description": "Stain-resistant & easy to maintain."
+        },
+        {
+          "title": "Stylish Designs",
+          "description": "Vibrant patterns that elevate your table."
+        },
+        {
+          "title": "Protect & Decorate",
+          "description": "Protect your table while adding a decorative touch."
+        }
+      ],
+      "closing_line": "Beautiful Tables. Memorable Moments.",
+      "closingLine": "Beautiful Tables. Memorable Moments."
     },
     {
       "slug": "round-placemat",
       "name": "Round placemat",
       "collection": "Home Furnishing",
       "collectionKey": "home-furnishing",
-      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-20-at-22.59.55.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2026-01-20-at-22.59.55.jpeg",
       "sourceUrl": "https://vinsho.in/product/round-placemat/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "Add a softer, more organic shape to your dining arrangement with a round placemat designed to frame individual place settings beautifully. It helps protect the table surface while creating a visually balanced foundation for plates and tableware. Ideal for casual dining or elegant gatherings, it adds a subtle decorative detail without overwhelming the overall table design.",
       "material": "Woven · Dining",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Cushion",
       "subcategoryKey": "cushion",
       "mainCategory": "Home Furnishing",
       "subCategory": "Cushion",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Elegance Crafted for Every Dining Table",
+      "features": [
+        {
+          "title": "Durable & Protective",
+          "description": "Shields your table from heat, spills & scratches."
+        },
+        {
+          "title": "Easy to Clean",
+          "description": "Wipe clean effortlessly for everyday use."
+        },
+        {
+          "title": "Elegant Design",
+          "description": "Beautiful floral & fruit-inspired print with scalloped edges."
+        },
+        {
+          "title": "Perfect for Any Occasion",
+          "description": "Ideal for daily meals or special gatherings."
+        }
+      ],
+      "closing_line": "Crafted to elevate every table.",
+      "closingLine": "Crafted to elevate every table."
     },
     {
       "slug": "runners",
       "name": "Runners",
       "collection": "Home Furnishing",
       "collectionKey": "home-furnishing",
-      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2025-12-30-at-13.52.40-2.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2025-12-30-at-13.52.40-2.jpeg",
       "sourceUrl": "https://vinsho.in/product/runners/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "Elevate your dining or living space with a decorative runner that adds length, texture, and visual structure to the surface. Perfect for dining tables, consoles, or other furniture, it creates an easy styling layer that brings the surrounding décor together. A simple addition that can instantly make an everyday arrangement feel more thoughtfully curated.",
       "material": "Woven · Dining",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Cushion",
       "subcategoryKey": "cushion",
       "mainCategory": "Home Furnishing",
       "subCategory": "Cushion",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Refined Look. Every Step.",
+      "features": [
+        {
+          "title": "Soft & Comfortable",
+          "description": "Plush texture for a cozy underfoot feel."
+        },
+        {
+          "title": "Stylish Design",
+          "description": "Enhances the look of your bedroom effortlessly."
+        },
+        {
+          "title": "Floor Protection",
+          "description": "Protects your floors from wear, dust & scratches."
+        },
+        {
+          "title": "Perfect Fit",
+          "description": "Ideal beside your bed for a polished look."
+        }
+      ],
+      "closing_line": "Style That Runs With Comfort.",
+      "closingLine": "Style That Runs With Comfort."
     },
     {
       "slug": "show-piece",
       "name": "Show Piece",
       "collection": "Home Decor",
       "collectionKey": "home-decor",
-      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2025-12-30-at-13.52.38-2.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2025-12-30-at-13.52.38-2.jpeg",
       "sourceUrl": "https://vinsho.in/product/show-piece/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "An artistic standalone table accent crafted to add texture, dimension, and refined aesthetic character to consoles, side tables, mantelpieces, and display cabinets.",
       "material": "Mixed · Shelf",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Showpiece",
       "subcategoryKey": "showpiece",
       "mainCategory": "Home Decor",
       "subCategory": "Showpiece",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Timeless Charm. Historic Elegance.",
+      "features": [
+        {
+          "title": "Vintage Appeal",
+          "description": "Antique-inspired design that brings history to life."
+        },
+        {
+          "title": "Rustic & Refined",
+          "description": "A perfect blend of rustic character and elegant detailing."
+        },
+        {
+          "title": "Statement Decor",
+          "description": "A bold centerpiece that adds depth and personality to your walls."
+        },
+        {
+          "title": "Perfect for Any Space",
+          "description": "Ideal for living rooms, studies, offices and collectors' spaces."
+        }
+      ],
+      "closing_line": "Crafted to elevate every wall.",
+      "closingLine": "Crafted to elevate every wall."
     },
     {
       "slug": "show-pieces",
       "name": "Show Pieces",
       "collection": "Home Decor",
       "collectionKey": "home-decor",
-      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2025-12-30-at-13.52.41-3.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2025-12-30-at-13.52.41-3.jpeg",
       "sourceUrl": "https://vinsho.in/product/show-pieces/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "Create a more layered and expressive interior with decorative show pieces selected to add character and visual interest. Display them individually or combine different pieces to create a curated arrangement across shelves, consoles, and tables. They provide an easy way to personalize your surroundings while adding decorative depth and a sense of thoughtful styling.",
       "material": "Mixed · Shelf",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Showpiece",
       "subcategoryKey": "showpiece",
       "mainCategory": "Home Decor",
       "subCategory": "Showpiece",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Timeless Charm. Historic Elegance.",
+      "features": [
+        {
+          "title": "Vintage Appeal",
+          "description": "Antique-inspired design that brings history to life."
+        },
+        {
+          "title": "Rustic & Refined",
+          "description": "A perfect blend of rustic character and elegant detailing."
+        },
+        {
+          "title": "Statement Decor",
+          "description": "A bold centerpiece that adds depth and personality to your walls."
+        },
+        {
+          "title": "Perfect for Any Space",
+          "description": "Ideal for living rooms, studies, offices and collectors' spaces."
+        }
+      ],
+      "closing_line": "Crafted to elevate every wall.",
+      "closingLine": "Crafted to elevate every wall."
     },
     {
       "slug": "shower-curtains",
       "name": "Shower curtains",
       "collection": "Home Furnishing",
       "collectionKey": "home-furnishing",
-      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2026-01-08-at-17.00.10.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2026-01-08-at-17.00.10.jpeg",
       "sourceUrl": "https://vinsho.in/product/shower-curtains/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "Refresh your bathroom with a shower curtain that adds privacy while contributing to the overall décor. Its decorative presence can help introduce personality and visual coordination to an otherwise functional space. Easy to incorporate into different bathroom styles, it offers a practical solution for everyday use while helping create a cleaner and more finished atmosphere.",
       "material": "Water-resistant · Bath",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Bathmat",
       "subcategoryKey": "bathmat",
       "mainCategory": "Home Furnishing",
       "subCategory": "Bathmat",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Add grace and warmth to your home.",
+      "features": [
+        {
+          "title": "Finest Fabric",
+          "description": "Made from high-quality fabric for a soft, smooth and luxurious feel."
+        },
+        {
+          "title": "Elegant Design",
+          "description": "Timeless patterns and shades that enhance any interior."
+        },
+        {
+          "title": "Perfect Fit",
+          "description": "Tailored to suit every window beautifully and effortlessly."
+        },
+        {
+          "title": "Privacy & Light Control",
+          "description": "Enjoy the perfect balance of natural light and privacy."
+        }
+      ],
+      "closing_line": "Crafted to inspire every idea.",
+      "closingLine": "Crafted to inspire every idea."
     },
     {
       "slug": "washroom-solution-or-soap-dispenser-set",
       "name": "Soap dispenser set",
       "collection": "Home Furnishing",
       "collectionKey": "home-furnishing",
-      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp_Image_2026-01-14_at_14.42.50__1_-removebg-preview.png",
+      "image": "/images/vinsho/products/WhatsApp_Image_2026-01-14_at_14.42.50__1_-removebg-preview.png",
       "sourceUrl": "https://vinsho.in/product/washroom-solution-or-soap-dispenser-set/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "Bring a more organized and coordinated look to your bathroom or wash area with a stylish soap dispenser set. Designed to keep everyday essentials neatly arranged, it combines practical convenience with decorative appeal. The coordinated presentation makes countertops feel more polished, helping transform simple daily routines into a cleaner and more thoughtfully styled experience.",
       "material": "Ceramic · Bath",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Bathmat",
       "subcategoryKey": "bathmat",
       "mainCategory": "Home Furnishing",
       "subCategory": "Bathmat",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Write with style. Inspire every word.",
+      "features": [
+        {
+          "title": "Sleek & Stylish",
+          "description": "Modern design with a premium metallic finish."
+        },
+        {
+          "title": "Perfect for Gifting",
+          "description": "Comes in a sophisticated gift box for every occasion."
+        },
+        {
+          "title": "Comfortable Grip",
+          "description": "Designed for smooth writing and all-day comfort."
+        },
+        {
+          "title": "Premium Quality",
+          "description": "Crafted from high-quality materials for lasting use."
+        }
+      ],
+      "closing_line": "Crafted to inspire every idea.",
+      "closingLine": "Crafted to inspire every idea."
     },
     {
       "slug": "table-cover",
       "name": "Table cover",
       "collection": "Home Furnishing",
       "collectionKey": "home-furnishing",
-      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-05-at-15.50.35.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2026-01-05-at-15.50.35.jpeg",
       "sourceUrl": "https://vinsho.in/product/table-cover/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "Protect and refresh your dining table with a beautifully styled table cover that combines practicality with decorative charm. It creates an easy foundation for everyday meals while helping introduce color, pattern, or texture into the room. Whether used daily or for gatherings, it helps your dining area feel cleaner, warmer, and more inviting.",
       "material": "Cotton · Dining",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Cushion",
       "subcategoryKey": "cushion",
       "mainCategory": "Home Furnishing",
       "subCategory": "Cushion",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Refined Texture. Timeless Dining.",
+      "features": [
+        {
+          "title": "Premium Fabric",
+          "description": "Made from high-quality, durable & easy-care material."
+        },
+        {
+          "title": "Elegant Design",
+          "description": "Subtle embroidery and refined patterns for a timeless look."
+        },
+        {
+          "title": "Protects & Beautifies",
+          "description": "Shields your table while enhancing your décor."
+        },
+        {
+          "title": "Perfect for Every Occasion",
+          "description": "Ideal for everyday dining or special celebrations."
+        }
+      ],
+      "closing_line": "Refined Texture. Timeless Dining.",
+      "closingLine": "Refined Texture. Timeless Dining."
     },
     {
       "slug": "throws",
       "name": "Throws",
       "collection": "Home Furnishing",
       "collectionKey": "home-furnishing",
-      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2025-12-30-at-16.59.19.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2025-12-30-at-16.59.19.jpeg",
       "sourceUrl": "https://vinsho.in/product/throws/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "Add a cozy finishing layer to sofas, beds, or lounge chairs with a versatile throw designed for comfort and effortless styling. Perfect for relaxed evenings or decorative layering, it introduces warmth and texture without overwhelming the room. Fold it neatly or drape it casually to create an inviting atmosphere with minimal effort.",
       "material": "Knit · Living",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Cushion",
       "subcategoryKey": "cushion",
       "mainCategory": "Home Furnishing",
       "subCategory": "Cushion",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Stay warm and stylish with our cozy throws.",
+      "features": [
+        {
+          "title": "Soft & Breathable",
+          "description": "Made from premium fabrics that feel gentle on your skin."
+        },
+        {
+          "title": "Lightweight & Warm",
+          "description": "Perfect balance of warmth and comfort for all seasons."
+        },
+        {
+          "title": "Stylish & Versatile",
+          "description": "Timeless designs that add a pop of color and charm to any space."
+        }
+      ],
+      "closing_line": "Crafted to inspire every idea.",
+      "closingLine": "Crafted to inspire every idea."
     },
     {
       "slug": "turbie-towel",
       "name": "Turbie towel",
       "collection": "Home Furnishing",
       "collectionKey": "home-furnishing",
-      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-20-at-23.00.28.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2026-01-20-at-23.00.28.jpeg",
       "sourceUrl": "https://vinsho.in/product/turbie-towel/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "Make post-shower hair care more convenient with a turbie towel designed to wrap comfortably around wet hair. Its practical shape helps keep hair neatly secured while you continue with your routine, making it especially useful after bathing. Compact and easy to use, it brings everyday convenience to your personal care essentials without unnecessary fuss.",
       "material": "Terry · Bath",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Bathmat",
       "subcategoryKey": "bathmat",
       "mainCategory": "Home Furnishing",
       "subCategory": "Bathmat",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Dry Hair. No Frizz. All Comfort.",
+      "features": [
+        {
+          "title": "Quick Dry",
+          "description": "Absorbs moisture fast for faster drying."
+        },
+        {
+          "title": "Lightweight",
+          "description": "Soft, breathable & comfortable to wear."
+        },
+        {
+          "title": "Secure Fit",
+          "description": "Button loop design keeps it in place."
+        },
+        {
+          "title": "Gentle Care",
+          "description": "Reduces frizz & protects hair."
+        }
+      ],
+      "closing_line": "Everyday Comfort. Effortless Care.",
+      "closingLine": "Everyday Comfort. Effortless Care."
     },
     {
       "slug": "wall-art",
       "name": "Wall art",
       "collection": "Home Decor",
       "collectionKey": "home-decor",
-      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2025-12-30-at-16.57.17.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2025-12-30-at-16.57.17.jpeg",
       "sourceUrl": "https://vinsho.in/product/wall-art/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "Expressive contemporary wall artwork crafted to bring color harmony, depth, and creative elegance to living spaces, bedroom headboard backdrops, and dining areas.",
       "material": "Framed · Walls",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Wall Art",
       "subcategoryKey": "wall-art",
       "mainCategory": "Home Decor",
       "subCategory": "Wall Art",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Elevate Your Walls. Express Your Style.",
+      "features": [
+        {
+          "title": "Timeless Appeal",
+          "description": "Designed to complement a variety of interiors and styles."
+        },
+        {
+          "title": "Durable & Long Lasting",
+          "description": "Made with quality materials to ensure strength and lasting beauty."
+        },
+        {
+          "title": "Easy to Hang",
+          "description": "Lightweight and hassle-free to mount on any wall."
+        },
+        {
+          "title": "Perfect for Every Space",
+          "description": "Ideal for living rooms, bedrooms, hallways, offices and more."
+        },
+        {
+          "title": "Thoughtful Gift",
+          "description": "A perfect choice for housewarmings, festivals and special occasions."
+        }
+      ],
+      "closing_line": "Crafted to elevate every wall.",
+      "closingLine": "Crafted to elevate every wall."
     },
     {
       "slug": "wall-art-2",
       "name": "Wall art",
       "collection": "Home Decor",
       "collectionKey": "home-decor",
-      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-14-at-14.42.47.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2026-01-14-at-14.42.47.jpeg",
       "sourceUrl": "https://vinsho.in/product/wall-art-2/",
-      "description": "Hand-finished framed pieces that give a bare wall a focal point without shouting for it.",
+      "description": "A multi-dimensional metal wall sculpture designed with cascading geometric elements and warm metallic tones to turn empty living room or office walls into captivating visual focal points.",
       "material": "Framed print · Glass front",
       "price": null,
       "descriptionSource": "written",
@@ -898,41 +1745,104 @@
       "subcategoryKey": "wall-art",
       "mainCategory": "Home Decor",
       "subCategory": "Wall Art",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Elevate Your Walls. Express Your Style.",
+      "features": [
+        {
+          "title": "Timeless Appeal",
+          "description": "Designed to complement a variety of interiors and styles."
+        },
+        {
+          "title": "Durable & Long Lasting",
+          "description": "Made with quality materials to ensure strength and lasting beauty."
+        },
+        {
+          "title": "Easy to Hang",
+          "description": "Lightweight and hassle-free to mount on any wall."
+        },
+        {
+          "title": "Perfect for Every Space",
+          "description": "Ideal for living rooms, bedrooms, hallways, offices and more."
+        },
+        {
+          "title": "Thoughtful Gift",
+          "description": "A perfect choice for housewarmings, festivals and special occasions."
+        }
+      ],
+      "closing_line": "Crafted to elevate every wall.",
+      "closingLine": "Crafted to elevate every wall."
     },
     {
       "slug": "wall-clock",
       "name": "Wall clock",
       "collection": "Home Decor",
       "collectionKey": "home-decor",
-      "image": "https://vinsho.in/wp-content/uploads/2026/01/WhatsApp-Image-2026-01-20-at-22.59.56.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2026-01-20-at-22.59.56.jpeg",
       "sourceUrl": "https://vinsho.in/product/wall-clock/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "Keep track of time while adding a decorative focal point to your wall with a stylish wall clock. Beyond its everyday function, its design can complement furniture, artwork, and surrounding décor. Ideal for living rooms, bedrooms, offices, and hallways, it brings together practicality and visual structure in a simple yet effective interior accent.",
       "material": "Metal · Walls",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Wall Clock",
       "subcategoryKey": "wall-clock",
       "mainCategory": "Home Decor",
       "subCategory": "Wall Clock",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Timeless Design. Timeless Living.",
+      "features": [
+        {
+          "title": "Vintage Appeal",
+          "description": "Classic antique finish for a timeless look."
+        },
+        {
+          "title": "Roman Numeral Dial",
+          "description": "Easy to read with bold Roman numerals."
+        },
+        {
+          "title": "Statement Wall Decor",
+          "description": "Adds character and charm to any wall."
+        },
+        {
+          "title": "Perfect for Living Spaces",
+          "description": "Ideal for homes, offices & cafés."
+        }
+      ],
+      "closing_line": "Crafted to elevate every wall.",
+      "closingLine": "Crafted to elevate every wall."
     },
     {
       "slug": "wall-painting",
       "name": "Wall Painting",
       "collection": "Home Decor",
       "collectionKey": "home-decor",
-      "image": "https://vinsho.in/wp-content/uploads/2025/10/WhatsApp-Image-2025-12-30-at-13.52.39-1.jpeg",
+      "image": "/images/vinsho/products/WhatsApp-Image-2025-12-30-at-13.52.39-1.jpeg",
       "sourceUrl": "https://vinsho.in/product/wall-painting/",
-      "description": "Curated to blend elegance, comfort and functionality in everyday rooms.",
+      "description": "Give your interiors an expressive finishing touch with a decorative wall painting designed to add color, depth, and personality. It can become a central visual element above sofas, beds, consoles, or dining spaces. Whether your décor is contemporary or classic, a thoughtfully selected painting can transform an ordinary wall into a more memorable part of the room.",
       "material": "Canvas · Walls",
       "price": null,
-      "descriptionSource": "placeholder",
+      "descriptionSource": "written",
       "subcategory": "Wall Art",
       "subcategoryKey": "wall-art",
       "mainCategory": "Home Decor",
       "subCategory": "Wall Art",
-      "isPurchasable": false
+      "isPurchasable": false,
+      "tagline": "Transform your walls with art that speaks in colors and emotions.",
+      "features": [
+        {
+          "title": "Art That Inspires",
+          "description": "Thoughtfully designed paintings that bring life to every wall."
+        },
+        {
+          "title": "Rich in Detail",
+          "description": "Vibrant colors and fine detailing for a lasting impression."
+        },
+        {
+          "title": "Perfect for Every Space",
+          "description": "Elevate your home, office, or any corner with timeless art."
+        }
+      ],
+      "closing_line": "Crafted to elevate every wall.",
+      "closingLine": "Crafted to elevate every wall."
     }
   ]
 }

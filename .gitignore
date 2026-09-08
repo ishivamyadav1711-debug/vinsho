@@ -13,9 +13,16 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# environment variables
+# environment variables — NEVER commit secrets to version control
 .env
+.env.local
+.env.development
+.env.development.local
 .env.production
+.env.production.local
+.env.staging
+.env.test
+.env.test.local
 
 # macOS-specific files
 .DS_Store
