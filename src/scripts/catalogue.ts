@@ -36,7 +36,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Active filter state collections
   let selectedCols: string[] = [];
   let selectedSubs: string[] = [];
-  let selectedMats: string[] = [];
   let selectedAvails: string[] = [];
   let availMode: 'all' | 'online' | 'store' = 'all';
   let query = '';
@@ -116,19 +115,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const colKey = card.dataset.colKey || '';
     const subKey = card.dataset.subKey || '';
     const rawMaterial = card.dataset.material || '';
-
-    // Material categorization
-    const matLower = rawMaterial.toLowerCase();
-    let matKey = '';
-    if (matLower.includes('cotton') || matLower.includes('linen') || matLower.includes('terry')) matKey = 'cotton-linen';
-    else if (matLower.includes('metal') || matLower.includes('powder-coated')) matKey = 'metal';
-    else if (matLower.includes('wood') || matLower.includes('framed print')) matKey = 'wood';
-    else if (matLower.includes('ceramic') || matLower.includes('resin') || matLower.includes('cast')) matKey = 'ceramic-resin';
-    else if (matLower.includes('silk') || matLower.includes('live plant') || matLower.includes('accent')) matKey = 'silk-botanical';
-    else if (matLower.includes('glass') || matLower.includes('mirror')) matKey = 'glass-mirror';
-    else if (matLower.includes('jute') || matLower.includes('coir')) matKey = 'jute-coir';
-    else if (matLower.includes('wax') || matLower.includes('poured')) matKey = 'wax';
-
     return {
       card,
       name,
@@ -136,7 +122,6 @@ document.addEventListener('DOMContentLoaded', () => {
       eyebrow,
       colKey,
       subKey,
-      matKey,
       rawMaterial,
       originalIndex
     };
@@ -151,8 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sub = params.get('sub') || params.get('subcategory');
     selectedSubs = sub ? sub.split(',') : [];
 
-    const mat = params.get('mat');
-    selectedMats = mat ? mat.split(',') : [];
+
 
     const avail = params.get('avail');
     selectedAvails = avail ? avail.split(',') : [];
@@ -173,8 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (selectedSubs.length > 0) url.searchParams.set('sub', selectedSubs.join(','));
     else url.searchParams.delete('sub');
 
-    if (selectedMats.length > 0) url.searchParams.set('mat', selectedMats.join(','));
-    else url.searchParams.delete('mat');
+
 
     if (selectedAvails.length > 0) url.searchParams.set('avail', selectedAvails.join(','));
     else url.searchParams.delete('avail');
@@ -192,7 +175,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const val = cb.value;
       if (name === 'col') cb.checked = selectedCols.includes(val);
       else if (name === 'sub') cb.checked = selectedSubs.includes(val);
-      else if (name === 'mat') cb.checked = selectedMats.includes(val);
       else if (name === 'avail') cb.checked = selectedAvails.includes(val);
     });
   }
@@ -201,14 +183,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const checkboxes = document.querySelectorAll<HTMLInputElement>('.custom-checkbox-input');
     selectedCols = [];
     selectedSubs = [];
-    selectedMats = [];
     selectedAvails = [];
 
     checkboxes.forEach((cb) => {
       if (cb.checked) {
         if (cb.name === 'col') selectedCols.push(cb.value);
         else if (cb.name === 'sub') selectedSubs.push(cb.value);
-        else if (cb.name === 'mat') selectedMats.push(cb.value);
         else if (cb.name === 'avail') selectedAvails.push(cb.value);
       }
     });
@@ -347,33 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
       chipsWrapper.appendChild(chip);
     });
 
-    // Material Chips
-    const matLabels: Record<string, string> = {
-      'cotton-linen': 'Cotton & Linen',
-      'metal': 'Metal & Alloys',
-      'wood': 'Wood & Timber',
-      'ceramic-resin': 'Ceramic & Sculpted',
-      'silk-botanical': 'Silk & Botanicals',
-      'glass-mirror': 'Glass & Mirror',
-      'jute-coir': 'Jute & Natural Fibre',
-      'wax': 'Poured Wax'
-    };
 
-    selectedMats.forEach((matKey) => {
-      hasChips = true;
-      const label = matLabels[matKey] || matKey;
-
-      const chip = document.createElement('span');
-      chip.className = 'filter-chip';
-      chip.innerHTML = `${label} <button class="chip-remove" aria-label="Remove material filter">&times;</button>`;
-      chip.querySelector('.chip-remove')?.addEventListener('click', () => {
-        selectedMats = selectedMats.filter((m) => m !== matKey);
-        syncCheckboxesWithState();
-        updateURL();
-        draw();
-      });
-      chipsWrapper.appendChild(chip);
-    });
 
     // Availability Chips
     selectedAvails.forEach((availKey) => {
@@ -457,14 +411,11 @@ document.addEventListener('DOMContentLoaded', () => {
       // Sub-category Filter (OR inside group)
       const matchesSub = selectedSubs.length === 0 || selectedSubs.includes(item.subKey);
 
-      // Material Filter (OR inside group)
-      const matchesMat = selectedMats.length === 0 || (item.matKey && selectedMats.includes(item.matKey));
-
       // Search Query
       const searchableText = `${item.name} ${item.desc} ${item.eyebrow} ${item.rawMaterial} ${item.colKey} ${item.subKey}`.toLowerCase();
       const matchesQuery = !query || searchableText.includes(query);
 
-      return matchesAvailMode && matchesCol && matchesSub && matchesMat && matchesQuery;
+      return matchesAvailMode && matchesCol && matchesSub && matchesQuery;
     });
   }
 
@@ -561,7 +512,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function clearAllFilters() {
     selectedCols = [];
     selectedSubs = [];
-    selectedMats = [];
     selectedAvails = [];
     query = '';
     if (qInput) qInput.value = '';
@@ -699,7 +649,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Active state indicators
     if (mSearchDot) mSearchDot.hidden = query.length === 0;
     
-    const activeFilterCount = selectedCols.length + selectedSubs.length + selectedMats.length + selectedAvails.length;
+    const activeFilterCount = selectedCols.length + selectedSubs.length + selectedAvails.length;
     if (mFilterBadge) {
       mFilterBadge.hidden = activeFilterCount === 0;
       mFilterBadge.textContent = String(activeFilterCount);

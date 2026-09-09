@@ -5,17 +5,7 @@ const collections = getCollections();
 const activeProducts = getActiveProducts();
 const totalCount = activeProducts.length;
 
-// Extract distinct material categories present in product data
-const materialsList = [
-  { key: 'cotton-linen', name: 'Cotton & Linen' },
-  { key: 'metal', name: 'Metal & Alloys' },
-  { key: 'wood', name: 'Wood & Timber' },
-  { key: 'ceramic-resin', name: 'Ceramic & Sculpted' },
-  { key: 'silk-botanical', name: 'Silk & Botanicals' },
-  { key: 'glass-mirror', name: 'Glass & Mirror' },
-  { key: 'jute-coir', name: 'Jute & Natural Fibre' },
-  { key: 'wax', name: 'Poured Wax' }
-];
+
 ---
 
 <!-- Overlay backdrop -->
@@ -71,47 +61,7 @@ const materialsList = [
       </div>
     </div>
 
-    <!-- Accordion 2: Sub-category (Open by default) -->
-    <div class="fp-group open" data-fp-group="subcategory">
-      <button class="fp-group-header" aria-expanded="true">
-        <span>Sub-category</span>
-        <span class="fp-group-icon">&minus;</span>
-      </button>
-      <div class="fp-group-content">
-        {collections.flatMap(c => c.subcategories).map((sub) => (
-          <label class="custom-checkbox-label">
-            <input type="checkbox" name="sub" value={sub.key} class="custom-checkbox-input" />
-            <span class="checkbox-box">
-              <svg class="check-svg" width="10" height="8" viewBox="0 0 10 8" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M1 4l2.5 2.5L9 1" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </span>
-            <span class="checkbox-text">{sub.name}</span>
-          </label>
-        ))}
-      </div>
-    </div>
 
-    <!-- Accordion 3: Material & Craft Finish -->
-    <div class="fp-group" data-fp-group="material">
-      <button class="fp-group-header" aria-expanded="false">
-        <span>Material &amp; Craft</span>
-        <span class="fp-group-icon">&plus;</span>
-      </button>
-      <div class="fp-group-content" hidden>
-        {materialsList.map((mat) => (
-          <label class="custom-checkbox-label">
-            <input type="checkbox" name="mat" value={mat.key} class="custom-checkbox-input" />
-            <span class="checkbox-box">
-              <svg class="check-svg" width="10" height="8" viewBox="0 0 10 8" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M1 4l2.5 2.5L9 1" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </span>
-            <span class="checkbox-text">{mat.name}</span>
-          </label>
-        ))}
-      </div>
-    </div>
 
     <!-- Accordion 4: Availability -->
     <div class="fp-group" data-fp-group="availability">
