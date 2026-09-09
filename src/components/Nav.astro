@@ -46,7 +46,7 @@ const collections = taxonomyData.collections;
   </nav>
 
   <div class="util">
-    <a href="/products" class="util-link" aria-label="Search catalogue">
+    <a href="/products" class="util-link" id="header-search-btn" aria-label="Search catalogue">
       <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <circle cx="11" cy="11" r="7"/>
         <path d="m20 20-3.5-3.5"/>
@@ -180,6 +180,20 @@ const collections = taxonomyData.collections;
     const closeBtn = document.getElementById('mobile-drawer-close');
     const backdrop = document.getElementById('mobile-nav-backdrop');
     const drawer = document.getElementById('mobile-nav-drawer');
+
+    const headerSearchBtn = document.getElementById('header-search-btn');
+    if (headerSearchBtn) {
+      headerSearchBtn.addEventListener('click', (e) => {
+        if (window.location.pathname === '/products' || window.location.pathname === '/products/') {
+          e.preventDefault();
+          const qInput = document.getElementById('q') as HTMLInputElement | null;
+          if (qInput) {
+            qInput.focus();
+            qInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }
+      });
+    }
 
     if (!toggleBtn || !drawer || !backdrop) return;
 

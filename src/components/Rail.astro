@@ -4,7 +4,7 @@ import TextReveal from './motion/TextReveal.astro';
 import Magnetic from './motion/Magnetic.astro';
 import content from '../../vinsho-content.json';
 
-const railSlugs = ["decorative-candles", "carpets", "wall-art-2", "mirror", "metal-tree", "flowers-bouquet"];
+const railSlugs = ["flower-vases", "carpets", "wall-art-2", "mirror", "metal-tree", "flowers-bouquet"];
 const productsBySlug = Object.fromEntries(content.products.map(p => [p.slug, p]));
 const railProducts = railSlugs.map(slug => productsBySlug[slug]).filter(Boolean);
 ---

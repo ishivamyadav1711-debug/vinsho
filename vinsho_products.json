@@ -332,34 +332,6 @@
     "giftEligible": true
   },
   {
-    "id": 17,
-    "slug": "decorative-candles",
-    "name": "Decorative Candles",
-    "category": "Home Decor",
-    "tagline": "Warmth that glows, beauty that stays.",
-    "description": "Enrich your home's atmosphere with our collection of artisanal decorative candles, thoughtfully poured into elegant vessels that double as sculpted centerpiece accents even when unlit.",
-    "features": [
-      {
-        "title": "Décor First",
-        "description": "Created to function as expressive decorative pieces within an interior."
-      },
-      {
-        "title": "Distinctive Forms",
-        "description": "Decorative silhouettes add personality beyond conventional candles."
-      },
-      {
-        "title": "Styling Versatility",
-        "description": "Suitable for tables, shelves, consoles, and curated corners."
-      },
-      {
-        "title": "Beauty in the Details",
-        "description": "Designed to complement interiors through form, shape, and visual character."
-      }
-    ],
-    "closing_line": "Where candlelight becomes décor.",
-    "giftEligible": true
-  },
-  {
     "id": 18,
     "slug": "elegant-diaries",
     "name": "Elegant Diaries",

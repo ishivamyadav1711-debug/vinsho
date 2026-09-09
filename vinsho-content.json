@@ -505,44 +505,6 @@
       "closingLine": "Bring peace home. Let your space inspire you."
     },
     {
-      "slug": "candles",
-      "name": "Candles",
-      "collection": "Home Decor",
-      "collectionKey": "home-decor",
-      "image": "/images/vinsho/products/WhatsApp-Image-2025-12-30-at-13.52.37-1.jpeg",
-      "sourceUrl": "https://vinsho.in/product/candles/",
-      "description": "Add warmth, personality, and visual charm to your interiors with decorative candles designed to be enjoyed as both décor and ambient accents. Their artistic presentation makes them suitable for shelves, tables, bedside corners, celebrations, and gifting. Whether displayed unlit or glowing softly, they create an inviting atmosphere while adding a distinctive finishing detail.",
-      "material": "Wax · Gifting",
-      "price": null,
-      "descriptionSource": "written",
-      "subcategory": "Candles",
-      "subcategoryKey": "candles",
-      "mainCategory": "Home Decor",
-      "subCategory": "Candles",
-      "isPurchasable": true,
-      "tagline": "Enrich Your Home's Ambiance With Our Exclusive Décor Candles.",
-      "features": [
-        {
-          "title": "Everyday Candle Edit",
-          "description": "A versatile foundation for exploring VINSHO's candle collection."
-        },
-        {
-          "title": "Decorative Versatility",
-          "description": "Designed to complement a variety of interiors and styling moods."
-        },
-        {
-          "title": "Warm Visual Presence",
-          "description": "Candles bring an inviting sense of warmth to everyday spaces."
-        },
-        {
-          "title": "Curated Collection",
-          "description": "A starting point for discovering distinctive candle designs."
-        }
-      ],
-      "closing_line": "Light your space, your way.",
-      "closingLine": "Warmth that glows, beauty that stays."
-    },
-    {
       "slug": "carpets",
       "name": "Carpets",
       "collection": "Home Furnishing",
@@ -727,44 +689,6 @@
       ],
       "closing_line": "Bring nature's beauty into your everyday space.",
       "closingLine": "Bring nature's beauty into your everyday space."
-    },
-    {
-      "slug": "decorative-candles",
-      "name": "Decorative Candles",
-      "collection": "Home Decor",
-      "collectionKey": "home-decor",
-      "image": "/images/vinsho/products/WhatsApp-Image-2025-12-30-at-13.52.37-2.jpeg",
-      "sourceUrl": "https://vinsho.in/product/decorative-candles/",
-      "description": "Enrich your home's atmosphere with our collection of artisanal decorative candles, thoughtfully poured into elegant vessels that double as sculpted centerpiece accents even when unlit.",
-      "material": "Poured wax · Cotton wick",
-      "price": null,
-      "descriptionSource": "written",
-      "subcategory": "Candles",
-      "subcategoryKey": "candles",
-      "mainCategory": "Home Decor",
-      "subCategory": "Candles",
-      "isPurchasable": true,
-      "tagline": "Enrich Your Home's Ambiance With Our Exclusive Décor Candles.",
-      "features": [
-        {
-          "title": "Décor First",
-          "description": "Created to function as expressive decorative pieces within an interior."
-        },
-        {
-          "title": "Distinctive Forms",
-          "description": "Decorative silhouettes add personality beyond conventional candles."
-        },
-        {
-          "title": "Styling Versatility",
-          "description": "Suitable for tables, shelves, consoles, and curated corners."
-        },
-        {
-          "title": "Beauty in the Details",
-          "description": "Designed to complement interiors through form, shape, and visual character."
-        }
-      ],
-      "closing_line": "Where candlelight becomes décor.",
-      "closingLine": "Warmth that glows, beauty that stays."
     },
     {
       "slug": "doormat",

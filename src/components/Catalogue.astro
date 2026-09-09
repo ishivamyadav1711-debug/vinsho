@@ -10,6 +10,31 @@ const totalCount = activeProducts.length;
 ---
 
 <section class="wrap catalogue-2tier-section" id="catalogue">
+  <!-- Prominent Top Search Bar (Mobile & Desktop) -->
+  <div class="catalogue-search-bar-wrap">
+    <form role="search" id="catalogue-search-form" class="search-form-box" action="/products" method="GET" onsubmit="return false;">
+      <svg class="search-box-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <circle cx="11" cy="11" r="7"/>
+        <path d="m20 20-3.5-3.5"/>
+      </svg>
+      <input 
+        id="q" 
+        name="q" 
+        type="text" 
+        placeholder="Search products, categories, materials..." 
+        aria-label="Search products and categories"
+        autocomplete="off" 
+        spellcheck="false"
+      />
+      <button type="button" class="search-clear-btn" id="search-clear-btn" aria-label="Clear search input" hidden>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </form>
+  </div>
+
   <div class="sh">
     <div class="sh-text">
       <TextReveal as="h2">Everything We Make</TextReveal>
@@ -23,14 +48,6 @@ const totalCount = activeProducts.length;
           <path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
-
-      <span class="field">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
-          <circle cx="11" cy="11" r="7"/>
-          <path d="m20 20-3.5-3.5"/>
-        </svg>
-        <input id="q" type="search" placeholder="Search name, sub-category…" aria-label="Search catalogue" />
-      </span>
 
       <span class="field field-sort">
         <select id="sort" aria-label="Sort">
@@ -46,15 +63,6 @@ const totalCount = activeProducts.length;
   <!-- Mobile Mutually-Exclusive Accordion Control Bar (< 768px Only) -->
   <div class="mobile-accordion-bar" id="mobile-accordion-bar" aria-label="Mobile Catalogue Controls">
     <div class="m-bar-triggers">
-      <button class="m-trigger-btn" data-m-panel="search" id="m-btn-search" aria-expanded="false">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="11" cy="11" r="7"/>
-          <path d="m20 20-3.5-3.5"/>
-        </svg>
-        <span>Search</span>
-        <span class="m-active-dot" id="m-search-dot" hidden></span>
-      </button>
-
       <button class="m-trigger-btn" data-m-panel="filter" id="m-btn-filter" aria-expanded="false">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-linejoin="round"/>
@@ -77,18 +85,6 @@ const totalCount = activeProducts.length;
         </svg>
         <span id="m-sort-btn-label">Sort</span>
       </button>
-    </div>
-
-    <!-- Mutually Exclusive Expandable Panel 1: SEARCH -->
-    <div class="m-panel-box" id="m-panel-search" hidden>
-      <div class="m-search-input-wrap">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
-          <circle cx="11" cy="11" r="7"/>
-          <path d="m20 20-3.5-3.5"/>
-        </svg>
-        <input id="q-mobile" type="search" placeholder="Search name, sub-category, material…" aria-label="Search catalogue mobile" />
-        <button class="m-panel-close" id="m-search-close-btn" aria-label="Close search panel">&times;</button>
-      </div>
     </div>
 
     <!-- Mutually Exclusive Expandable Panel 2: CATEGORIES -->
@@ -257,6 +253,77 @@ const totalCount = activeProducts.length;
 <style>
   .catalogue-2tier-section {
     padding-block: clamp(0.5rem, 1.5vw, 1.5rem);
+  }
+
+  /* Prominent Top Search Bar */
+  .catalogue-search-bar-wrap {
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+
+  .search-form-box {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    width: 100%;
+    height: 46px;
+    background: #ffffff;
+    border: 1.5px solid var(--line, #e2dcd0);
+    border-radius: 999px;
+    padding: 0 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    box-sizing: border-box;
+  }
+
+  .search-form-box:focus-within {
+    border-color: var(--maroon, #8A174B);
+    box-shadow: 0 0 0 3.5px rgba(138, 23, 75, 0.12);
+  }
+
+  .search-box-icon {
+    color: var(--maroon-2, #720E3B);
+    flex-shrink: 0;
+  }
+
+  .search-form-box input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 0.938rem;
+    font-family: var(--sans, sans-serif);
+    color: var(--ink, #1e1e1e);
+    height: 100%;
+    padding: 0;
+  }
+
+  .search-form-box input::placeholder {
+    color: var(--ink-soft, #8A7D77);
+    font-size: 0.875rem;
+  }
+
+  .search-clear-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: var(--paper-3, #f3eae6);
+    color: var(--maroon, #8A174B);
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    padding: 0;
+    transition: all 0.2s ease;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .search-clear-btn:hover {
+    background: var(--maroon, #8A174B);
+    color: #ffffff;
   }
 
   .sh {

@@ -6,6 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const grid = document.getElementById('grid');
   const empty = document.getElementById('empty');
   const qInput = document.getElementById('q') as HTMLInputElement | null;
+  const searchClearBtn = document.getElementById('search-clear-btn') as HTMLButtonElement | null;
+  const searchForm = document.getElementById('catalogue-search-form') as HTMLFormElement | null;
   const sortSelect = document.getElementById('sort') as HTMLSelectElement | null;
   const mobileSortSelect = document.getElementById('mobile-sort-select') as HTMLSelectElement | null;
 
@@ -115,6 +117,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const colKey = card.dataset.colKey || '';
     const subKey = card.dataset.subKey || '';
     const rawMaterial = card.dataset.material || '';
+    const customTerms = card.dataset.searchTerms || '';
+    const searchableText = `${customTerms} ${name} ${desc} ${eyebrow} ${rawMaterial} ${colKey} ${subKey}`.toLowerCase();
     return {
       card,
       name,
@@ -123,9 +127,30 @@ document.addEventListener('DOMContentLoaded', () => {
       colKey,
       subKey,
       rawMaterial,
+      searchableText,
       originalIndex
     };
   });
+
+  function matchesToken(searchableText: string, token: string): boolean {
+    if (searchableText.includes(token)) return true;
+    if (token.endsWith('s') && token.length > 3) {
+      const singular = token.slice(0, -1);
+      if (searchableText.includes(singular)) return true;
+    }
+    if (token.endsWith('es') && token.length > 4) {
+      const singular = token.slice(0, -2);
+      if (searchableText.includes(singular)) return true;
+    }
+    return false;
+  }
+
+  function checkQueryMatch(searchableText: string, searchQuery: string): boolean {
+    const cleanQuery = searchQuery.trim().toLowerCase();
+    if (!cleanQuery) return true;
+    const tokens = cleanQuery.split(/\s+/).filter(Boolean);
+    return tokens.every(token => matchesToken(searchableText, token));
+  }
 
   // Read URL query parameters
   function readParamsFromURL() {
@@ -142,9 +167,10 @@ document.addEventListener('DOMContentLoaded', () => {
     selectedAvails = avail ? avail.split(',') : [];
 
     query = params.get('q') || '';
-    if (qInput && query) {
+    if (qInput) {
       qInput.value = query;
     }
+    updateSearchClearButton();
 
     syncCheckboxesWithState();
   }
@@ -396,6 +422,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  function updateSearchClearButton() {
+    if (searchClearBtn) {
+      searchClearBtn.hidden = query.trim().length === 0;
+    }
+  }
+
   function getFilteredProducts() {
     return items.filter((item) => {
       // Availability Mode Filter: Gifting Collection = Available Online, All Other = Store Only
@@ -412,8 +444,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const matchesSub = selectedSubs.length === 0 || selectedSubs.includes(item.subKey);
 
       // Search Query
-      const searchableText = `${item.name} ${item.desc} ${item.eyebrow} ${item.rawMaterial} ${item.colKey} ${item.subKey}`.toLowerCase();
-      const matchesQuery = !query || searchableText.includes(query);
+      const matchesQuery = checkQueryMatch(item.searchableText, query);
 
       return matchesAvailMode && matchesCol && matchesSub && matchesQuery;
     });
@@ -423,6 +454,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateSidebarState();
     updateMobilePillsState();
     updateChipsBar();
+    updateSearchClearButton();
 
     // Online subcategories bar visibility & active state sync
     const onlineSubBar = document.getElementById('online-subcategories-bar');
@@ -443,25 +475,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const filtered = getFilteredProducts();
+    const cleanQ = query.trim();
 
     // Dynamic result count & banner header update
     const activeHeadingEl = document.getElementById('active-collection-heading');
     const activeCountEl = document.getElementById('active-collection-count');
     if (activeHeadingEl && activeCountEl) {
-      if (selectedSubs.length === 1) {
+      if (cleanQ) {
+        activeHeadingEl.textContent = `SEARCH RESULTS FOR "${cleanQ.toUpperCase()}"`;
+        activeCountEl.textContent = `${filtered.length} product${filtered.length === 1 ? '' : 's'} found`;
+      } else if (selectedSubs.length === 1) {
         let subName = selectedSubs[0];
         taxonomyData.collections.forEach(col => {
           const s = col.subcategories.find(sub => sub.key === selectedSubs[0]);
           if (s) subName = s.name;
         });
         activeHeadingEl.textContent = subName.toUpperCase();
+        activeCountEl.textContent = `${filtered.length} products`;
       } else if (selectedCols.length === 1) {
         const colObj = taxonomyData.collections.find((c) => c.key === selectedCols[0]);
         activeHeadingEl.textContent = colObj ? colObj.name.toUpperCase() : selectedCols[0].toUpperCase();
+        activeCountEl.textContent = `${filtered.length} products`;
       } else {
         activeHeadingEl.textContent = 'ALL PRODUCTS';
+        activeCountEl.textContent = `${filtered.length} products`;
       }
-      activeCountEl.textContent = `${filtered.length} products`;
     }
 
     if (resultCountText) {
@@ -496,7 +534,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (empty) {
       if (filtered.length === 0) {
         empty.hidden = false;
-        empty.innerHTML = `No products match those filter criteria. Try <button id="empty-clear-btn" style="background:none;border:none;color:var(--maroon);text-decoration:underline;cursor:pointer;font-size:inherit;">clearing your filters</button>, or <a href="https://wa.me/${taxonomyData.brand?.whatsapp || '919625515351'}?text=Hi%20VINSHO,%20I%20am%20looking%20for%20a%20custom%20product." target="_blank" rel="noopener noreferrer">ask us on WhatsApp &rarr;</a>`;
+        if (cleanQ) {
+          empty.innerHTML = `No products found matching "<strong>${cleanQ}</strong>".<br/><span style="font-size:0.875rem;color:var(--ink-soft);display:block;margin-top:0.35rem;">Try searching for another product or category, or check your spelling.</span><div style="margin-top:0.75rem;"><button id="empty-clear-btn" style="background:var(--maroon);color:#fff;border:none;padding:0.4rem 1rem;border-radius:999px;cursor:pointer;font-size:0.813rem;font-weight:600;">Clear Search</button></div>`;
+        } else {
+          empty.innerHTML = `No products match those filter criteria. Try <button id="empty-clear-btn" style="background:none;border:none;color:var(--maroon);text-decoration:underline;cursor:pointer;font-size:inherit;">clearing your filters</button>, or <a href="https://wa.me/${taxonomyData.brand?.whatsapp || '919625515351'}?text=Hi%20VINSHO,%20I%20am%20looking%20for%20a%20custom%20product." target="_blank" rel="noopener noreferrer">ask us on WhatsApp &rarr;</a>`;
+        }
         document.getElementById('empty-clear-btn')?.addEventListener('click', clearAllFilters);
       } else {
         empty.hidden = true;
@@ -577,11 +619,28 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Search input listener
+  // Search input & form listeners
   qInput?.addEventListener('input', (e) => {
-    query = (e.target as HTMLInputElement).value.trim().toLowerCase();
+    query = (e.target as HTMLInputElement).value;
+    updateSearchClearButton();
     updateURL();
     draw();
+  });
+
+  searchClearBtn?.addEventListener('click', () => {
+    query = '';
+    if (qInput) {
+      qInput.value = '';
+      qInput.focus();
+    }
+    updateSearchClearButton();
+    updateURL();
+    draw();
+  });
+
+  searchForm?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (qInput) qInput.blur();
   });
 
   // Sort select listeners

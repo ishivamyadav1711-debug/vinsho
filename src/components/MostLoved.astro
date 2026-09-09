@@ -3,7 +3,7 @@ import ProductCard from './ProductCard.astro';
 import TextReveal from './motion/TextReveal.astro';
 import content from '../../vinsho-content.json';
 
-const lovedSlugs = ["bedsheet", "curtains", "decorative-candles", "wall-art-2"];
+const lovedSlugs = ["bedsheet", "curtains", "flower-vases", "wall-art-2"];
 const productsBySlug = Object.fromEntries(content.products.map(p => [p.slug, p]));
 const lovedProducts = lovedSlugs.map(slug => productsBySlug[slug]).filter(Boolean);
 ---

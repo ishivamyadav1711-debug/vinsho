@@ -33,6 +33,20 @@ const formattedPrice = isPurchasable && priceVal
 const eyebrowLabel = product.subCategory || product.subcategory || product.mainCategory || product.collection || '';
 const colKey = product.collectionKey || '';
 const subKey = product.subcategoryKey || '';
+
+const searchTerms = [
+  product.name,
+  product.slug,
+  product.description || '',
+  product.collection || '',
+  product.collectionKey || '',
+  product.subcategory || '',
+  product.subcategoryKey || '',
+  product.mainCategory || '',
+  product.subCategory || '',
+  product.material || '',
+  product.sku_ref || ''
+].filter(Boolean).join(' ').toLowerCase();
 ---
 
 <article 
@@ -43,6 +57,7 @@ const subKey = product.subcategoryKey || '';
   data-sub-key={subKey}
   data-material={product.material || ''}
   data-purchasable={isPurchasable ? 'true' : 'false'}
+  data-search-terms={searchTerms}
 >
   <div class="pc-img">
     <a href={`/product/${product.slug}`} class="pc-img-link" aria-label={`View ${product.name}`}>
