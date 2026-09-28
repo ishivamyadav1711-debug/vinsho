@@ -9,16 +9,17 @@ let dbPath = path.join(process.cwd(), 'data', 'vinsho.db');
 if (isVercel) {
   // On Vercel (read-only filesystem), copy the bundled DB to /tmp so it can be written to
   const tmpPath = path.join(os.tmpdir(), 'vinsho.db');
-  // Copy if it doesn't exist in /tmp, or if we want to ensure we have the latest bundled data.
-  // We'll just copy it once per function cold start.
+
   if (!fs.existsSync(tmpPath) && fs.existsSync(dbPath)) {
     fs.copyFileSync(dbPath, tmpPath);
   } else if (!fs.existsSync(tmpPath)) {
-    fs.writeFileSync(tmpPath, ''); // Create empty file if no bundled DB exists
+    fs.writeFileSync(tmpPath, '');
   }
+
   dbPath = tmpPath;
 } else {
   const dbDir = path.join(process.cwd(), 'data');
+
   if (!fs.existsSync(dbDir)) {
     fs.mkdirSync(dbDir, { recursive: true });
   }
@@ -27,7 +28,6 @@ if (isVercel) {
 export const db = new Database(dbPath);
 
 // Enable WAL mode & Foreign Key enforcement
-// In Vercel (/tmp) WAL is fine, but if it fails we just catch it
 try {
   db.pragma('journal_mode = WAL');
 } catch (e) {
