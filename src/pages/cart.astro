@@ -68,36 +68,6 @@ const isLoggedIn = !!getCustomerFromSession(Astro.request);
             <a href="/products" class="v-continue-link">&larr; Continue Shopping</a>
           </div>
 
-          <!-- ADD TO YOUR ORDER (UPSELL SECTION) -->
-          <section class="v-upsell-section" id="v-upsell-section">
-            <h2 class="v-upsell-heading">Add to your order</h2>
-            <p class="v-upsell-sub">Handcrafted items from our Gifting Collection eligible for instant online checkout</p>
-            
-            <div class="v-upsell-grid">
-              {upsellProducts.map((p) => (
-                <div class="v-upsell-card">
-                  <div class="v-upsell-img-wrap">
-                    <img src={p.image} alt={p.name} loading="lazy" />
-                  </div>
-                  <div class="v-upsell-info">
-                    <h3 class="v-upsell-title">{p.name}</h3>
-                    <span class="v-upsell-price">₹{(p.price || 499).toLocaleString('en-IN')}</span>
-                    <button 
-                      type="button" 
-                      class="v-upsell-add-btn"
-                      data-upsell-slug={p.slug}
-                      data-upsell-name={p.name}
-                      data-upsell-price={p.price || 499}
-                      data-upsell-image={p.image}
-                    >
-                      + Add
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
         </div>
 
         <!-- RIGHT COLUMN: FIXED STICKY ORDER SUMMARY -->
@@ -158,6 +128,36 @@ const isLoggedIn = !!getCustomerFromSession(Astro.request);
           </div>
 
         </aside>
+
+        <!-- ADD TO YOUR ORDER (UPSELL SECTION) -->
+        <section class="v-upsell-section" id="v-upsell-section">
+          <h2 class="v-upsell-heading">Add to your order</h2>
+          <p class="v-upsell-sub">Handcrafted items from our Gifting Collection eligible for instant online checkout</p>
+          
+          <div class="v-upsell-grid">
+            {upsellProducts.map((p) => (
+              <div class="v-upsell-card">
+                <div class="v-upsell-img-wrap">
+                  <img src={p.image} alt={p.name} loading="lazy" />
+                </div>
+                <div class="v-upsell-info">
+                  <h3 class="v-upsell-title">{p.name}</h3>
+                  <span class="v-upsell-price">₹{(p.price || 499).toLocaleString('en-IN')}</span>
+                  <button 
+                    type="button" 
+                    class="v-upsell-add-btn"
+                    data-upsell-slug={p.slug}
+                    data-upsell-name={p.name}
+                    data-upsell-price={p.price || 499}
+                    data-upsell-image={p.image}
+                  >
+                    + Add
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
 
       </div>
 
@@ -397,7 +397,11 @@ const isLoggedIn = !!getCustomerFromSession(Astro.request);
 
   @media (max-width: 992px) {
     .v-cart-layout-grid {
-      grid-template-columns: 1fr;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      align-items: stretch;
+      width: 100%;
     }
   }
 
@@ -409,6 +413,14 @@ const isLoggedIn = !!getCustomerFromSession(Astro.request);
     flex-direction: column;
     gap: 1.5rem;
     min-width: 0;
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+  }
+
+  @media (max-width: 992px) {
+    .v-cart-left-column {
+      order: 1;
+    }
   }
 
   /* DESKTOP SCROLLABLE CONTAINER FOR PRODUCTS */
@@ -612,11 +624,19 @@ const isLoggedIn = !!getCustomerFromSession(Astro.request);
 
   /* UPSELL "ADD TO YOUR ORDER" SECTION */
   .v-upsell-section {
-    margin-top: 1.5rem;
+    grid-column: 1 / 2;
+    grid-row: 2 / 3;
     background: #ffffff;
     border: 1px solid rgba(138, 23, 75, 0.12);
     border-radius: 12px;
     padding: 1.5rem;
+  }
+
+  @media (max-width: 992px) {
+    .v-upsell-section {
+      order: 3;
+      margin-top: 1rem;
+    }
   }
 
   .v-upsell-heading {
@@ -744,6 +764,14 @@ const isLoggedIn = !!getCustomerFromSession(Astro.request);
   ---------------------------------------------------- */
   .v-cart-right-column {
     min-width: 0;
+    grid-column: 2 / 3;
+    grid-row: 1 / 3;
+  }
+
+  @media (max-width: 992px) {
+    .v-cart-right-column {
+      order: 2;
+    }
   }
 
   .v-summary-sticky-card {

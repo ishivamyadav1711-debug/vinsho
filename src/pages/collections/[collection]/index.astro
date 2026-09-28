@@ -242,23 +242,9 @@ const breadcrumbItems = [
 
   @media (max-width: 640px) {
     .collection-flat-grid {
-      display: flex;
-      flex-wrap: nowrap;
-      overflow-x: auto;
-      overflow-y: hidden;
-      scroll-snap-type: x mandatory;
-      gap: 0.5rem;
-      -webkit-overflow-scrolling: touch;
-      padding-bottom: 0.75rem;
-      scrollbar-width: none;
-      -ms-overflow-style: none;
-    }
-    .collection-flat-grid::-webkit-scrollbar {
-      display: none;
-    }
-    .collection-flat-grid > * {
-      flex: 0 0 calc(46% - 0.25rem);
-      scroll-snap-align: start;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1.5rem 0.5rem;
     }
   }
 
