@@ -1,17 +1,38 @@
 import Database from 'better-sqlite3';
 import path from 'node:path';
 import fs from 'node:fs';
+import os from 'node:os';
 
-const dbDir = path.join(process.cwd(), 'data');
-if (!fs.existsSync(dbDir)) {
-  fs.mkdirSync(dbDir, { recursive: true });
+const isVercel = !!process.env.VERCEL;
+let dbPath = path.join(process.cwd(), 'data', 'vinsho.db');
+
+if (isVercel) {
+  // On Vercel (read-only filesystem), copy the bundled DB to /tmp so it can be written to
+  const tmpPath = path.join(os.tmpdir(), 'vinsho.db');
+  // Copy if it doesn't exist in /tmp, or if we want to ensure we have the latest bundled data.
+  // We'll just copy it once per function cold start.
+  if (!fs.existsSync(tmpPath) && fs.existsSync(dbPath)) {
+    fs.copyFileSync(dbPath, tmpPath);
+  } else if (!fs.existsSync(tmpPath)) {
+    fs.writeFileSync(tmpPath, ''); // Create empty file if no bundled DB exists
+  }
+  dbPath = tmpPath;
+} else {
+  const dbDir = path.join(process.cwd(), 'data');
+  if (!fs.existsSync(dbDir)) {
+    fs.mkdirSync(dbDir, { recursive: true });
+  }
 }
 
-const dbPath = path.join(dbDir, 'vinsho.db');
 export const db = new Database(dbPath);
 
 // Enable WAL mode & Foreign Key enforcement
-db.pragma('journal_mode = WAL');
+// In Vercel (/tmp) WAL is fine, but if it fails we just catch it
+try {
+  db.pragma('journal_mode = WAL');
+} catch (e) {
+  // Ignore WAL failure on some filesystems
+}
 db.pragma('foreign_keys = ON');
 
 export function initDatabase() {
