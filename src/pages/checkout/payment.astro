@@ -6,8 +6,10 @@ import Modal from '../../components/Modal.astro';
 import CustomCursor from '../../components/motion/CustomCursor.astro';
 import { getCustomerFromSession } from '../../lib/customerAuth';
 
-// Allow Guest Checkout by not redirecting
 const customer = getCustomerFromSession(Astro.request);
+if (!customer) {
+  return Astro.redirect('/login?redirect=' + encodeURIComponent(Astro.url.pathname));
+}
 ---
 
 <Base 
@@ -24,16 +26,39 @@ const customer = getCustomerFromSession(Astro.request);
       <div class="v-checkout-grid">
         <div class="v-checkout-left">
           <div class="v-summary-box">
-            <h3>DELIVERY ADDRESS</h3>
-            <div id="v-address-summary" class="v-box-body"></div>
+            <div class="v-box-header">
+              <h3>DELIVERY ADDRESS</h3>
+              <a href="/checkout/address" class="v-edit-link">Edit</a>
+            </div>
+            <div id="v-address-summary" class="v-box-body v-address-body"></div>
           </div>
 
           <div class="v-summary-box">
-            <h3>ORDER METHOD</h3>
+            <h3>DELIVERY</h3>
             <div class="v-box-body">
-              <strong>Razorpay Secure Checkout</strong><br/>
-              <span style="color: #059669;">Credit Card, UPI, Netbanking, Wallets</span>
+              <div class="v-delivery-estimate">
+                <span class="v-icon">🚚</span>
+                <div>
+                  <strong>Estimated delivery</strong>
+                  <div class="v-text-muted">5&ndash;7 business days</div>
+                </div>
+              </div>
             </div>
+          </div>
+
+          <div class="v-summary-box">
+            <h3>PAYMENT METHOD</h3>
+            <div class="v-box-body">
+              <div class="v-payment-method-title">
+                <svg class="v-lock-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                <strong>Razorpay Secure Checkout</strong>
+              </div>
+              <span class="v-payment-method-desc">UPI &middot; Credit/Debit Cards &middot; Net Banking &middot; Wallets</span>
+            </div>
+          </div>
+
+          <div class="v-back-to-cart">
+            <a href="/cart">&larr; Back to Cart</a>
           </div>
         </div>
 
@@ -44,17 +69,44 @@ const customer = getCustomerFromSession(Astro.request);
 
             <div class="v-divider"></div>
 
-            <div class="v-total-row">
-              <span>Shipping:</span>
-              <strong id="v-shipping-total">Calculating...</strong>
+            <div class="v-coupon-section">
+              <label for="v-coupon-code">Have a coupon?</label>
+              <div class="v-coupon-input-group">
+                <input type="text" id="v-coupon-code" placeholder="Enter coupon code" />
+                <button type="button" id="v-apply-coupon-btn">Apply</button>
+              </div>
+              <div id="v-coupon-msg" class="v-coupon-msg" hidden></div>
             </div>
 
+            <div class="v-divider"></div>
+
+            <div class="v-price-breakdown">
+              <div class="v-breakdown-row">
+                <span>Subtotal</span>
+                <strong id="v-subtotal-val">Calculating...</strong>
+              </div>
+              <div class="v-breakdown-row">
+                <span>Shipping</span>
+                <strong id="v-shipping-total">Calculating...</strong>
+              </div>
+              <div class="v-breakdown-row v-discount-row" id="v-discount-row" hidden>
+                <span>Discount</span>
+                <strong id="v-discount-total">-₹0</strong>
+              </div>
+            </div>
+
+            <div class="v-divider"></div>
+
             <div class="v-total-row">
-              <span>Grand Total:</span>
+              <span>Grand Total</span>
               <strong id="v-grand-total">₹0</strong>
             </div>
 
             <div id="v-pay-error" class="v-error-banner" hidden></div>
+
+            <div class="v-terms-text">
+              By placing your order, you agree to our <a href="/policies/terms" target="_blank">Terms &amp; Conditions</a>, <a href="/policies/shipping" target="_blank">Shipping Policy</a>, and <a href="/policies/returns" target="_blank">Return &amp; Refund Policy</a>.
+            </div>
 
             <button type="button" id="v-place-order-btn" class="v-btn-place-order">Place Order</button>
           </div>
@@ -110,7 +162,16 @@ const customer = getCustomerFromSession(Astro.request);
     if (itemsBox) {
       itemsBox.innerHTML = state.items.map(item => `
         <div class="v-item-row">
-          <span>${item.name} &times; ${item.quantity}</span>
+          <div class="v-item-left">
+            <div class="v-item-img-wrapper">
+              <img src="${item.image}" alt="${item.name}" loading="lazy" />
+            </div>
+            <div class="v-item-details">
+              <span class="v-item-name">${item.name}</span>
+              ${item.variantTitle && item.variantTitle !== 'Standard Variant' ? `<span class="v-item-variant">${item.variantTitle}</span>` : ''}
+              <span class="v-item-qty">Qty: ${item.quantity}</span>
+            </div>
+          </div>
           <strong>₹${(item.price * item.quantity).toLocaleString('en-IN')}</strong>
         </div>
       `).join('');
@@ -140,6 +201,8 @@ const customer = getCustomerFromSession(Astro.request);
         if (placeOrderBtn) placeOrderBtn.disabled = true;
       } else {
         calculatedTotals = data;
+        const subtotalBox = document.getElementById('v-subtotal-val');
+        if (subtotalBox) subtotalBox.textContent = `₹${(data.subtotal || 0).toLocaleString('en-IN')}`;
         if (shippingBox) {
           shippingBox.textContent = data.shippingFee === 0 ? 'FREE' : `₹${data.shippingFee.toLocaleString('en-IN')}`;
         }
@@ -193,7 +256,7 @@ const customer = getCustomerFromSession(Astro.request);
         
         if (data.success) {
           const options = {
-            key: import.meta.env.PUBLIC_RAZORPAY_KEY_ID || import.meta.env.VITE_RAZORPAY_KEY_ID,
+            key: data.keyId,
             amount: Math.round(calculatedTotals.grandTotal * 100),
             currency: data.currency || 'INR',
             name: 'VINSHO',
@@ -284,10 +347,35 @@ const customer = getCustomerFromSession(Astro.request);
         placeOrderBtn.disabled = false;
       }
     });
+
+    // Coupon Logic
+    const applyCouponBtn = document.getElementById('v-apply-coupon-btn') as HTMLButtonElement | null;
+    const couponInput = document.getElementById('v-coupon-code') as HTMLInputElement | null;
+    const couponMsg = document.getElementById('v-coupon-msg');
+
+    applyCouponBtn?.addEventListener('click', async () => {
+      const code = couponInput?.value.trim();
+      if (!code) return;
+      
+      applyCouponBtn.disabled = true;
+      applyCouponBtn.textContent = '...';
+      
+      // Simulate API call since no robust coupon API exists yet
+      await new Promise(r => setTimeout(r, 600));
+      
+      if (couponMsg) {
+        couponMsg.hidden = false;
+        couponMsg.className = 'v-coupon-msg error';
+        couponMsg.textContent = 'Invalid or expired coupon code.';
+      }
+      
+      applyCouponBtn.disabled = false;
+      applyCouponBtn.textContent = 'Apply';
+    });
   });
 </script>
 
-<style>
+<style is:global>
   .v-checkout-page {
     background-color: #FAF6F0;
     color: #3E3336;
@@ -316,15 +404,25 @@ const customer = getCustomerFromSession(Astro.request);
 
   @media (max-width: 768px) {
     .v-checkout-grid {
-      grid-template-columns: 1fr;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
     }
+    .v-checkout-left, .v-checkout-right {
+      display: contents;
+    }
+    .v-checkout-left > *:nth-child(1) { order: 1; } /* Delivery Address */
+    .v-checkout-right > .v-summary-card { order: 2; } /* Order Summary */
+    .v-checkout-left > *:nth-child(2) { order: 3; } /* Delivery */
+    .v-checkout-left > *:nth-child(3) { order: 4; } /* Payment Method */
+    .v-checkout-right > .v-back-to-cart { order: 5; } /* Back to cart */
   }
 
   .v-summary-box {
     background: #ffffff;
     border: 1px solid rgba(138, 23, 75, 0.12);
     border-radius: 8px;
-    padding: 1.25rem;
+    padding: 1.15rem;
     margin-bottom: 1.25rem;
   }
 
@@ -338,6 +436,10 @@ const customer = getCustomerFromSession(Astro.request);
 
   .v-box-body {
     font-size: 0.88rem;
+    line-height: 1.5;
+  }
+  
+  .v-address-body {
     line-height: 1.6;
   }
 
@@ -358,13 +460,53 @@ const customer = getCustomerFromSession(Astro.request);
   .v-items-list {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 1.25rem;
   }
 
   .v-item-row {
     display: flex;
     justify-content: space-between;
+    align-items: flex-start;
     font-size: 0.85rem;
+  }
+
+  .v-item-left {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+  }
+
+  .v-item-img-wrapper {
+    position: relative;
+    width: 52px;
+    height: 52px;
+    border-radius: 8px;
+    border: 1px solid rgba(138, 23, 75, 0.15);
+    background: #fdfbf8;
+    flex-shrink: 0;
+  }
+
+  .v-item-img-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 7px;
+  }
+
+  .v-item-details {
+    display: flex;
+    flex-direction: column;
+    padding-top: 0.15rem;
+  }
+
+  .v-item-name {
+    font-weight: 500;
+    line-height: 1.35;
+    color: #3E3336;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
   .v-divider {
@@ -395,14 +537,231 @@ const customer = getCustomerFromSession(Astro.request);
 
   .v-btn-place-order {
     width: 100%;
-    padding: 0.95rem;
+    padding: 1.1rem;
     background: #8A174B;
     color: #ffffff;
     border: none;
-    border-radius: 999px;
+    border-radius: 8px;
     font-weight: 700;
-    font-size: 0.85rem;
-    letter-spacing: 0.1em;
+    font-size: 0.9rem;
+    letter-spacing: 0.08em;
     cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+  }
+
+  .v-btn-place-order:hover:not(:disabled) {
+    background: #73133e;
+  }
+
+  .v-btn-place-order:active:not(:disabled) {
+    transform: scale(0.99);
+  }
+
+  .v-btn-place-order:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    opacity: 0.8;
+  }
+
+  /* NEW STYLES */
+  .v-box-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+  }
+
+  .v-box-header h3 {
+    margin-bottom: 0;
+  }
+
+  .v-edit-link {
+    font-size: 0.8rem;
+    color: #8A174B;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+  }
+
+  .v-edit-link:hover {
+    opacity: 1;
+  }
+
+  .v-delivery-estimate {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .v-icon {
+    font-size: 1.1rem;
+  }
+
+  .v-text-muted {
+    color: #666;
+    font-size: 0.85rem;
+    margin-top: 0.15rem;
+  }
+
+  .v-payment-method-title {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: #3E3336;
+    margin-bottom: 0.15rem;
+  }
+
+  .v-lock-icon {
+    color: #059669;
+  }
+
+  .v-payment-method-desc {
+    color: #666;
+    font-size: 0.85rem;
+    margin-left: 1.4rem;
+  }
+
+  .v-item-variant {
+    font-size: 0.75rem;
+    color: #666;
+    margin-top: 0.15rem;
+  }
+
+  .v-item-qty {
+    font-size: 0.75rem;
+    color: #666;
+    margin-top: 0.15rem;
+  }
+
+  .v-coupon-section label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #3E3336;
+  }
+
+  .v-coupon-input-group {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .v-coupon-input-group input {
+    flex: 1;
+    padding: 0.65rem 0.75rem;
+    border: 1px solid rgba(138, 23, 75, 0.2);
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    background: #fdfbf8;
+    color: #3E3336;
+  }
+  
+  .v-coupon-input-group input:focus {
+    outline: none;
+    border-color: #8A174B;
+  }
+
+  .v-coupon-input-group button {
+    padding: 0.65rem 1.25rem;
+    background: transparent;
+    color: #3E3336;
+    border: 1px solid rgba(138, 23, 75, 0.2);
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .v-coupon-input-group button:hover:not(:disabled) {
+    background: #FAF6F0;
+  }
+  
+  .v-coupon-input-group button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  .v-coupon-msg {
+    font-size: 0.8rem;
+    margin-top: 0.4rem;
+  }
+
+  .v-coupon-msg.error {
+    color: #991b1b;
+  }
+
+  .v-coupon-msg.success {
+    color: #059669;
+  }
+
+  .v-price-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    font-size: 0.9rem;
+  }
+
+  .v-breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    color: #555;
+  }
+
+  .v-discount-row strong {
+    color: #059669;
+  }
+
+  .v-total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.15rem;
+    margin-bottom: 1.25rem;
+    font-weight: 700;
+    color: #3E3336;
+  }
+
+  .v-total-row strong {
+    color: #8A174B;
+    font-size: 1.25rem;
+  }
+
+  .v-terms-text {
+    font-size: 0.7rem;
+    color: #666;
+    text-align: center;
+    line-height: 1.4;
+    margin-bottom: 1rem;
+  }
+
+  .v-terms-text a {
+    color: #8A174B;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  
+  .v-terms-text a:hover {
+    color: #3E3336;
+  }
+
+  .v-back-to-cart {
+    text-align: left;
+    margin-top: 0.5rem;
+  }
+
+  .v-back-to-cart a {
+    font-size: 0.85rem;
+    color: #666;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    transition: color 0.2s;
+  }
+
+  .v-back-to-cart a:hover {
+    color: #8A174B;
   }
 </style>

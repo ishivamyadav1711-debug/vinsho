@@ -5,6 +5,7 @@ import { getCustomerFromSession } from '../../../lib/customerAuth.js';
 import { checkRateLimit, tooManyRequestsResponse, getClientIp, LIMITS } from '../../../lib/rateLimiter.js';
 import { db } from '../../../lib/db.js';
 import { getEnvConfig } from '../../../lib/env.js';
+import { RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, PUBLIC_RAZORPAY_KEY_ID } from '../../../lib/razorpay.config.js';
 import Razorpay from 'razorpay';
 
 export const POST: APIRoute = async ({ request }) => {
@@ -67,8 +68,8 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response(JSON.stringify({ error: 'Order amount must be at least ₹1.' }), { status: 400 });
     }
 
-    const key_id = import.meta.env.PUBLIC_RAZORPAY_KEY_ID || process.env.PUBLIC_RAZORPAY_KEY_ID || import.meta.env.RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID;
-    const key_secret = import.meta.env.RAZORPAY_KEY_SECRET || process.env.RAZORPAY_KEY_SECRET;
+    const key_id = PUBLIC_RAZORPAY_KEY_ID || RAZORPAY_KEY_ID;
+    const key_secret = RAZORPAY_KEY_SECRET;
 
     if (!key_id || !key_secret) {
       return new Response(JSON.stringify({ error: 'Payment gateway configuration missing.' }), { status: 500 });
@@ -104,9 +105,9 @@ export const POST: APIRoute = async ({ request }) => {
       discountTotal: orderRes.order.discount_total || 0,
       couponCode: orderRes.order.coupon_code || null,
       taxTotal: orderRes.order.tax_total,
-      shippingTotal: orderRes.order.shipping_total,
       grandTotal: orderRes.order.grand_total,
-      currency: orderRes.order.currency || 'INR'
+      currency: orderRes.order.currency || 'INR',
+      keyId: key_id
     }), { status: 200, headers: { 'Content-Type': 'application/json' } });
 
   } catch (err: any) {

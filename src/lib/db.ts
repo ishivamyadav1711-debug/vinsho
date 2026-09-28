@@ -334,6 +334,9 @@ export function initDatabase() {
       discount_total REAL DEFAULT 0,
       grand_total REAL NOT NULL,
       currency TEXT NOT NULL DEFAULT 'INR',
+      payment_verified INTEGER DEFAULT 0,
+      order_confirmation_email_sent INTEGER DEFAULT 0,
+      order_confirmation_sms_sent INTEGER DEFAULT 0,
       shipping_address_id INTEGER NOT NULL,
       billing_address_id INTEGER NOT NULL,
       is_interstate INTEGER NOT NULL DEFAULT 0,
@@ -558,6 +561,15 @@ export function initDatabase() {
   if (!orderColNames.has('currency')) {
     db.exec("ALTER TABLE orders ADD COLUMN currency TEXT NOT NULL DEFAULT 'INR'");
   }
+  if (!orderColNames.has('payment_verified')) {
+    db.exec("ALTER TABLE orders ADD COLUMN payment_verified INTEGER DEFAULT 0");
+  }
+  if (!orderColNames.has('order_confirmation_email_sent')) {
+    db.exec("ALTER TABLE orders ADD COLUMN order_confirmation_email_sent INTEGER DEFAULT 0");
+  }
+  if (!orderColNames.has('order_confirmation_sms_sent')) {
+    db.exec("ALTER TABLE orders ADD COLUMN order_confirmation_sms_sent INTEGER DEFAULT 0");
+  }
   if (!orderColNames.has('is_interstate')) {
     db.exec("ALTER TABLE orders ADD COLUMN is_interstate INTEGER NOT NULL DEFAULT 0");
   }
@@ -574,6 +586,12 @@ export function initDatabase() {
   if (!orderColNames.has('razorpay_payment_id')) {
     db.exec("ALTER TABLE orders ADD COLUMN razorpay_payment_id TEXT DEFAULT NULL");
     db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_orders_razorpay_payment ON orders(razorpay_payment_id) WHERE razorpay_payment_id IS NOT NULL");
+  }
+  if (!orderColNames.has('razorpay_refund_id')) {
+    db.exec("ALTER TABLE orders ADD COLUMN razorpay_refund_id TEXT DEFAULT NULL");
+  }
+  if (!orderColNames.has('refunded_at')) {
+    db.exec("ALTER TABLE orders ADD COLUMN refunded_at TEXT DEFAULT NULL");
   }
 
   // Auto-migrate combo_items table if missing

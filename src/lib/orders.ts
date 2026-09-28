@@ -35,6 +35,9 @@ export interface OrderCreationResult {
 }
 
 export function createOrder(params: CreateOrderParams): OrderCreationResult {
+  // Free up inventory from abandoned checkouts before attempting new order
+  cleanupExpiredOrders();
+
   const cleanIdempotencyKey = params.idempotencyKey.trim();
 
   // Idempotency check: Double-submitted checkout must produce 1 order, not 2
@@ -296,11 +299,11 @@ export function createOrder(params: CreateOrderParams): OrderCreationResult {
 /**
  * Fires order confirmation emails after a successful createOrder().
  */
-export function sendOrderNotifications(order: any, customer: { name: string; email?: string | null }, adminEmail: string): void {
+export function sendOrderNotifications(order: any, customer: { name: string; email?: string | null }, adminEmail: string, phone: string): void {
   const items = db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(order.id) as any[];
   const addr = db.prepare('SELECT * FROM addresses WHERE id = ?').get(order.shipping_address_id) as any;
 
-  if (customer.email) {
+  if (customer.email && !order.order_confirmation_email_sent) {
     logNotification({
       channel: 'EMAIL',
       template: 'ORDER_CONFIRMATION',
@@ -313,24 +316,77 @@ export function sendOrderNotifications(order: any, customer: { name: string; ema
         grandTotal: order.grand_total,
         discountTotal: order.discount_total || 0,
         couponCode: order.coupon_code || '',
+        paymentId: order.razorpay_payment_id || '',
         items,
         shippingAddress: addr || {},
       },
     });
+    db.prepare('UPDATE orders SET order_confirmation_email_sent = 1 WHERE id = ?').run(order.id);
   }
 
-  logNotification({
-    channel: 'EMAIL',
-    template: 'NEW_ENQUIRY_STAFF',
-    recipient: adminEmail,
-    entityType: 'order',
-    entityId: order.id,
-    data: {
-      enquiryId: order.id,
-      customerName: customer.name,
-      phone: addr?.phone || '',
-      subject: `Order ${order.order_number} — ₹${order.grand_total}${order.coupon_code ? ' (Coupon: ' + order.coupon_code + ')' : ''}`,
-      source: 'Checkout',
-    },
-  });
+  if (phone && !order.order_confirmation_sms_sent) {
+    logNotification({
+      channel: 'WHATSAPP',
+      template: 'ORDER_CONFIRMATION',
+      recipient: phone,
+      entityType: 'order',
+      entityId: order.id,
+      data: {
+        customerName: customer.name,
+        orderNumber: order.order_number,
+        grandTotal: order.grand_total,
+      },
+    });
+    db.prepare('UPDATE orders SET order_confirmation_sms_sent = 1 WHERE id = ?').run(order.id);
+  }
+
+  // Always alert admin for new orders if we haven't sent the email yet
+  if (!order.order_confirmation_email_sent) {
+    logNotification({
+      channel: 'EMAIL',
+      template: 'NEW_ENQUIRY_STAFF',
+      recipient: adminEmail,
+      entityType: 'order',
+      entityId: order.id,
+      data: {
+        enquiryId: order.id,
+        customerName: customer.name,
+        phone: phone || addr?.phone || '',
+        subject: `Order ${order.order_number} — ₹${order.grand_total}${order.coupon_code ? ' (Coupon: ' + order.coupon_code + ')' : ''}`,
+        source: 'Checkout',
+      },
+    });
+  }
+}
+
+/**
+ * Cleanup expired pending orders to release reserved inventory.
+ * Orders pending for more than 30 minutes are marked as Cancelled.
+ */
+export function cleanupExpiredOrders(): number {
+  const thirtyMinsAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+  // Safe limit to prevent heavy queries
+  const expiredOrders = db.prepare(`SELECT id FROM orders WHERE status = 'Pending' AND payment_status = 'pending' AND placed_at < ? LIMIT 50`).all(thirtyMinsAgo) as any[];
+
+  let cleaned = 0;
+  for (const order of expiredOrders) {
+    db.transaction(() => {
+      const items = db.prepare('SELECT variant_id, qty FROM order_items WHERE order_id = ?').all(order.id) as any[];
+      
+      for (const item of items) {
+        const comboComponents = getComboComponents(item.variant_id);
+        if (comboComponents.length > 0) {
+          for (const comp of comboComponents) {
+            db.prepare('UPDATE product_variants SET stock = stock + ? WHERE id = ?').run(comp.quantity * item.qty, comp.component_variant_id);
+          }
+        } else {
+          db.prepare('UPDATE product_variants SET stock = stock + ? WHERE id = ?').run(item.qty, item.variant_id);
+        }
+      }
+      
+      db.prepare(`UPDATE orders SET status = 'Cancelled', payment_status = 'expired', updated_at = ? WHERE id = ?`).run(new Date().toISOString(), order.id);
+      cleaned++;
+    })();
+  }
+  return cleaned;
 }

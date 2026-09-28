@@ -1,0 +1,607 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { db } from '../../../lib/db';
+import { getSessionUser } from '../../../lib/auth';
+
+const user = getSessionUser(Astro.request);
+if (!user) {
+  return Astro.redirect('/crm/login');
+}
+
+const { id } = Astro.params;
+
+const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(id) as any;
+if (!order) {
+  return Astro.redirect('/crm/orders');
+}
+
+const items = db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(id) as any[];
+const customer = db.prepare('SELECT * FROM customers WHERE id = ?').get(order.customer_id) as any;
+const shippingAddress = db.prepare('SELECT * FROM addresses WHERE id = ?').get(order.shipping_address_id) as any;
+const billingAddress = order.billing_address_id === order.shipping_address_id 
+  ? shippingAddress 
+  : db.prepare('SELECT * FROM addresses WHERE id = ?').get(order.billing_address_id) as any;
+
+const timeline = [];
+timeline.push({ label: 'Order Created', date: new Date(order.created_at) });
+if (order.payment_status === 'paid' && order.updated_at) {
+  timeline.push({ label: 'Payment Received', date: new Date(order.updated_at) });
+}
+if (order.status !== 'Pending') {
+  timeline.push({ label: order.status, date: new Date(order.updated_at) });
+}
+// Note: If we add an audit log, we could pull the real timeline history here.
+
+const availableStatuses = ['Pending', 'Processing', 'Confirmed', 'Packed', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled'];
+
+const isPaid = order.payment_status === 'paid';
+---
+
+<AdminLayout title={`Order ${order.order_number}`} activeNav="orders">
+  <div class="order-detail-container">
+    <div class="dash-head">
+      <div>
+        <a href="/crm/orders" class="back-link">&larr; Back to Orders</a>
+        <h1 class="dash-title">ORDER #{order.order_number}</h1>
+        <div class="status-tags">
+          <span class={`status-badge pay-${order.payment_status.toLowerCase()}`}>{order.payment_status.toUpperCase()}</span>
+          <span class={`status-badge ord-${order.status.toLowerCase().replace(/ /g, '-')}`}>{order.status.toUpperCase()}</span>
+        </div>
+      </div>
+      <div class="action-buttons">
+        <button type="button" class="btn-outline" id="download-invoice-btn" data-order-id={order.id}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+          </svg>
+          Download Invoice
+        </button>
+      </div>
+    </div>
+
+    <div class="grid-layout">
+      <!-- Main Content (Left) -->
+      <div class="main-column">
+        
+        <!-- Order Items -->
+        <div class="card">
+          <h2 class="card-title">Order Items</h2>
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th style="text-align:center">Qty</th>
+                <th style="text-align:right">Price</th>
+                <th style="text-align:right">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map(item => (
+                <tr>
+                  <td>
+                    <div class="product-info">
+                      <strong>{item.product_name_snapshot}</strong>
+                      <span class="text-muted">{item.variant_label_snapshot}</span>
+                      <span class="text-xs">SKU: {item.sku_snapshot}</span>
+                    </div>
+                  </td>
+                  <td style="text-align:center">{item.qty}</td>
+                  <td style="text-align:right">₹{item.unit_price_snapshot.toLocaleString('en-IN')}</td>
+                  <td style="text-align:right"><strong>₹{item.line_total.toLocaleString('en-IN')}</strong></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div class="price-breakdown">
+            <div class="breakdown-row">
+              <span>Subtotal</span>
+              <span>₹{order.subtotal.toLocaleString('en-IN')}</span>
+            </div>
+            {order.discount_total > 0 && (
+              <div class="breakdown-row text-success">
+                <span>Discount {order.coupon_code ? `(${order.coupon_code})` : ''}</span>
+                <span>-₹{order.discount_total.toLocaleString('en-IN')}</span>
+              </div>
+            )}
+            <div class="breakdown-row">
+              <span>Shipping</span>
+              <span>{order.shipping_total === 0 ? 'Free' : `₹${order.shipping_total.toLocaleString('en-IN')}`}</span>
+            </div>
+            <div class="breakdown-row grand-total">
+              <span>Grand Total</span>
+              <span>₹{order.grand_total.toLocaleString('en-IN')}</span>
+            </div>
+            <div class="text-xs text-muted" style="text-align:right; margin-top:0.5rem">
+              Includes ₹{order.tax_total.toLocaleString('en-IN')} Tax
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Info -->
+        <div class="card">
+          <h2 class="card-title">Payment Information</h2>
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Payment Status</span>
+              <span class="info-val"><span class={`status-badge pay-${order.payment_status.toLowerCase()}`}>{order.payment_status.toUpperCase()}</span></span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Razorpay Order ID</span>
+              <span class="info-val">{order.razorpay_order_id || 'N/A'}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Razorpay Payment ID</span>
+              <span class="info-val">{order.razorpay_payment_id || 'N/A'}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Amount Paid</span>
+              <span class="info-val">₹{order.grand_total.toLocaleString('en-IN')} {order.currency}</span>
+            </div>
+          </div>
+          
+          {order.payment_status === 'refunded' ? (
+            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--line);">
+              <div class="info-item">
+                <span class="info-label text-muted">Refund ID</span>
+                <span class="info-val">{order.razorpay_refund_id || 'N/A'}</span>
+              </div>
+              <div class="info-item" style="margin-top: 0.5rem">
+                <span class="info-label text-muted">Refunded At</span>
+                <span class="info-val">{order.refunded_at ? new Date(order.refunded_at).toLocaleString() : 'N/A'}</span>
+              </div>
+            </div>
+          ) : isPaid && order.status !== 'Cancelled' ? (
+            <div class="card-actions" style="margin-top: 1.5rem">
+              <button class="btn-outline-danger" id="initiate-refund-btn">Refund Payment</button>
+            </div>
+          ) : isPaid && order.status === 'Cancelled' ? (
+            <div class="card-actions" style="margin-top: 1.5rem">
+              <button class="btn-outline-danger" id="initiate-refund-btn">Refund Cancelled Order</button>
+            </div>
+          ) : null}
+        </div>
+
+      </div>
+
+      <!-- Side Content (Right) -->
+      <div class="side-column">
+        
+        <!-- Fulfillment Status Updater -->
+        <div class="card">
+          <h2 class="card-title">Order Status</h2>
+          <form id="status-form" class="status-form">
+            <input type="hidden" name="orderId" value={order.id} />
+            <select name="status" class="status-select" id="status-select">
+              {availableStatuses.map(s => (
+                <option value={s} selected={s === order.status}>{s}</option>
+              ))}
+            </select>
+            <button type="submit" class="btn-primary" id="update-status-btn">Update Status</button>
+          </form>
+          {order.status !== 'Cancelled' && (
+            <div style="margin-top: 1rem; border-top: 1px solid var(--line); padding-top: 1rem;">
+              <button class="btn-danger-text" id="cancel-order-btn">Cancel Order</button>
+            </div>
+          )}
+        </div>
+
+        <!-- Customer -->
+        <div class="card">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem">
+            <h2 class="card-title" style="margin-bottom:0">Customer</h2>
+            <a href={`/crm/customers/${customer.id}`} class="text-link">View Profile</a>
+          </div>
+          <div class="info-item">
+            <span class="info-val"><strong>{customer.name}</strong></span>
+            <span class="info-val text-muted">{customer.email}</span>
+            <span class="info-val text-muted">{customer.phone}</span>
+          </div>
+        </div>
+
+        <!-- Addresses -->
+        <div class="card">
+          <h2 class="card-title">Delivery Address</h2>
+          <address class="address-block">
+            <strong>{shippingAddress.name}</strong><br/>
+            {shippingAddress.line1}<br/>
+            {shippingAddress.line2 && <>{shippingAddress.line2}<br/></>}
+            {shippingAddress.city}, {shippingAddress.state} {shippingAddress.pincode}<br/>
+            {shippingAddress.country}<br/>
+            Phone: {shippingAddress.phone}
+          </address>
+        </div>
+
+        <div class="card">
+          <h2 class="card-title">Billing Address</h2>
+          {order.billing_address_id === order.shipping_address_id ? (
+            <p class="text-muted" style="margin:0; font-size: 0.85rem">Same as delivery address</p>
+          ) : (
+            <address class="address-block">
+              <strong>{billingAddress.name}</strong><br/>
+              {billingAddress.line1}<br/>
+              {billingAddress.line2 && <>{billingAddress.line2}<br/></>}
+              {billingAddress.city}, {billingAddress.state} {billingAddress.pincode}<br/>
+              {billingAddress.country}<br/>
+              Phone: {billingAddress.phone}
+            </address>
+          )}
+        </div>
+
+      </div>
+    </div>
+  </div>
+</AdminLayout>
+
+<script>
+  document.getElementById('status-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('update-status-btn') as HTMLButtonElement;
+    const select = document.getElementById('status-select') as HTMLSelectElement;
+    
+    btn.disabled = true;
+    btn.textContent = 'Updating...';
+    
+    try {
+      const res = await fetch(`/api/admin/orders/${(e.target as HTMLFormElement).orderId.value}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: select.value })
+      });
+      const data = await res.json();
+      if (data.success) {
+        window.location.reload();
+      } else {
+        alert(data.error || 'Failed to update status');
+      }
+    } catch (err) {
+      alert('Network error');
+    }
+    btn.disabled = false;
+    btn.textContent = 'Update Status';
+  });
+
+  document.getElementById('cancel-order-btn')?.addEventListener('click', async () => {
+    if (!confirm('Are you sure you want to cancel this order? This will release inventory if it was not already shipped.')) return;
+    
+    try {
+      const orderId = (document.querySelector('input[name="orderId"]') as HTMLInputElement).value;
+      const res = await fetch(`/api/admin/orders/${orderId}/cancel`, {
+        method: 'POST'
+      });
+      const data = await res.json();
+      if (data.success) {
+        window.location.reload();
+      } else {
+        alert(data.error || 'Failed to cancel order');
+      }
+    } catch (err) {
+      alert('Network error');
+    }
+  });
+
+  document.getElementById('initiate-refund-btn')?.addEventListener('click', async (e) => {
+    const btn = e.currentTarget as HTMLButtonElement;
+    const orderId = (document.querySelector('input[name="orderId"]') as HTMLInputElement).value;
+    
+    if (!confirm(`Refund this payment?\n\nThis will initiate a full server-side refund through Razorpay.`)) {
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Processing...';
+
+    try {
+      const res = await fetch(`/api/admin/orders/${orderId}/refund`, { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        window.location.reload();
+      } else {
+        alert(data.error || 'Failed to refund order');
+        btn.disabled = false;
+        btn.textContent = 'Refund Payment';
+      }
+    } catch (err) {
+      alert('Network error');
+      btn.disabled = false;
+      btn.textContent = 'Refund Payment';
+    }
+  });
+  document.getElementById('download-invoice-btn')?.addEventListener('click', async (e) => {
+    const btn = e.currentTarget as HTMLButtonElement;
+    const orderId = btn.getAttribute('data-order-id');
+    if (!orderId) return;
+
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.textContent = 'Generating...';
+
+    try {
+      const res = await fetch(`/api/admin/orders/${orderId}/invoice`, {
+        credentials: 'same-origin'
+      });
+      
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({ error: 'Failed to generate invoice' }));
+        alert(data.error || 'Failed to download invoice');
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+        return;
+      }
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      
+      const contentDisposition = res.headers.get('Content-Disposition');
+      let filename = `invoice-${orderId}.pdf`;
+      if (contentDisposition && contentDisposition.includes('filename="')) {
+        filename = contentDisposition.split('filename="')[1].split('"')[0];
+      }
+      
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err) {
+      alert('Network error downloading invoice');
+    }
+    
+    btn.disabled = false;
+    btn.innerHTML = originalText;
+  });
+</script>
+
+<style>
+  .order-detail-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .dash-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .back-link {
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    text-decoration: none;
+    margin-bottom: 0.5rem;
+    display: inline-block;
+  }
+
+  .back-link:hover {
+    color: var(--maroon);
+  }
+
+  .dash-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--maroon-2);
+    margin: 0 0 0.5rem;
+    font-family: var(--sans);
+  }
+
+  .status-tags {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .grid-layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 1.5rem;
+  }
+
+  .card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .card-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    color: var(--ink-soft);
+    margin: 0 0 1rem;
+    text-transform: uppercase;
+  }
+
+  .items-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .items-table th {
+    text-align: left;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink-soft);
+    font-weight: 600;
+  }
+
+  .items-table td {
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+
+  .product-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .text-muted { color: var(--ink-soft); }
+  .text-xs { font-size: 0.75rem; color: #888; }
+  .text-success { color: #059669; }
+
+  .price-breakdown {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+    max-width: 300px;
+    margin-left: auto;
+  }
+
+  .breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+  }
+
+  .grand-total {
+    border-top: 1px solid var(--line);
+    padding-top: 0.5rem;
+    margin-top: 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--maroon-2);
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+
+  .info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .info-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+  }
+
+  .info-val {
+    font-size: 0.85rem;
+    color: var(--ink);
+  }
+
+  .address-block {
+    font-style: normal;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: var(--ink);
+  }
+
+  .text-link {
+    font-size: 0.8rem;
+    color: var(--maroon);
+    text-decoration: underline;
+  }
+
+  .status-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .status-select {
+    padding: 0.65rem;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-size: 0.85rem;
+  }
+
+  .btn-primary {
+    background: var(--maroon);
+    color: #fff;
+    border: none;
+    padding: 0.65rem 1rem;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+
+  .btn-outline {
+    background: #fff;
+    color: var(--ink);
+    border: 1px solid var(--line);
+    padding: 0.5rem 0.85rem;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  
+  .btn-outline-danger {
+    background: #fff;
+    color: #991b1b;
+    border: 1px solid #fca5a5;
+    padding: 0.5rem 0.85rem;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    margin-top: 1rem;
+  }
+
+  .btn-danger-text {
+    background: none;
+    border: none;
+    color: #991b1b;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  /* Badges */
+  .status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+  .pay-paid { background: #d1fae5; color: #065f46; }
+  .pay-pending { background: #fef3c7; color: #92400e; }
+  .pay-failed { background: #fee2e2; color: #991b1b; }
+  .pay-refunded { background: #f3f4f6; color: #374151; }
+  .pay-expired { background: #e5e7eb; color: #4b5563; }
+
+  .ord-pending { background: #fef3c7; color: #92400e; }
+  .ord-processing { background: #e0e7ff; color: #3730a3; }
+  .ord-confirmed { background: #dbeafe; color: #1e40af; }
+  .ord-packed { background: #fce7f3; color: #9d174d; }
+  .ord-shipped { background: #fef08a; color: #854d0e; }
+  .ord-out-for-delivery { background: #ffedd5; color: #c2410c; }
+  .ord-delivered { background: #d1fae5; color: #065f46; }
+  .ord-cancelled { background: #fee2e2; color: #991b1b; }
+
+  @media (max-width: 768px) {
+    .grid-layout {
+      grid-template-columns: 1fr;
+    }
+    .info-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

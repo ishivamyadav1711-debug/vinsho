@@ -6,8 +6,10 @@ import Modal from '../../components/Modal.astro';
 import CustomCursor from '../../components/motion/CustomCursor.astro';
 import { getCustomerFromSession } from '../../lib/customerAuth';
 
-// Allow Guest Checkout by not redirecting
 const customer = getCustomerFromSession(Astro.request);
+if (!customer) {
+  return Astro.redirect('/login?redirect=' + encodeURIComponent(Astro.url.pathname));
+}
 ---
 
 <Base 

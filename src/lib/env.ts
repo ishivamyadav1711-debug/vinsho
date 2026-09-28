@@ -24,12 +24,6 @@ export interface EnvConfig {
   readonly adminEmail: string;
   /** Password used when seeding the initial SUPER_ADMIN user — bcrypt-hashed before storage */
   readonly adminPassword: string;
-  /** HMAC-SHA256 secret for Razorpay webhook signature verification */
-  readonly razorpayWebhookSecret: string;
-  /** Razorpay Key ID for initiating payment sessions (optional until payments go live) */
-  readonly razorpayKeyId: string | undefined;
-  /** Razorpay Key Secret for server-side API calls (optional until payments go live) */
-  readonly razorpayKeySecret: string | undefined;
 
   // ── SMTP / Email Delivery ──────────────────────────────────────────────
   /** SMTP host (e.g. smtp.gmail.com, smtp.zoho.com). Absent → dev log-only mode */
@@ -51,7 +45,6 @@ export interface EnvConfig {
 // function and cannot escape into application logic.
 const _DEV_ADMIN_EMAIL = 'vinvks@gmail.com';
 const _DEV_ADMIN_PASSWORD = 'VinshoDevAdminPass2026!';
-const _DEV_WEBHOOK_SECRET = 'vinsho_dev_webhook_secret_2026';
 // ─────────────────────────────────────────────────────────────────────────────
 
 let _cachedConfig: EnvConfig | null = null;
@@ -74,12 +67,6 @@ export function getEnvConfig(): EnvConfig {
   const adminPassword = process.env.ADMIN_PASSWORD
     || (isProduction ? undefined : _DEV_ADMIN_PASSWORD);
 
-  const razorpayWebhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET
-    || (isProduction ? undefined : _DEV_WEBHOOK_SECRET);
-
-  const razorpayKeyId = process.env.RAZORPAY_KEY_ID || undefined;
-  const razorpayKeySecret = process.env.RAZORPAY_KEY_SECRET || undefined;
-
   // ── SMTP config (optional — absence means dev log-only mode) ─────────────
   const smtpHost = process.env.SMTP_HOST || undefined;
   const smtpPort = parseInt(process.env.SMTP_PORT || '587', 10);
@@ -100,7 +87,6 @@ export function getEnvConfig(): EnvConfig {
   if (isProduction) {
     const missing: string[] = [];
     if (!adminPassword) missing.push('ADMIN_PASSWORD');
-    if (!razorpayWebhookSecret) missing.push('RAZORPAY_WEBHOOK_SECRET');
 
     if (missing.length > 0) {
       const msg =
@@ -118,9 +104,6 @@ export function getEnvConfig(): EnvConfig {
     isProduction,
     adminEmail: adminEmail ?? _DEV_ADMIN_EMAIL,
     adminPassword: adminPassword!,
-    razorpayWebhookSecret: razorpayWebhookSecret!,
-    razorpayKeyId,
-    razorpayKeySecret,
     smtpHost,
     smtpPort,
     smtpUser,

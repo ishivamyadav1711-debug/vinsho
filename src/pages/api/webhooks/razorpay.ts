@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { db } from '../../../lib/db.js';
 import { getEnvConfig } from '../../../lib/env.js';
 import { sendOrderNotifications } from '../../../lib/orders.js';
+import { RAZORPAY_WEBHOOK_SECRET } from '../../../lib/razorpay.config.js';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -14,7 +15,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const envConfig = getEnvConfig();
-    const webhookSecret = envConfig.razorpayWebhookSecret || process.env.RAZORPAY_WEBHOOK_SECRET;
+    const webhookSecret = RAZORPAY_WEBHOOK_SECRET;
 
     if (!webhookSecret) {
       console.error('Webhook secret misconfigured.');

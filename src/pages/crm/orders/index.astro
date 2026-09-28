@@ -1,0 +1,520 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { db } from '../../../lib/db';
+import { getSessionUser } from '../../../lib/auth';
+
+const user = getSessionUser(Astro.request);
+if (!user) {
+  return Astro.redirect('/crm/login');
+}
+
+const url = new URL(Astro.request.url);
+const q = (url.searchParams.get('q') || '').trim().toLowerCase();
+const statusFilter = url.searchParams.get('status') || 'All';
+const paymentFilter = url.searchParams.get('payment') || 'All';
+const customerFilter = url.searchParams.get('customer') || '';
+const pageStr = url.searchParams.get('page') || '1';
+let page = parseInt(pageStr, 10);
+if (isNaN(page) || page < 1) page = 1;
+const limit = 25;
+const offset = (page - 1) * limit;
+
+let sql = `
+  SELECT o.*, c.name as customer_name, c.email as customer_email, c.phone as customer_phone
+  FROM orders o
+  JOIN customers c ON o.customer_id = c.id
+  WHERE 1=1
+`;
+const params: any[] = [];
+
+if (q) {
+  sql += ' AND (LOWER(o.order_number) LIKE ? OR LOWER(c.name) LIKE ? OR LOWER(c.phone) LIKE ? OR LOWER(c.email) LIKE ? OR LOWER(o.razorpay_order_id) LIKE ? OR LOWER(o.razorpay_payment_id) LIKE ?)';
+  const term = `%${q}%`;
+  params.push(term, term, term, term, term, term);
+}
+
+if (statusFilter !== 'All') {
+  sql += ' AND o.status = ?';
+  params.push(statusFilter);
+}
+
+if (paymentFilter !== 'All') {
+  sql += ' AND o.payment_status = ?';
+  params.push(paymentFilter.toLowerCase());
+}
+
+if (customerFilter) {
+  sql += ' AND o.customer_id = ?';
+  params.push(customerFilter);
+}
+
+// Count total matching for pagination
+const countSql = sql.replace('SELECT o.*, c.name as customer_name, c.email as customer_email, c.phone as customer_phone', 'SELECT COUNT(*) as cnt');
+const totalMatching = (db.prepare(countSql).get(...params) as any).cnt;
+
+// Sorting
+sql += ' ORDER BY o.created_at DESC LIMIT ? OFFSET ?';
+params.push(limit, offset);
+
+const orders = db.prepare(sql).all(...params) as any[];
+
+const totalPages = Math.ceil(totalMatching / limit);
+
+// Summary Metrics
+const totalOrdersMetric = (db.prepare(`SELECT COUNT(*) as cnt FROM orders WHERE payment_status != 'pending' AND payment_status != 'expired'`).get() as any).cnt;
+const paidRevenue = (db.prepare(`SELECT COALESCE(SUM(grand_total), 0) as val FROM orders WHERE payment_status = 'paid'`).get() as any).val;
+const processingCount = (db.prepare(`SELECT COUNT(*) as cnt FROM orders WHERE status = 'Processing'`).get() as any).cnt;
+const shippedCount = (db.prepare(`SELECT COUNT(*) as cnt FROM orders WHERE status = 'Shipped'`).get() as any).cnt;
+const deliveredCount = (db.prepare(`SELECT COUNT(*) as cnt FROM orders WHERE status = 'Delivered'`).get() as any).cnt;
+---
+
+<AdminLayout title="Order Management" activeNav="orders">
+  <div class="orders-page-container">
+    <div class="dash-head">
+      <div>
+        <h1 class="dash-title">Order Management</h1>
+        <p class="dash-sub">Central portal for managing fulfillment and payments.</p>
+      </div>
+      <div class="dash-actions">
+        <a href={`/api/admin/orders/export?q=${encodeURIComponent(q)}&status=${encodeURIComponent(statusFilter)}&payment=${encodeURIComponent(paymentFilter)}${customerFilter ? '&customer='+encodeURIComponent(customerFilter) : ''}`} class="btn-primary" style="background:#059669;">
+          Export CSV
+        </a>
+      </div>
+    </div>
+
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <span class="m-label">TOTAL ORDERS</span>
+        <span class="m-val">{totalOrdersMetric > 0 ? totalOrdersMetric : '0'}</span>
+        <span class="m-sub">Excludes expired/abandoned</span>
+      </div>
+      <div class="metric-card highlight-success">
+        <span class="m-label">PAID REVENUE</span>
+        <span class="m-val">₹{paidRevenue.toLocaleString('en-IN')}</span>
+      </div>
+      <div class="metric-card">
+        <span class="m-label">PROCESSING</span>
+        <span class="m-val">{processingCount}</span>
+        <span class="m-sub">Awaiting fulfillment</span>
+      </div>
+      <div class="metric-card">
+        <span class="m-label">SHIPPED</span>
+        <span class="m-val">{shippedCount}</span>
+      </div>
+      <div class="metric-card highlight-success">
+        <span class="m-label">DELIVERED</span>
+        <span class="m-val">{deliveredCount}</span>
+      </div>
+    </div>
+
+    <div class="filters-card">
+      <form class="filters-form" method="GET" action="/crm/orders">
+        {customerFilter && <input type="hidden" name="customer" value={customerFilter} />}
+        <div class="search-group">
+          <input type="text" name="q" value={q} placeholder="Search by ID, name, phone, Razorpay ID..." class="search-input" />
+        </div>
+        
+        <div class="filter-group">
+          <label for="status">Order Status:</label>
+          <select name="status" id="status" class="filter-select">
+            <option value="All" selected={statusFilter === 'All'}>All</option>
+            <option value="Pending" selected={statusFilter === 'Pending'}>Pending</option>
+            <option value="Processing" selected={statusFilter === 'Processing'}>Processing</option>
+            <option value="Confirmed" selected={statusFilter === 'Confirmed'}>Confirmed</option>
+            <option value="Packed" selected={statusFilter === 'Packed'}>Packed</option>
+            <option value="Shipped" selected={statusFilter === 'Shipped'}>Shipped</option>
+            <option value="Out for Delivery" selected={statusFilter === 'Out for Delivery'}>Out for Delivery</option>
+            <option value="Delivered" selected={statusFilter === 'Delivered'}>Delivered</option>
+            <option value="Cancelled" selected={statusFilter === 'Cancelled'}>Cancelled</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label for="payment">Payment:</label>
+          <select name="payment" id="payment" class="filter-select">
+            <option value="All" selected={paymentFilter === 'All'}>All</option>
+            <option value="Paid" selected={paymentFilter === 'Paid'}>Paid</option>
+            <option value="Pending" selected={paymentFilter === 'Pending'}>Pending</option>
+            <option value="Failed" selected={paymentFilter === 'Failed'}>Failed</option>
+            <option value="Refunded" selected={paymentFilter === 'Refunded'}>Refunded</option>
+            <option value="Expired" selected={paymentFilter === 'Expired'}>Expired</option>
+          </select>
+        </div>
+
+        <div class="filter-actions">
+          <button type="submit" class="btn-primary">Apply Filters</button>
+          <a href="/crm/orders" class="btn-clear">Clear</a>
+        </div>
+      </form>
+    </div>
+
+    <div class="orders-table-wrapper">
+      {orders.length === 0 ? (
+        <div class="empty-state">
+          <p>No orders found matching your criteria.</p>
+        </div>
+      ) : (
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Date</th>
+              <th>Customer</th>
+              <th>Amount</th>
+              <th>Payment</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {orders.map((o) => (
+              <tr>
+                <td><strong>{o.order_number}</strong></td>
+                <td>{new Date(o.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                <td>
+                  <div class="customer-info">
+                    <a href={`/crm/customers/${o.customer_id}`} class="cust-link">{o.customer_name}</a>
+                    <span class="cust-phone">{o.customer_phone}</span>
+                  </div>
+                </td>
+                <td>₹{o.grand_total.toLocaleString('en-IN')}</td>
+                <td>
+                  <span class={`status-badge pay-${o.payment_status.toLowerCase()}`}>{o.payment_status.toUpperCase()}</span>
+                </td>
+                <td>
+                  <span class={`status-badge ord-${o.status.toLowerCase().replace(/ /g, '-')}`}>{o.status.toUpperCase()}</span>
+                </td>
+                <td>
+                  <a href={`/crm/orders/${o.id}`} class="view-btn">View Order</a>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+
+    {totalPages > 1 && (
+      <div class="pagination">
+        <span class="page-info">Showing {(page-1)*limit + 1} &ndash; {Math.min(page*limit, totalMatching)} of {totalMatching} orders</span>
+        <div class="page-controls">
+          {page > 1 ? (
+            <a href={`?page=${page - 1}&q=${encodeURIComponent(q)}&status=${encodeURIComponent(statusFilter)}&payment=${encodeURIComponent(paymentFilter)}${customerFilter ? '&customer='+customerFilter : ''}`} class="page-btn">&larr; Prev</a>
+          ) : (
+            <span class="page-btn disabled">&larr; Prev</span>
+          )}
+          
+          <span class="current-page">Page {page} of {totalPages}</span>
+          
+          {page < totalPages ? (
+            <a href={`?page=${page + 1}&q=${encodeURIComponent(q)}&status=${encodeURIComponent(statusFilter)}&payment=${encodeURIComponent(paymentFilter)}${customerFilter ? '&customer='+customerFilter : ''}`} class="page-btn">Next &rarr;</a>
+          ) : (
+            <span class="page-btn disabled">Next &rarr;</span>
+          )}
+        </div>
+      </div>
+    )}
+  </div>
+</AdminLayout>
+
+<style>
+  .orders-page-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .dash-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+
+  .dash-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--maroon-2);
+    margin: 0 0 0.25rem;
+    font-family: var(--sans);
+  }
+
+  .dash-sub {
+    font-size: 0.875rem;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  /* Metrics Grid */
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .metric-card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .metric-card.highlight-success {
+    border-bottom: 3px solid #059669;
+  }
+
+  .m-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--ink-soft);
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+  }
+
+  .m-val {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--maroon-2);
+    line-height: 1;
+    margin-bottom: 0.25rem;
+  }
+
+  .m-sub {
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+  }
+
+  /* Filters */
+  .filters-card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 1rem;
+  }
+
+  .filters-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-end;
+  }
+
+  .search-group {
+    flex: 1;
+    min-width: 250px;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 0.85rem;
+  }
+
+  .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .filter-group label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+  }
+
+  .filter-select {
+    padding: 0.5rem 1.5rem 0.5rem 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    background: #fff;
+  }
+
+  .filter-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .btn-primary {
+    background: var(--maroon);
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+
+  .btn-clear {
+    background: var(--paper-2);
+    color: var(--ink);
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 0.85rem;
+    border: 1px solid var(--line);
+  }
+
+  /* Table */
+  .orders-table-wrapper {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow-x: auto;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+
+  .data-table th {
+    text-align: left;
+    padding: 1rem;
+    border-bottom: 1px solid var(--line);
+    background: var(--paper-2);
+    color: var(--ink-soft);
+    font-weight: 600;
+  }
+
+  .data-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--line);
+    vertical-align: middle;
+  }
+
+  .data-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .customer-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .cust-link {
+    font-weight: 600;
+    color: var(--maroon);
+    text-decoration: none;
+  }
+
+  .cust-link:hover {
+    text-decoration: underline;
+  }
+
+  .cust-phone {
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+  }
+
+  /* Badges */
+  .status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+
+  .pay-paid { background: #d1fae5; color: #065f46; }
+  .pay-pending { background: #fef3c7; color: #92400e; }
+  .pay-failed { background: #fee2e2; color: #991b1b; }
+  .pay-refunded { background: #f3f4f6; color: #374151; }
+  .pay-expired { background: #e5e7eb; color: #4b5563; }
+
+  .ord-pending { background: #fef3c7; color: #92400e; }
+  .ord-processing { background: #e0e7ff; color: #3730a3; }
+  .ord-confirmed { background: #dbeafe; color: #1e40af; }
+  .ord-packed { background: #fce7f3; color: #9d174d; }
+  .ord-shipped { background: #fef08a; color: #854d0e; }
+  .ord-out-for-delivery { background: #ffedd5; color: #c2410c; }
+  .ord-delivered { background: #d1fae5; color: #065f46; }
+  .ord-cancelled { background: #fee2e2; color: #991b1b; }
+
+  .view-btn {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    background: var(--paper-2);
+    color: var(--maroon);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.75rem;
+    transition: all 0.2s;
+  }
+
+  .view-btn:hover {
+    background: var(--maroon);
+    color: #fff;
+    border-color: var(--maroon);
+  }
+
+  /* Pagination */
+  .pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+  }
+
+  .page-controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .page-btn {
+    padding: 0.4rem 0.8rem;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    color: var(--ink);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .page-btn:hover:not(.disabled) {
+    background: var(--paper-2);
+  }
+
+  .page-btn.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  .empty-state {
+    padding: 3rem;
+    text-align: center;
+    color: var(--ink-soft);
+  }
+
+  @media (max-width: 768px) {
+    .metrics-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+    .filters-form {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .pagination {
+      flex-direction: column;
+      gap: 1rem;
+    }
+  }
+</style>
