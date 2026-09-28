@@ -37,10 +37,10 @@ export default defineConfig({
   },
   vite: {
     optimizeDeps: {
-      exclude: ['better-sqlite3']
+      exclude: ['@libsql/client']
     },
     ssr: {
-      external: ['better-sqlite3']
+      external: ['@libsql/client', 'synckit']
     }
   },
   redirects: {
