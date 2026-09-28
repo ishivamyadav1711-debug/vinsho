@@ -235,7 +235,6 @@ document.addEventListener('DOMContentLoaded', () => {
           image,
           quantity: currentQty || 1
         });
-        window.location.href = '/cart';
       }
       return;
     }

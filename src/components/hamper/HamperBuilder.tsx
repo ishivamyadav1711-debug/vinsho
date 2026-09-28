@@ -7,6 +7,7 @@ import { HamperSummary } from './HamperSummary';
 import { HamperPersonalization } from './HamperPersonalization';
 import { HamperPreview } from './HamperPreview';
 import { CurateHamperWizard } from './curate/CurateHamperWizard';
+import { getLocalCartState, addLocalCartItem, removeLocalCartItem } from '../../scripts/cart-store';
 
 interface HamperBuilderProps {
   products: GiftProduct[];
@@ -217,18 +218,46 @@ export const HamperBuilder: React.FC<HamperBuilderProps> = ({ products }) => {
     setPersonalizeState(prev => ({ ...prev, ...updated }));
   };
 
-  // ENQUIRE VIA WHATSAPP INTEGRATION
+  // ENQUIRE VIA WHATSAPP INTEGRATION -> CHANGED TO ADD TO CART
   const handleAddToCart = async () => {
     if (selectedItems.length === 0) {
-      setValidationError('Please select at least 1 product before inquiring about your hamper.');
+      setValidationError('Please select at least 1 product before adding your hamper to cart.');
       return;
     }
 
-    const itemsSummary = selectedItems.map(i => `${i.product.name} × ${i.quantity}`).join(', ');
-    const msgText = `Hi VINSHO, I would like a custom quote for a Gifting Hamper (${selectedOccasion}).\nItems: ${itemsSummary}\nPackaging: ${selectedPackaging.name}\nTotal: ₹${currentSubtotal + selectedPackaging.price}`;
+    const hamperId = editingHamperId || 'hamper_' + Date.now();
     
+    // If editing, remove the old one first
+    if (editingHamperId) {
+      removeLocalCartItem(editingHamperId);
+    }
+
+    addLocalCartItem({
+      id: hamperId,
+      slug: 'custom-hamper',
+      name: `Custom Hamper (${selectedOccasion})`,
+      price: currentSubtotal + selectedPackaging.price,
+      image: '/placeholder.png', // Replace with actual packaging image if available
+      quantity: 1,
+      variantTitle: selectedPackaging.name,
+      hamperData: {
+        hamperId,
+        occasion: selectedOccasion,
+        selectedBudgetId,
+        recipientName: personalizeState.recipientName,
+        senderName: personalizeState.senderName,
+        message: personalizeState.message,
+        packaging: selectedPackaging,
+        items: selectedItems.map(i => ({
+          productSlug: i.productSlug,
+          variantId: i.variantId,
+          quantity: i.quantity
+        }))
+      }
+    });
+
     if (typeof window !== 'undefined') {
-      window.open(`https://wa.me/919625515351?text=${encodeURIComponent(msgText)}`, '_blank');
+      window.location.href = '/cart';
     }
   };
 
@@ -247,7 +276,7 @@ export const HamperBuilder: React.FC<HamperBuilderProps> = ({ products }) => {
     if (currentStep === 'occasion') return 'CONTINUE TO PRODUCTS';
     if (currentStep === 'products') return 'PERSONALIZE HAMPER';
     if (currentStep === 'personalize') return 'PREVIEW HAMPER';
-    return 'ENQUIRE VIA WHATSAPP';
+    return 'ADD TO CART';
   }, [currentStep]);
 
   const canProceed = useMemo(() => {

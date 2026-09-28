@@ -29,3 +29,8 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+.env
+
+# scratch files
+scratch/

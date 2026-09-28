@@ -567,6 +567,14 @@ export function initDatabase() {
   if (!orderColNames.has('coupon_code')) {
     db.exec("ALTER TABLE orders ADD COLUMN coupon_code TEXT DEFAULT NULL");
   }
+  if (!orderColNames.has('razorpay_order_id')) {
+    db.exec("ALTER TABLE orders ADD COLUMN razorpay_order_id TEXT DEFAULT NULL");
+    db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_orders_razorpay_order ON orders(razorpay_order_id) WHERE razorpay_order_id IS NOT NULL");
+  }
+  if (!orderColNames.has('razorpay_payment_id')) {
+    db.exec("ALTER TABLE orders ADD COLUMN razorpay_payment_id TEXT DEFAULT NULL");
+    db.exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_orders_razorpay_payment ON orders(razorpay_payment_id) WHERE razorpay_payment_id IS NOT NULL");
+  }
 
   // Auto-migrate combo_items table if missing
   db.exec(`

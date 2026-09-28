@@ -14,4 +14,4 @@ Disallow: /forgot-password
 Disallow: /reset-password
 
 # Sitemap Index
-Sitemap: https://vinsho.com/sitemap-index.xml
+Sitemap: https://www.vinsho.in/sitemap-index.xml

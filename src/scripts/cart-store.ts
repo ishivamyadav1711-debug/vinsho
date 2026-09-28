@@ -120,13 +120,21 @@ export function getCartCount(): number {
   return getLocalCartState().totalQuantity;
 }
 
+let toastTimeout: any = null;
+
 export function triggerToast(msg: string) {
   if (typeof document === 'undefined') return;
   const toast = document.getElementById('v-toast') || document.getElementById('toast');
   if (toast) {
-    toast.textContent = msg;
+    if (toastTimeout) {
+      clearTimeout(toastTimeout);
+      toastTimeout = null;
+    }
+    toast.innerHTML = msg;
     toast.classList.add('on');
-    setTimeout(() => toast.classList.remove('on'), 2500);
+    toastTimeout = setTimeout(() => {
+      toast.classList.remove('on');
+    }, 3000);
   }
 }
 
@@ -157,7 +165,8 @@ export function addLocalCartItem(item: Partial<LocalCartItem>) {
   }
 
   saveLocalCartState(state);
-  triggerToast(`Added "${item.name || 'Item'}" to your cart.`);
+  const cleanName = item.name || 'Item';
+  triggerToast(`<span>"${cleanName}" added to cart</span> &nbsp;&bull;&nbsp; <a href="/cart" class="toast-view-cart-link">View Cart &rarr;</a>`);
 }
 
 export function updateLocalCartItemQty(id: string, qty: number) {
@@ -237,7 +246,9 @@ export function buildWhatsAppOrderUrl(
 Product: ${productName}
 Price: ₹${itemPriceFormatted}
 Quantity: ${item.quantity}
-Total: ₹${totalFormatted}
+Subtotal: ₹${totalFormatted}
+
+(Note: Final shipping charge based on weight/delivery address will be confirmed in this WhatsApp quote)
 
 Is this available?`;
   } else {
@@ -258,7 +269,8 @@ Is this available?`;
 
 ${productLines}
 
-Total: ₹${totalFormatted}
+Subtotal: ₹${totalFormatted}
+(Note: Final shipping charge based on weight/delivery address will be confirmed in this WhatsApp quote)
 
 Is everything available?`;
   }

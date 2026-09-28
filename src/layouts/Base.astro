@@ -16,7 +16,7 @@ const {
   ogImage
 } = Astro.props;
 
-const siteOrigin = Astro.site ? Astro.site.origin : "https://vinsho.com";
+const siteOrigin = Astro.site ? Astro.site.origin : "https://www.vinsho.in";
 const resolvedCanonical = canonicalUrl || new URL(Astro.url.pathname, siteOrigin).href;
 
 const shareImage = ogImage || content.siteImages.hero || content.siteImages.exploreLarge;
@@ -26,8 +26,8 @@ const organization = {
   "@context": "https://schema.org",
   "@type": "Organization",
   "name": content.brand.name,
-  "url": "https://vinsho.in",
-  "logo": "https://vinsho.in/logo.png"
+  "url": "https://www.vinsho.in",
+  "logo": "https://www.vinsho.in/logo.png"
 };
 
 const localBusiness = {
@@ -71,7 +71,11 @@ const itemList = {
     <meta name="description" content={description} />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="canonical" href={resolvedCanonical} />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=4" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=4" />
+    <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png?v=4" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=4" />
+    <link rel="manifest" href="/site.webmanifest?v=4" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
 

@@ -86,7 +86,7 @@ export function getEnvConfig(): EnvConfig {
   const smtpUser = process.env.SMTP_USER || undefined;
   const smtpPass = process.env.SMTP_PASS || undefined;
   const smtpFrom = process.env.SMTP_FROM || 'VINSHO <vinvks@gmail.com>';
-  const siteUrl = process.env.SITE_URL || (isProduction ? 'https://vinsho.com' : 'http://localhost:4321');
+  const siteUrl = process.env.SITE_URL || (isProduction ? 'https://www.vinsho.in' : 'http://localhost:4321');
 
   if (isProduction && (!smtpHost || !smtpUser || !smtpPass)) {
     console.warn(

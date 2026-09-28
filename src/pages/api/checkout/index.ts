@@ -5,6 +5,7 @@ import { getCustomerFromSession } from '../../../lib/customerAuth.js';
 import { checkRateLimit, tooManyRequestsResponse, getClientIp, LIMITS } from '../../../lib/rateLimiter.js';
 import { db } from '../../../lib/db.js';
 import { getEnvConfig } from '../../../lib/env.js';
+import Razorpay from 'razorpay';
 
 export const POST: APIRoute = async ({ request }) => {
   const ip = getClientIp(request);
@@ -60,16 +61,45 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response(JSON.stringify({ error: orderRes.error || 'Failed to create order.' }), { status: 400 });
     }
 
-    // Fire order confirmation emails (fire-and-forget — never blocks response)
+    // Create Razorpay Order
+    const amountInPaise = Math.round(orderRes.order.grand_total * 100);
+    if (amountInPaise < 100) {
+      return new Response(JSON.stringify({ error: 'Order amount must be at least ₹1.' }), { status: 400 });
+    }
+
+    const key_id = import.meta.env.PUBLIC_RAZORPAY_KEY_ID || process.env.PUBLIC_RAZORPAY_KEY_ID || import.meta.env.RAZORPAY_KEY_ID || process.env.RAZORPAY_KEY_ID;
+    const key_secret = import.meta.env.RAZORPAY_KEY_SECRET || process.env.RAZORPAY_KEY_SECRET;
+
+    if (!key_id || !key_secret) {
+      return new Response(JSON.stringify({ error: 'Payment gateway configuration missing.' }), { status: 500 });
+    }
+
+    const razorpay = new Razorpay({ key_id, key_secret });
+
+    let rzpOrder;
     try {
-      const customer = db.prepare('SELECT name, email FROM customers WHERE id = ?').get(customerId) as any;
-      const { adminEmail } = getEnvConfig();
-      sendOrderNotifications(orderRes.order, customer || { name, email }, adminEmail);
-    } catch (_) { /* email failure must not affect the order response */ }
+      rzpOrder = await razorpay.orders.create({
+        amount: amountInPaise,
+        currency: orderRes.order.currency || 'INR',
+        receipt: orderRes.order.order_number,
+      });
+    } catch (rzpErr) {
+      console.error('Razorpay Error:', rzpErr);
+      return new Response(JSON.stringify({ error: 'Failed to initialize payment gateway.' }), { status: 500 });
+    }
+    
+    try {
+      db.prepare('UPDATE orders SET razorpay_order_id = ? WHERE id = ?')
+        .run(rzpOrder.id, orderRes.order.id);
+    } catch (dbErr) {
+      console.error('Failed to save Razorpay Order ID to database:', dbErr);
+      return new Response(JSON.stringify({ error: 'Failed to initialize payment gateway properly.' }), { status: 500 });
+    }
 
     return new Response(JSON.stringify({
       success: true,
       orderNumber: orderRes.order.order_number,
+      razorpayOrderId: rzpOrder.id,
       subtotal: orderRes.order.subtotal,
       discountTotal: orderRes.order.discount_total || 0,
       couponCode: orderRes.order.coupon_code || null,

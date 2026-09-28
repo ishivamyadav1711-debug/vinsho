@@ -7,14 +7,81 @@ import content from '../../../vinsho-content.json';
 export const POST: APIRoute = async ({ request }) => {
   try {
     const clientIp = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '127.0.0.1';
-    const body = await request.json();
+    
+    // 1. Safe JSON Body Parsing
+    let body: any;
+    try {
+      body = await request.json();
+    } catch (parseErr) {
+      return new Response(JSON.stringify({
+        error: 'Invalid or missing JSON request body.',
+        details: { body: 'Request payload must be a valid JSON object.' }
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      return new Response(JSON.stringify({
+        error: 'Request body must be a valid JSON object.',
+        details: { body: 'Expected a JSON object payload.' }
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // 2. Allowed Fields Whitelist & Unexpected Fields Validation
+    const ALLOWED_FIELDS = new Set([
+      'name', 'phone', 'email', 'message', 'company', 'subject',
+      'productSlug', 'collectionKey', 'subcategoryKey', 'source',
+      'website_url', 'dpdp_consent'
+    ]);
+
+    const bodyKeys = Object.keys(body);
+    const unexpectedFields = bodyKeys.filter(key => !ALLOWED_FIELDS.has(key));
+    if (unexpectedFields.length > 0) {
+      return new Response(JSON.stringify({
+        error: `Validation failed: unexpected field(s) present in request (${unexpectedFields.join(', ')}).`,
+        details: { unexpectedFields }
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // 3. Field Data Type Validation
+    const typeErrors: Record<string, string> = {};
+    for (const key of bodyKeys) {
+      const val = body[key];
+      if (key === 'dpdp_consent') {
+        if (val !== undefined && val !== null && typeof val !== 'boolean' && typeof val !== 'string') {
+          typeErrors[key] = `${key} must be a boolean or string value.`;
+        }
+      } else {
+        if (val !== undefined && val !== null && typeof val !== 'string') {
+          typeErrors[key] = `${key} must be a string value.`;
+        }
+      }
+    }
+
+    if (Object.keys(typeErrors).length > 0) {
+      return new Response(JSON.stringify({
+        error: 'Validation failed: invalid input data types.',
+        details: typeErrors
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
 
     const {
       name, phone, email, message, company, subject, productSlug, collectionKey, subcategoryKey,
       source, website_url, dpdp_consent
     } = body;
 
-    // 1. Honeypot Spam Filter Check
+    // 4. Honeypot Spam Filter Check
     if (website_url && website_url.trim() !== '') {
       console.warn(`[SPAM DETECTED] Honeypot field populated by IP ${clientIp}`);
       return new Response(JSON.stringify({ success: true, message: 'Message sent successfully.' }), {
@@ -23,7 +90,7 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    // 2. Submission Rate Limiting per IP & Contact (10 minutes window)
+    // 5. Submission Rate Limiting per IP & Contact (10 minutes window)
     const now = Date.now();
     const cleanPhone = (phone || '').trim();
     const cleanEmail = (email || '').trim().toLowerCase();
@@ -41,6 +108,44 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
+    // 6. Required Field Validations
+    const cleanName = (name || '').trim();
+    const cleanSubject = (subject || '').trim();
+    const cleanCompany = (company || '').trim();
+    const cleanMessage = (message || '').trim();
+
+    const fieldErrors: Record<string, string> = {};
+
+    if (!cleanName) {
+      fieldErrors.name = 'Name is required.';
+    }
+
+    if (!cleanEmail && !cleanPhone) {
+      fieldErrors.email = 'Email address or Phone number is required.';
+    } else {
+      if (cleanEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+        fieldErrors.email = 'Please enter a valid email address.';
+      }
+      if (cleanPhone && !/^[\+\d\s\-\(\)]{7,20}$/.test(cleanPhone)) {
+        fieldErrors.phone = 'Please enter a valid phone number.';
+      }
+    }
+
+    if (!cleanMessage && !productSlug) {
+      fieldErrors.message = 'Message is required.';
+    }
+
+    if (Object.keys(fieldErrors).length > 0) {
+      return new Response(JSON.stringify({
+        error: Object.values(fieldErrors).join(' '),
+        details: fieldErrors
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Record rate limit attempt
     if (!rateRow || now - rateRow.first_attempt_at > windowMs) {
       db.prepare(`
         INSERT INTO enquiry_rate_limits (identifier, attempts, first_attempt_at)
@@ -51,25 +156,7 @@ export const POST: APIRoute = async ({ request }) => {
       db.prepare('UPDATE enquiry_rate_limits SET attempts = attempts + 1 WHERE identifier = ?').run(rateIdentifier);
     }
 
-    // 3. Input Validation
-    const cleanName = (name || '').trim();
-    const cleanSubject = (subject || '').trim();
-    const cleanCompany = (company || '').trim();
-    const cleanMessage = (message || '').trim();
-
-    if (!cleanName) {
-      return new Response(JSON.stringify({ error: 'Name is mandatory.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
-    }
-
-    if (!cleanPhone && !cleanEmail) {
-      return new Response(JSON.stringify({ error: 'Phone number or Email address is required.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
-    }
-
-    if (cleanEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
-      return new Response(JSON.stringify({ error: 'Please enter a valid email address.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
-    }
-
-    // 4. Customer Deduplication (Phone first, then Email)
+    // 7. Customer Deduplication (Phone first, then Email)
     const consentTime = new Date().toISOString();
     const consentText = dpdp_consent ? 'Customer service & enquiry under DPDP Act 2023' : 'Implicit submission consent under DPDP Act 2023';
 
@@ -100,7 +187,7 @@ export const POST: APIRoute = async ({ request }) => {
       }
     }
 
-    // 5. Create Enquiry Record
+    // 8. Create Enquiry Record in Database
     const enquiryRes = db.prepare(`
       INSERT INTO enquiries (
         customer_id, product_id, name, phone, email, message, source, status, created_at, updated_at
@@ -119,17 +206,17 @@ export const POST: APIRoute = async ({ request }) => {
 
     const enquiryId = enquiryRes.lastInsertRowid as number;
 
-    // 6. Log Activity Audit Timeline
+    // 9. Log Activity Audit Timeline
     logCrmActivity({
       entityType: 'enquiry',
       entityId: enquiryId,
       actorId: null,
       type: 'CREATED',
-      summary: `Contact form submitted by ${cleanName} (${cleanEmail}) - Subject: ${cleanSubject || 'General'}`,
+      summary: `Contact form submitted by ${cleanName} (${cleanEmail || cleanPhone}) - Subject: ${cleanSubject || 'General'}`,
       meta: { customerId: customer.id, source, company: cleanCompany, subject: cleanSubject, ip: clientIp }
     });
 
-    // 7. Log Notification Event
+    // 10. Log Staff Notification Event
     logNotification({
       channel: 'WHATSAPP',
       template: 'NEW_ENQUIRY_STAFF',
@@ -140,7 +227,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     return new Response(JSON.stringify({
       success: true,
-      message: 'Thank you! Your message has been received. Our team will get back to you shortly.',
+      message: 'Thank you! Your message has been received. Our team aims to respond to all inquiries within 24 hours.',
       enquiryId,
       customerId: customer.id
     }), {

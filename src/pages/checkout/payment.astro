@@ -6,11 +6,8 @@ import Modal from '../../components/Modal.astro';
 import CustomCursor from '../../components/motion/CustomCursor.astro';
 import { getCustomerFromSession } from '../../lib/customerAuth';
 
-// Server-side Authentication Gate for Payment & Order Review (§2)
+// Allow Guest Checkout by not redirecting
 const customer = getCustomerFromSession(Astro.request);
-if (!customer) {
-  return Astro.redirect('/login?redirect=/checkout/payment');
-}
 ---
 
 <Base 
@@ -34,7 +31,8 @@ if (!customer) {
           <div class="v-summary-box">
             <h3>ORDER METHOD</h3>
             <div class="v-box-body">
-              <strong>Direct WhatsApp Order (Order Placement &amp; Assistance)</strong>
+              <strong>Razorpay Secure Checkout</strong><br/>
+              <span style="color: #059669;">Credit Card, UPI, Netbanking, Wallets</span>
             </div>
           </div>
         </div>
@@ -47,14 +45,18 @@ if (!customer) {
             <div class="v-divider"></div>
 
             <div class="v-total-row">
-              <span>Total Amount:</span>
+              <span>Shipping:</span>
+              <strong id="v-shipping-total">Calculating...</strong>
+            </div>
+
+            <div class="v-total-row">
+              <span>Grand Total:</span>
               <strong id="v-grand-total">₹0</strong>
             </div>
 
             <div id="v-pay-error" class="v-error-banner" hidden></div>
 
-            <button type="button" id="v-place-order-btn" class="v-btn-place-order">Order on WhatsApp</button>
-            <p class="v-whatsapp-support-text" style="font-size: 0.813rem; color: #6b7280; text-align: center; margin-top: 0.5rem; margin-bottom: 0;">Complete your order directly with us on WhatsApp.</p>
+            <button type="button" id="v-place-order-btn" class="v-btn-place-order">Place Order</button>
           </div>
         </div>
       </div>
@@ -63,15 +65,17 @@ if (!customer) {
 
   <Footer />
   <Modal />
+  <script is:inline src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </Base>
 
 <script>
-  import { getLocalCartState, buildWhatsAppOrderUrl } from '../../scripts/cart-store';
+  import { getLocalCartState, clearCart } from '../../scripts/cart-store';
 
-  document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', async () => {
     const addrBox = document.getElementById('v-address-summary');
     const itemsBox = document.getElementById('v-items-list');
     const totalBox = document.getElementById('v-grand-total');
+    const shippingBox = document.getElementById('v-shipping-total');
     const placeOrderBtn = document.getElementById('v-place-order-btn') as HTMLButtonElement | null;
     const errorBanner = document.getElementById('v-pay-error');
 
@@ -112,21 +116,172 @@ if (!customer) {
       `).join('');
     }
 
-    if (totalBox) {
-      totalBox.textContent = `₹${state.subtotal.toLocaleString('en-IN')}`;
+    // Calculate shipping
+    let calculatedTotals: any = null;
+    try {
+      const res = await fetch('/api/checkout/calculate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          pincode: addressData.pincode,
+          items: state.items.map(i => ({ 
+            variantId: parseInt(i.variantId as any) || null,
+            slug: i.slug,
+            qty: i.quantity 
+          }))
+        })
+      });
+      const data = await res.json();
+      if (!data.success) {
+        if (errorBanner) {
+          errorBanner.hidden = false;
+          errorBanner.textContent = data.error || 'Failed to calculate shipping.';
+        }
+        if (placeOrderBtn) placeOrderBtn.disabled = true;
+      } else {
+        calculatedTotals = data;
+        if (shippingBox) {
+          shippingBox.textContent = data.shippingFee === 0 ? 'FREE' : `₹${data.shippingFee.toLocaleString('en-IN')}`;
+        }
+        if (totalBox) {
+          totalBox.textContent = `₹${data.grandTotal.toLocaleString('en-IN')}`;
+        }
+      }
+    } catch (err) {
+      if (errorBanner) {
+        errorBanner.hidden = false;
+        errorBanner.textContent = 'Network error during shipping calculation.';
+      }
     }
 
-    placeOrderBtn?.addEventListener('click', () => {
+    placeOrderBtn?.addEventListener('click', async () => {
+      if (placeOrderBtn.disabled || placeOrderBtn.textContent === 'Processing...') return;
+      
       const currentState = getLocalCartState();
-      if (!currentState.items || currentState.items.length === 0) {
-        window.location.href = '/cart';
-        return;
-      }
+      if (!currentState.items || currentState.items.length === 0) return;
 
-      const whatsappUrl = buildWhatsAppOrderUrl(currentState.items, currentState.subtotal);
-      const win = window.open(whatsappUrl, '_blank');
-      if (!win || win.closed || typeof win.closed === 'undefined') {
-        window.location.href = whatsappUrl;
+      placeOrderBtn.textContent = 'Processing...';
+      placeOrderBtn.disabled = true;
+      if (errorBanner) errorBanner.hidden = true;
+
+      try {
+        const orderPayload = {
+          name: addressData.name,
+          phone: addressData.phone,
+          email: addressData.email,
+          line1: addressData.line1,
+          line2: addressData.line2,
+          city: addressData.city,
+          state: addressData.state,
+          pincode: addressData.pincode,
+          country: addressData.country,
+          idempotencyKey: 'idem_' + Date.now() + Math.random().toString(36).substr(2, 9),
+          items: currentState.items.map(i => ({ 
+            variantId: parseInt(i.variantId as any) || null,
+            slug: i.slug,
+            qty: i.quantity 
+          }))
+        };
+
+        const res = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(orderPayload)
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+          const options = {
+            key: import.meta.env.PUBLIC_RAZORPAY_KEY_ID || import.meta.env.VITE_RAZORPAY_KEY_ID,
+            amount: Math.round(calculatedTotals.grandTotal * 100),
+            currency: data.currency || 'INR',
+            name: 'VINSHO',
+            description: 'Luxury Home Décor & Furnishings',
+            image: '/favicon-512x512.png',
+            order_id: data.razorpayOrderId,
+            handler: async function (response: any) {
+              try {
+                placeOrderBtn.textContent = 'Verifying...';
+                const verifyRes = await fetch('/api/checkout/verify', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    orderNumber: data.orderNumber,
+                    razorpay_payment_id: response.razorpay_payment_id,
+                    razorpay_order_id: response.razorpay_order_id,
+                    razorpay_signature: response.razorpay_signature
+                  })
+                });
+                const verifyData = await verifyRes.json();
+                
+                if (verifyData.success) {
+                  sessionStorage.setItem('vinsho_last_placed_order', JSON.stringify({
+                    orderNumber: data.orderNumber,
+                    address: addressData,
+                    items: currentState.items,
+                    grandTotal: calculatedTotals.grandTotal
+                  }));
+                  clearCart();
+                  window.location.href = '/checkout/confirmation?orderNumber=' + data.orderNumber;
+                } else {
+                  if (errorBanner) {
+                    errorBanner.hidden = false;
+                    errorBanner.textContent = verifyData.error || 'Payment verification failed.';
+                  }
+                  placeOrderBtn.textContent = 'Place Order';
+                  placeOrderBtn.disabled = false;
+                }
+              } catch (err) {
+                if (errorBanner) {
+                  errorBanner.hidden = false;
+                  errorBanner.textContent = 'Network error during verification.';
+                }
+                placeOrderBtn.textContent = 'Place Order';
+                placeOrderBtn.disabled = false;
+              }
+            },
+            modal: {
+              ondismiss: function() {
+                placeOrderBtn.textContent = 'Place Order';
+                placeOrderBtn.disabled = false;
+              }
+            },
+            prefill: {
+              name: addressData.name,
+              email: addressData.email,
+              contact: addressData.phone
+            },
+            theme: {
+              color: '#8A174B'
+            }
+          };
+
+          const rzp = new (window as any).Razorpay(options);
+          rzp.on('payment.failed', function (response: any) {
+            if (errorBanner) {
+              errorBanner.hidden = false;
+              errorBanner.textContent = response.error.description || 'Payment failed.';
+            }
+            placeOrderBtn.textContent = 'Place Order';
+            placeOrderBtn.disabled = false;
+          });
+          rzp.open();
+        } else {
+          if (errorBanner) {
+            errorBanner.hidden = false;
+            errorBanner.textContent = data.error || 'Checkout failed. Please try again.';
+          }
+          placeOrderBtn.textContent = 'Place Order';
+          placeOrderBtn.disabled = false;
+        }
+      } catch (err) {
+        if (errorBanner) {
+          errorBanner.hidden = false;
+          errorBanner.textContent = 'Network error. Please try again.';
+        }
+        placeOrderBtn.textContent = 'Place Order';
+        placeOrderBtn.disabled = false;
       }
     });
   });

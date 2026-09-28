@@ -59,18 +59,6 @@ const breadcrumbItems = [
       </div>
       <p class="col-hero-blurb">{collection.blurb}</p>
 
-      {collection.key === 'gifting-collection' && (
-        <div class="gifting-hero-banner">
-          <div class="banner-txt">
-            <span class="eyebrow">✦ VINSHO GIFTING CONCIERGE</span>
-            <h2>CREATE YOUR OWN HAMPER</h2>
-            <p>Select handcrafted luxury pieces and personalize your custom gift hamper.</p>
-          </div>
-          <div class="banner-ctas">
-            <a href="/gifting/create-your-hamper" class="btn-gifting-primary">CREATE YOUR OWN HAMPER →</a>
-          </div>
-        </div>
-      )}
 
       {collection.key === 'gifting-collection' && collection.subcategories && (
         <div class="gifting-subcategories-bar" id="gifting-sub-bar">
@@ -254,8 +242,23 @@ const breadcrumbItems = [
 
   @media (max-width: 640px) {
     .collection-flat-grid {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 1rem 0.75rem;
+      display: flex;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scroll-snap-type: x mandatory;
+      gap: 0.5rem;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 0.75rem;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .collection-flat-grid::-webkit-scrollbar {
+      display: none;
+    }
+    .collection-flat-grid > * {
+      flex: 0 0 calc(46% - 0.25rem);
+      scroll-snap-align: start;
     }
   }
 

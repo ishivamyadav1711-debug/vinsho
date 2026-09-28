@@ -14,7 +14,7 @@ export interface PaymentProvider {
 export class RazorpayMockProvider implements PaymentProvider {
   async initiateCheckoutSession(order: any): Promise<{ providerPaymentId: string; checkoutUrl: string }> {
     const providerPaymentId = 'pay_' + crypto.randomBytes(8).toString('hex');
-    const checkoutUrl = `https://checkout.vinsho.com/hosted?pay_id=${providerPaymentId}&order_id=${order.id}&amount=${order.grand_total}`;
+    const checkoutUrl = `https://checkout.vinsho.in/hosted?pay_id=${providerPaymentId}&order_id=${order.id}&amount=${order.grand_total}`;
 
     // Record initial payment record
     const now = new Date().toISOString();

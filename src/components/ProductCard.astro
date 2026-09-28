@@ -30,7 +30,6 @@ const formattedPrice = isPurchasable && priceVal
   ? `₹${priceVal.toLocaleString('en-IN')}`
   : 'Price on request';
 
-const eyebrowLabel = product.subCategory || product.subcategory || product.mainCategory || product.collection || '';
 const colKey = product.collectionKey || '';
 const subKey = product.subcategoryKey || '';
 
@@ -63,59 +62,49 @@ const searchTerms = [
     <a href={`/product/${product.slug}`} class="pc-img-link" aria-label={`View ${product.name}`}>
       <img src={product.image} alt={product.name} width="400" height="400" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='/images/candles/placeholder.svg';" />
     </a>
-    <div class="pc-ov">
-      <a href={`/product/${product.slug}`} class="view">VIEW</a>
-    </div>
-    <div class="pc-acts">
-      {isPurchasable ? (
-        <button 
-          class="pc-act-add" 
-          data-add={product.slug}
-          data-name={product.name}
-          data-price={product.price || 499}
-          data-image={product.image}
-        >
-          &#43; Add to Cart
-        </button>
-      ) : (
-        <button data-open={product.slug}>&#9678; Quick View</button>
-      )}
-    </div>
   </div>
 
-  <h3 class="pc-name">
-    <a href={`/product/${product.slug}`} class="pc-name-link">{product.name}</a>
-  </h3>
-  <p class="pc-desc">{product.description}</p>
-  
-  <div class="pc-foot">
-    <span class="pc-price">{formattedPrice}</span>
-    {isPurchasable ? (
-      <div class="pc-buy-grp">
-        <button 
-          class="pc-btn-cart" 
-          data-add={product.slug} 
-          data-name={product.name}
-          data-price={product.price || 499}
-          data-image={product.image}
-          title="Add to Cart"
-        >
-          Add
-        </button>
-        <button 
-          class="pc-btn-buy" 
-          data-buy-now={product.slug}
-          data-name={product.name}
-          data-price={product.price || 499}
-          data-image={product.image}
-          title="Buy Now"
-        >
-          Buy Now
-        </button>
+  <div class="pc-info">
+    <div class="pc-text">
+      <h3 class="pc-name">
+        <a href={`/product/${product.slug}`} class="pc-name-link">{product.name}</a>
+      </h3>
+      {product.description && (
+        <p class="pc-desc">{product.description}</p>
+      )}
+    </div>
+    
+    <div class="pc-foot">
+      <span class="pc-price">{formattedPrice}</span>
+      <div class="pc-actions">
+        {isPurchasable ? (
+          <>
+            <button 
+              class="pc-btn-secondary" 
+              data-add={product.slug} 
+              data-name={product.name}
+              data-price={product.price || 499}
+              data-image={product.image}
+            >
+              Add
+            </button>
+            <button 
+              class="pc-btn-primary" 
+              data-buy-now={product.slug} 
+              data-name={product.name}
+              data-price={product.price || 499}
+              data-image={product.image}
+            >
+              Buy Now
+            </button>
+          </>
+        ) : (
+          <button class="pc-btn-link" data-open={product.slug}>
+            Get Quote
+          </button>
+        )}
       </div>
-    ) : (
-      <button class="pc-q" data-open={product.slug}>Get Quote</button>
-    )}
+    </div>
   </div>
 </article>
 
@@ -124,108 +113,164 @@ const searchTerms = [
     min-width: 0;
     width: 100%;
     box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+    border: 1px solid var(--line, #e2dcd0);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  .pc:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  }
+  .pc-img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    background: var(--paper-2, #f5f2eb);
+    position: relative;
+  }
+  .pc-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+  }
+  .pc:hover .pc-img img {
+    transform: scale(1.04);
   }
   .pc-img-link, .pc-name-link {
     text-decoration: none;
     color: inherit;
     display: block;
-    width: 100%;
-    height: 100%;
+  }
+  .pc-info {
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+  .pc-name {
+    font-family: var(--serif, serif);
+    font-size: clamp(0.95rem, 1.5vw, 1.05rem);
+    font-weight: 500;
+    color: var(--maroon, #8A174B);
+    margin: 0;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
   .pc-name-link:hover {
-    text-decoration: underline;
+    color: var(--maroon-2, #6B0E38);
   }
-  .pc-buy-grp {
+  .pc-desc {
+    font-family: var(--sans, sans-serif);
+    font-size: clamp(0.75rem, 1.1vw, 0.85rem);
+    color: var(--grey, #666);
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin: 0.35rem 0 0 0;
+  }
+  .pc-foot {
     display: flex;
     align-items: center;
-    gap: 0.25rem;
-    flex-shrink: 0;
-    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-top: auto;
+    padding-top: 0.75rem;
   }
-  .pc-btn-cart, .pc-btn-buy {
-    font-size: clamp(0.6rem, 1.1vw, 0.72rem);
+  .pc-price {
+    font-family: var(--sans, sans-serif);
+    font-size: clamp(0.75rem, 1.2vw, 0.813rem);
     font-weight: 600;
-    padding: 0.25rem 0.45rem;
-    min-height: 28px;
+    color: var(--maroon-2, #6B0E38);
+    white-space: nowrap;
+  }
+  .pc-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .pc-btn-primary, .pc-btn-secondary {
+    font-family: var(--sans, sans-serif);
+    font-size: clamp(0.7rem, 1.1vw, 0.75rem);
+    font-weight: 600;
+    padding: 0.35rem 0.65rem;
     border-radius: 4px;
     cursor: pointer;
-    text-decoration: none;
+    transition: all 0.2s ease;
+    white-space: nowrap;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s ease;
-    white-space: nowrap;
+    min-height: 28px;
   }
-  .pc-btn-cart {
-    background: var(--paper-3, #f5f2eb);
+  .pc-btn-primary {
+    background: var(--maroon, #8A174B);
+    color: #ffffff;
+    border: 1px solid var(--maroon, #8A174B);
+  }
+  .pc-btn-primary:hover {
+    background: var(--maroon-2, #6B0E38);
+    border-color: var(--maroon-2, #6B0E38);
+  }
+  .pc-btn-secondary {
+    background: var(--paper-2, #f5f2eb);
     color: var(--maroon, #8A174B);
     border: 1px solid var(--line, #e2dcd0);
   }
-  .pc-btn-cart:hover {
-    background: var(--maroon, #8A174B);
-    color: #fff;
+  .pc-btn-secondary:hover {
+    background: var(--line, #e2dcd0);
   }
-  .pc-btn-buy {
-    background: var(--maroon, #8A174B);
-    color: #fff;
-    border: 1px solid var(--maroon, #8A174B);
+  .pc-btn-link {
+    font-family: var(--sans, sans-serif);
+    font-size: clamp(0.75rem, 1.1vw, 0.813rem);
+    font-weight: 500;
+    color: #D3869B; /* Slightly muted pinkish color for link */
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.2s ease;
   }
-  .pc-btn-buy:hover {
-    background: var(--maroon-2, #6B0E38);
+  .pc-btn-link:hover {
+    color: var(--maroon, #8A174B);
   }
 
   @media (max-width: 640px) {
-    .pc {
-      padding: 0.25rem 0;
-    }
-    .pc-eyebrow {
-      font-size: 0.65rem;
-      margin: 0.35rem 0 0.15rem;
+    .pc-info {
+      padding: 0.55rem;
+      gap: 0.4rem;
     }
     .pc-name {
-      font-size: clamp(0.8125rem, 3.2vw, 0.9375rem);
+      font-size: 0.813rem;
       line-height: 1.25;
-      margin: 0 0 0.25rem;
-    }
-    .pc-desc {
-      font-size: 0.72rem;
-      line-height: 1.3;
-      margin: 0 0 0.35rem;
-      -webkit-line-clamp: 2;
     }
     .pc-foot {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 0.35rem;
-      padding-top: 0.35rem;
-    }
-    .pc-price {
-      font-size: 0.781rem;
-      font-weight: 600;
-    }
-    .pc-buy-grp {
-      flex-direction: column;
-      gap: 0.35rem;
-      width: 100%;
-    }
-    .pc-btn-cart, .pc-btn-buy, .pc-q {
-      width: 100%;
-      min-height: 44px;
-      padding: 0.5rem 0.6rem;
-      font-size: 0.75rem;
-      text-align: center;
-      justify-content: center;
-      box-sizing: border-box;
-    }
-  }
-
-  @media (max-width: 400px) {
-    .pc-name {
-      font-size: 0.8125rem;
+      flex-direction: row;
+      align-items: center;
+      gap: 0.4rem;
     }
     .pc-price {
       font-size: 0.75rem;
+      text-align: left;
+    }
+    .pc-actions {
+      margin-left: auto;
+    }
+    .pc-btn-primary, .pc-btn-secondary {
+      font-size: 0.7rem;
+      padding: 0.35rem 0.5rem;
+      min-height: 26px;
     }
   }
 </style>
-

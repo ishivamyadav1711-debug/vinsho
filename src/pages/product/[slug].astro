@@ -2,6 +2,7 @@
 export const prerender = true;
 
 import Base from '../../layouts/Base.astro';
+import Nav from '../../components/Nav.astro';
 import Footer from '../../components/Footer.astro';
 import Modal from '../../components/Modal.astro';
 import VariantSelector from '../../components/VariantSelector.astro';
@@ -11,6 +12,7 @@ import content from '../../../vinsho-content.json';
 import { getAllProducts, getProductBySlug, getCollectionByKey, getSubcategoryByKey } from '../../utils/taxonomy';
 import { getCommerceProductBySlug, evaluateProductPurchasability } from '../../lib/commerce';
 import { isProductPurchasable } from '../../lib/purchasability';
+import { db } from '../../lib/db';
 
 export function getStaticPaths() {
   const products = getAllProducts();
@@ -51,6 +53,25 @@ const commerceProduct = getCommerceProductBySlug(slug) || {
   leadTimeDays: null,
   careInstructions: null
 };
+
+let defaultVariantId: number | null = null;
+let dbVariants: any[] = [];
+try {
+  const dbProd = db.prepare('SELECT id FROM products WHERE slug = ?').get(slug) as any;
+  if (dbProd) {
+    dbVariants = db.prepare('SELECT id, sku FROM product_variants WHERE product_id = ? ORDER BY position ASC, id ASC').all(dbProd.id) as any[];
+    if (dbVariants.length > 0) defaultVariantId = dbVariants[0].id;
+  }
+} catch(e) {
+  console.warn('Failed to fetch DB variants for', slug);
+}
+
+if (commerceProduct.variants && commerceProduct.variants.length > 0) {
+  commerceProduct.variants = commerceProduct.variants.map((v: any) => {
+    const matched = dbVariants.find(dbv => dbv.sku === v.sku);
+    return { ...v, id: matched ? matched.id : defaultVariantId };
+  });
+}
 
 const isPurchasable = isProductPurchasable(baseProduct);
 const isCandleProduct = 
@@ -99,9 +120,13 @@ const isHomeDecorOrFurnishing =
   baseProduct.collectionKey === 'home-decor' || 
   baseProduct.collectionKey === 'home-furnishing' ||
   baseProduct.collection === 'Home Decor' ||
+  baseProduct.collection === 'Home Décor' ||
   baseProduct.collection === 'Home Furnishing' ||
+  baseProduct.collection === 'Home Furnishings' ||
   baseProduct.mainCategory === 'Home Decor' ||
+  baseProduct.mainCategory === 'Home Décor' ||
   baseProduct.mainCategory === 'Home Furnishing' ||
+  baseProduct.mainCategory === 'Home Furnishings' ||
   (baseProduct.collectionKey && baseProduct.collectionKey.includes('decor')) ||
   (baseProduct.collectionKey && baseProduct.collectionKey.includes('furnish'));
 
@@ -113,45 +138,9 @@ const productImages = (baseProduct.images && baseProduct.images.length > 0)
 ---
 
 <Base title={`${baseProduct.name} — VINSHO Editorial`} description={baseProduct.description}>
+  <Nav />
   <div class="editorial-pdp-outer">
     <div class="editorial-pdp-canvas">
-      
-      <!-- Editorial Minimal Header -->
-      <header class="pdp-editorial-header">
-        <div class="pdp-header-left">
-          <a href="/" class="pdp-brand-link" aria-label="VINSHO Home">
-            <img src="/vinsho-logo-transparent.png" alt="VINSHO" class="pdp-header-logo" />
-          </a>
-        </div>
-        <nav class="pdp-header-nav">
-          <a href="/" class="pdp-nav-item">Home</a>
-          <a href="/about" class="pdp-nav-item">About Us</a>
-          <a href="/products" class="pdp-nav-item">Products</a>
-          <a href="/collections" class="pdp-nav-item">Collections</a>
-          <a href="/blog" class="pdp-nav-item">Blog</a>
-          <a href="/contact" class="pdp-nav-item">Contact Us</a>
-        </nav>
-        <div class="pdp-header-right">
-          <a href="/products" class="pdp-util-btn" aria-label="Search">
-            <svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="7"/>
-              <path d="m20 20-3.5-3.5"/>
-            </svg>
-            <span class="util-txt">Search</span>
-          </a>
-          <button class="pdp-util-btn" id="pdp-cart-btn" aria-label="View Cart" type="button">
-            <svg class="ico" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M6 7h12l-1 13H7L6 7Z"/>
-              <path d="M9 7a3 3 0 0 1 6 0"/>
-            </svg>
-            <span class="util-txt">Cart</span>
-            <span class="pdp-cart-badge" id="pdpCartN">0</span>
-          </button>
-          <a class="pdp-header-cta" href={whatsappUrl} target="_blank" rel="noopener noreferrer">
-            Enquire
-          </a>
-        </div>
-      </header>
 
       <!-- Category Label Header -->
       <div class="pdp-category-breadcrumb">
@@ -210,10 +199,10 @@ const productImages = (baseProduct.images && baseProduct.images.length > 0)
                 </div>
 
                 <div class="pdp-btn-stack">
-                  <button class="pdp-btn-primary" id="pdp-add-cart-btn" data-slug={baseProduct.slug}>
+                  <button class="pdp-btn-primary" id="pdp-add-cart-btn" data-slug={baseProduct.slug} data-variant-id={defaultVariantId}>
                     ADD TO CART
                   </button>
-                  <button class="pdp-btn-secondary" id="pdp-buy-now-btn" data-slug={baseProduct.slug}>
+                  <button class="pdp-btn-secondary" id="pdp-buy-now-btn" data-slug={baseProduct.slug} data-variant-id={defaultVariantId}>
                     BUY NOW
                   </button>
                 </div>
@@ -323,7 +312,6 @@ const productImages = (baseProduct.images && baseProduct.images.length > 0)
               <div class="spec-grid">
                 <div class="spec-row"><span>Material:</span> <strong>{baseProduct.material || 'Crafted Luxury Material'}</strong></div>
                 <div class="spec-row"><span>Category:</span> <strong>{baseProduct.subcategory || baseProduct.subCategory}</strong></div>
-                <div class="spec-row"><span>Shipping Class:</span> <strong style="text-transform: capitalize;">{commerceProduct.shippingClass}</strong></div>
                 {commerceProduct.countryOfOrigin && (
                   <div class="spec-row"><span>Country of Origin:</span> <strong>{commerceProduct.countryOfOrigin}</strong></div>
                 )}
@@ -358,7 +346,7 @@ const productImages = (baseProduct.images && baseProduct.images.length > 0)
                 <svg class="acc-ico" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
               </summary>
               <div class="pdp-acc-body">
-                <p>Complimentary shipping across India. Carefully packaged and dispatched with real-time tracking.</p>
+                <p>Shipping is calculated based on item weight/dimensions and confirmed via your WhatsApp quote. Carefully packaged &amp; dispatched with real-time tracking.</p>
               </div>
             </details>
           )}
@@ -504,6 +492,19 @@ const productImages = (baseProduct.images && baseProduct.images.length > 0)
       }
     });
 
+    // Helper to get selected variant ID
+    const getSelectedVariantId = (btn: HTMLElement | null) => {
+      const dropdown = document.getElementById('variant-select-dropdown') as HTMLSelectElement | null;
+      if (dropdown) {
+        const option = Array.from(dropdown.options).find(opt => opt.selected);
+        if (option && option.dataset.id) return parseInt(option.dataset.id, 10);
+      }
+      if (btn && btn.dataset.variantId) {
+        return parseInt(btn.dataset.variantId, 10);
+      }
+      return undefined;
+    };
+
     // Add To Cart
     const addCartBtn = document.getElementById('pdp-add-cart-btn');
     addCartBtn?.addEventListener('click', () => {
@@ -513,12 +514,12 @@ const productImages = (baseProduct.images && baseProduct.images.length > 0)
         name,
         image: img,
         price,
-        quantity: qty
+        quantity: qty,
+        variantId: getSelectedVariantId(addCartBtn)
       });
       if (pdpCartBadge) {
         pdpCartBadge.textContent = String(getCartCount());
       }
-      openCartDrawer();
     });
 
     // Buy Now
@@ -529,13 +530,13 @@ const productImages = (baseProduct.images && baseProduct.images.length > 0)
         name,
         image: img,
         price,
-        quantity: qty
+        quantity: qty,
+        variantId: getSelectedVariantId(buyNowBtn)
       });
       if (pdpCartBadge) {
         pdpCartBadge.textContent = String(getCartCount());
       }
-      const waUrl = createWhatsAppOrderUrl([{ name, price, quantity: qty }]);
-      window.open(waUrl, '_blank');
+      window.location.href = '/checkout/address';
     });
 
     // Mobile Sticky Add To Cart
@@ -547,12 +548,12 @@ const productImages = (baseProduct.images && baseProduct.images.length > 0)
         name,
         image: img,
         price,
-        quantity: qty
+        quantity: qty,
+        variantId: getSelectedVariantId(mobileAddCartBtn)
       });
       if (pdpCartBadge) {
         pdpCartBadge.textContent = String(getCartCount());
       }
-      openCartDrawer();
     });
 
     // Mobile Sticky Buy Now
@@ -563,13 +564,13 @@ const productImages = (baseProduct.images && baseProduct.images.length > 0)
         name,
         image: img,
         price,
-        quantity: qty
+        quantity: qty,
+        variantId: getSelectedVariantId(mobileBuyNowBtn)
       });
       if (pdpCartBadge) {
         pdpCartBadge.textContent = String(getCartCount());
       }
-      const waUrl = createWhatsAppOrderUrl([{ name, price, quantity: qty }]);
-      window.open(waUrl, '_blank');
+      window.location.href = '/checkout/address';
     });
   });
 </script>

@@ -11,7 +11,8 @@ export interface CreateOrderParams {
   customerId: number;
   couponCode?: string | null;
   items?: Array<{
-    variantId: number;
+    variantId?: number | null;
+    slug?: string;
     qty: number;
   }>;
   shippingAddress: {
@@ -51,14 +52,27 @@ export function createOrder(params: CreateOrderParams): OrderCreationResult {
   // Load variant details directly from DB
   const cartItems: any[] = [];
   for (const raw of rawItems) {
-    const v = db.prepare(`
-      SELECT v.*, p.slug as product_slug, p.name as product_name, p.shipping_class, p.launch_phase, p.sellable_online, p.is_purchasable
-      FROM product_variants v
-      JOIN products p ON v.product_id = p.id
-      WHERE v.id = ? AND p.deleted_at IS NULL
-    `).get(raw.variantId) as any;
+    let v: any = null;
+    
+    if (raw.variantId) {
+      v = db.prepare(`
+        SELECT v.*, p.slug as product_slug, p.name as product_name, p.shipping_class, p.launch_phase, p.sellable_online, p.is_purchasable
+        FROM product_variants v
+        JOIN products p ON v.product_id = p.id
+        WHERE v.id = ? AND p.deleted_at IS NULL
+      `).get(raw.variantId) as any;
+    } else if (raw.slug) {
+      v = db.prepare(`
+        SELECT v.*, p.slug as product_slug, p.name as product_name, p.shipping_class, p.launch_phase, p.sellable_online, p.is_purchasable
+        FROM product_variants v
+        JOIN products p ON v.product_id = p.id
+        WHERE p.slug = ? AND p.deleted_at IS NULL
+        ORDER BY v.position ASC, v.id ASC LIMIT 1
+      `).get(raw.slug) as any;
+    }
+
     if (!v) {
-      return { success: false, error: `Variant ID ${raw.variantId} not found in database.` };
+      return { success: false, error: `Product variant not found for ${raw.slug || raw.variantId}.` };
     }
     cartItems.push({
       variantId: v.id,

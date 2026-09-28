@@ -2,7 +2,7 @@
   "collections": [
     {
       "key": "home-furnishing",
-      "name": "Home Furnishing",
+      "name": "Home Furnishings",
       "order": 1,
       "blurb": "Bedding, soft furnishings, window treatments, bath accents and living textiles.",
       "subcategories": [
@@ -75,7 +75,7 @@
     },
     {
       "key": "home-decor",
-      "name": "Home Decor",
+      "name": "Home Décor",
       "order": 2,
       "blurb": "Wall art, wall clocks, artificial flowers, showpieces and candles.",
       "subcategories": [
