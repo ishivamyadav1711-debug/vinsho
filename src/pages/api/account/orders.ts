@@ -1,10 +1,10 @@
 import type { APIRoute } from 'astro';
-import { db } from '../../../lib/db.js';
+import { prisma } from '../../../lib/db.js';
 import { getCustomerFromSession } from '../../../lib/customerAuth.js';
 
 export const GET: APIRoute = async ({ request }) => {
   try {
-    const customer = getCustomerFromSession(request);
+    const customer = await getCustomerFromSession(request);
     if (!customer) {
       return new Response(JSON.stringify({ error: 'Unauthorized: Please log in to view your orders.' }), {
         status: 401,
@@ -12,29 +12,72 @@ export const GET: APIRoute = async ({ request }) => {
       });
     }
 
-    // Query orders belonging strictly to authenticated customer ID
-    const orders = db.prepare(`
-      SELECT o.id, o.order_number, o.status, o.payment_status, o.subtotal, o.tax_total, o.shipping_total, o.discount_total, o.grand_total, o.currency, o.placed_at, o.created_at
-      FROM orders o
-      WHERE o.customer_id = ?
-      ORDER BY o.id DESC
-    `).all(customer.id) as any[];
-
-    // Attach item summary for each order
-    const enrichedOrders = orders.map((o) => {
-      const items = db.prepare(`
-        SELECT oi.id, oi.product_name_snapshot, oi.variant_label_snapshot, oi.unit_price_snapshot, oi.qty, oi.line_total, p_img.url as image_url
-        FROM order_items oi
-        LEFT JOIN product_variants pv ON oi.variant_id = pv.id
-        LEFT JOIN product_images p_img ON (p_img.product_id = pv.product_id AND p_img.is_primary = 1)
-        WHERE oi.order_id = ?
-      `).all(o.id);
-
-      return {
-        ...o,
-        items
-      };
+    // Query orders belonging strictly to authenticated customer ID with items
+    const orders = await prisma.orders.findMany({
+      where: { customer_id: customer.id },
+      select: {
+        id: true,
+        order_number: true,
+        status: true,
+        payment_status: true,
+        subtotal: true,
+        tax_total: true,
+        shipping_total: true,
+        discount_total: true,
+        grand_total: true,
+        currency: true,
+        placed_at: true,
+        created_at: true,
+        order_items: {
+          select: {
+            id: true,
+            product_name_snapshot: true,
+            variant_label_snapshot: true,
+            unit_price_snapshot: true,
+            qty: true,
+            line_total: true,
+            product_variants: {
+              select: {
+                products: {
+                  select: {
+                    product_images: {
+                      where: { is_primary: 1 },
+                      take: 1,
+                      select: { url: true }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      orderBy: { id: 'desc' }
     });
+
+    const enrichedOrders = orders.map((o: any) => ({
+      id: o.id,
+      order_number: o.order_number,
+      status: o.status,
+      payment_status: o.payment_status,
+      subtotal: o.subtotal,
+      tax_total: o.tax_total,
+      shipping_total: o.shipping_total,
+      discount_total: o.discount_total,
+      grand_total: o.grand_total,
+      currency: o.currency,
+      placed_at: o.placed_at,
+      created_at: o.created_at,
+      items: o.order_items.map((oi: any) => ({
+        id: oi.id,
+        product_name_snapshot: oi.product_name_snapshot,
+        variant_label_snapshot: oi.variant_label_snapshot,
+        unit_price_snapshot: oi.unit_price_snapshot,
+        qty: oi.qty,
+        line_total: oi.line_total,
+        image_url: oi.product_variants?.products?.product_images?.[0]?.url || null
+      }))
+    }));
 
     return new Response(JSON.stringify({
       success: true,

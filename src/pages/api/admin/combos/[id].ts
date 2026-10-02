@@ -1,27 +1,35 @@
 import type { APIRoute } from 'astro';
-import { db, logAuditAction } from '../../../../lib/db.js';
+import { prisma, logAuditAction } from '../../../../lib/db.js';
 import { getSessionUser } from '../../../../lib/auth.js';
 import { getComboAvailability, setComboComponents } from '../../../../lib/combos.js';
 
 export const GET: APIRoute = async ({ request, params }) => {
-  const user = getSessionUser(request);
+  const user = await getSessionUser(request);
   if (!user) {
     return new Response(JSON.stringify({ error: 'Unauthorized admin access.' }), { status: 401 });
   }
 
   const variantId = parseInt(params.id || '0', 10);
-  const variant = db.prepare(`
-    SELECT v.*, p.name as product_name
-    FROM product_variants v
-    JOIN products p ON v.product_id = p.id
-    WHERE v.id = ? AND p.deleted_at IS NULL
-  `).get(variantId) as any;
+  const foundVariant = await prisma.product_variants.findFirst({
+    where: {
+      id: variantId,
+      products: { deleted_at: null }
+    },
+    include: {
+      products: { select: { name: true } }
+    }
+  });
 
-  if (!variant) {
+  if (!foundVariant) {
     return new Response(JSON.stringify({ error: 'Variant not found.' }), { status: 404 });
   }
 
-  const availability = getComboAvailability(variantId);
+  const variant = {
+    ...foundVariant,
+    product_name: foundVariant.products?.name
+  };
+
+  const availability = await getComboAvailability(variantId);
 
   return new Response(JSON.stringify({
     success: true,
@@ -34,13 +42,15 @@ export const GET: APIRoute = async ({ request, params }) => {
 };
 
 export const PUT: APIRoute = async ({ request, params }) => {
-  const user = getSessionUser(request);
+  const user = await getSessionUser(request);
   if (!user) {
     return new Response(JSON.stringify({ error: 'Unauthorized admin access.' }), { status: 401 });
   }
 
   const variantId = parseInt(params.id || '0', 10);
-  const variant = db.prepare('SELECT * FROM product_variants WHERE id = ?').get(variantId) as any;
+  const variant = await prisma.product_variants.findUnique({
+    where: { id: variantId }
+  });
 
   if (!variant) {
     return new Response(JSON.stringify({ error: 'Variant not found.' }), { status: 404 });
@@ -54,14 +64,14 @@ export const PUT: APIRoute = async ({ request, params }) => {
       return new Response(JSON.stringify({ error: 'Components array is required.' }), { status: 400 });
     }
 
-    const setRes = setComboComponents(variantId, components);
+    const setRes = await setComboComponents(variantId, components);
     if (!setRes.success) {
       return new Response(JSON.stringify({ error: setRes.error }), { status: 400 });
     }
 
-    const updatedAvailability = getComboAvailability(variantId);
+    const updatedAvailability = await getComboAvailability(variantId);
 
-    logAuditAction({
+    await logAuditAction({
       actorId: user.id,
       action: 'UPDATE',
       entity: 'combo_items',

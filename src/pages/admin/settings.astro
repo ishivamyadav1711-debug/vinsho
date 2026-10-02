@@ -1,15 +1,18 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
-import { db } from '../../lib/db';
+import { prisma } from '../../lib/db';
 import { requireSuperAdmin } from '../../lib/auth';
 
-const authCheck = requireSuperAdmin(Astro.request);
+const authCheck = await requireSuperAdmin(Astro.request);
 if (!authCheck.allowed) {
   return Astro.redirect('/admin/crm');
 }
 const user = authCheck.user!;
 
-const users = db.prepare('SELECT id, email, name, role, created_at FROM admin_users ORDER BY name ASC').all() as any[];
+const users = await prisma.adminUsers.findMany({
+  select: { id: true, email: true, name: true, role: true, created_at: true },
+  orderBy: { name: 'asc' }
+});
 ---
 
 <AdminLayout title="Team Settings & Permissions" activeNav="settings">

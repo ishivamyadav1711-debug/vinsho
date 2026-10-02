@@ -1,20 +1,26 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
-import { db } from '../../lib/db';
+import { prisma } from '../../lib/db';
 import { getSessionUser } from '../../lib/auth';
 
-const user = getSessionUser(Astro.request);
+const user = await getSessionUser(Astro.request);
 if (!user || (user.role !== 'SUPER_ADMIN' && user.role !== 'ADMIN')) {
   return Astro.redirect('/crm/login');
 }
 
-const auditLogs = db.prepare(`
-  SELECT a.*, u.name as actor_name, u.email as actor_email
-  FROM audit_logs a
-  LEFT JOIN admin_users u ON a.actor_id = u.id
-  ORDER BY a.created_at DESC
-  LIMIT 100
-`).all() as any[];
+const auditLogsRaw = await prisma.audit_logs.findMany({
+  orderBy: { created_at: 'desc' },
+  take: 100,
+  include: {
+    admin_users: { select: { name: true, email: true } }
+  }
+});
+
+const auditLogs = auditLogsRaw.map(a => ({
+  ...a,
+  actor_name: a.admin_users?.name || null,
+  actor_email: a.admin_users?.email || null
+}));
 ---
 
 <AdminLayout title="System Audit Logs" activeNav="audit">

@@ -1,29 +1,42 @@
 import type { APIRoute } from 'astro';
-import { db, logAuditAction } from '../../../../lib/db.js';
+import { prisma, logAuditAction } from '../../../../lib/db.js';
 import { getSessionUser } from '../../../../lib/auth.js';
 import { evaluatePurchasability } from '../../../../lib/purchasability.js';
 
 export const GET: APIRoute = async ({ request, params }) => {
-  const user = getSessionUser(request);
+  const user = await getSessionUser(request);
   if (!user) {
     return new Response(JSON.stringify({ error: 'Unauthorized admin access.' }), { status: 401 });
   }
 
   const id = parseInt(params.id || '0', 10);
-  const product = db.prepare(`
-    SELECT p.*, c.name as collection_name, s.name as subcategory_name
-    FROM products p
-    JOIN collections c ON p.collection_id = c.id
-    JOIN subcategories s ON p.subcategory_id = s.id
-    WHERE p.id = ?
-  `).get(id) as any;
+  const foundProduct = await prisma.products.findUnique({
+    where: { id },
+    include: {
+      collections: { select: { name: true } },
+      subcategories: { select: { name: true } }
+    }
+  });
 
-  if (!product) {
+  if (!foundProduct) {
     return new Response(JSON.stringify({ error: 'Product not found.' }), { status: 404 });
   }
 
-  const images = db.prepare('SELECT * FROM product_images WHERE product_id = ? ORDER BY position ASC').all(id);
-  const variants = db.prepare('SELECT * FROM product_variants WHERE product_id = ? ORDER BY position ASC').all(id) as any[];
+  const product = {
+    ...foundProduct,
+    collection_name: foundProduct.collections?.name,
+    subcategory_name: foundProduct.subcategories?.name
+  };
+
+  const images = await prisma.product_images.findMany({
+    where: { product_id: id },
+    orderBy: { position: 'asc' }
+  });
+
+  const variants = await prisma.product_variants.findMany({
+    where: { product_id: id },
+    orderBy: { position: 'asc' }
+  });
 
   const evalRes = evaluatePurchasability(product, variants);
 
@@ -40,13 +53,15 @@ export const GET: APIRoute = async ({ request, params }) => {
 };
 
 export const PUT: APIRoute = async ({ request, params }) => {
-  const user = getSessionUser(request);
+  const user = await getSessionUser(request);
   if (!user) {
     return new Response(JSON.stringify({ error: 'Unauthorized admin access.' }), { status: 401 });
   }
 
   const id = parseInt(params.id || '0', 10);
-  const existingProduct = db.prepare('SELECT * FROM products WHERE id = ?').get(id) as any;
+  const existingProduct = await prisma.products.findUnique({
+    where: { id }
+  });
 
   if (!existingProduct) {
     return new Response(JSON.stringify({ error: 'Product not found.' }), { status: 404 });
@@ -61,107 +76,98 @@ export const PUT: APIRoute = async ({ request, params }) => {
       lead_time_days, care_instructions, variants, images
     } = body;
 
-    const now = new Date().toISOString();
+    const now = new Date();
 
-    db.transaction(() => {
+    await prisma.$transaction(async (tx) => {
       // 1. Update Product attributes
-      db.prepare(`
-        UPDATE products SET
-          name = ?, slug = ?, collection_id = ?, subcategory_id = ?, description = ?,
-          description_source = ?, material = ?, shipping_class = ?, launch_phase = ?,
-          sellable_online = ?, returnable = ?, country_of_origin = ?,
-          manufacturer_or_packer = ?, consumer_care_contact = ?, lead_time_days = ?,
-          care_instructions = ?, updated_at = ?
-        WHERE id = ?
-      `).run(
-        name !== undefined ? name.trim() : existingProduct.name,
-        slug !== undefined ? slug.trim() : existingProduct.slug,
-        collection_id !== undefined ? collection_id : existingProduct.collection_id,
-        subcategory_id !== undefined ? subcategory_id : existingProduct.subcategory_id,
-        description !== undefined ? description : existingProduct.description,
-        description_source !== undefined ? description_source : existingProduct.description_source,
-        material !== undefined ? material : existingProduct.material,
-        shipping_class !== undefined ? shipping_class : existingProduct.shipping_class,
-        launch_phase !== undefined ? launch_phase : existingProduct.launch_phase,
-        sellable_online !== undefined ? (sellable_online ? 1 : 0) : existingProduct.sellable_online,
-        returnable !== undefined ? (returnable ? 1 : 0) : existingProduct.returnable,
-        country_of_origin !== undefined ? country_of_origin : existingProduct.country_of_origin,
-        manufacturer_or_packer !== undefined ? manufacturer_or_packer : existingProduct.manufacturer_or_packer,
-        consumer_care_contact !== undefined ? consumer_care_contact : existingProduct.consumer_care_contact,
-        lead_time_days !== undefined ? lead_time_days : existingProduct.lead_time_days,
-        care_instructions !== undefined ? care_instructions : existingProduct.care_instructions,
-        now,
-        id
-      );
+      await tx.products.update({
+        where: { id },
+        data: {
+          name: name !== undefined ? name.trim() : existingProduct.name,
+          slug: slug !== undefined ? slug.trim() : existingProduct.slug,
+          collection_id: collection_id !== undefined ? collection_id : existingProduct.collection_id,
+          subcategory_id: subcategory_id !== undefined ? subcategory_id : existingProduct.subcategory_id,
+          description: description !== undefined ? description : existingProduct.description,
+          description_source: description_source !== undefined ? description_source : existingProduct.description_source,
+          material: material !== undefined ? material : existingProduct.material,
+          shipping_class: shipping_class !== undefined ? shipping_class : existingProduct.shipping_class,
+          launch_phase: launch_phase !== undefined ? launch_phase : existingProduct.launch_phase,
+          sellable_online: sellable_online !== undefined ? (sellable_online ? 1 : 0) : existingProduct.sellable_online,
+          returnable: returnable !== undefined ? (returnable ? 1 : 0) : existingProduct.returnable,
+          country_of_origin: country_of_origin !== undefined ? country_of_origin : existingProduct.country_of_origin,
+          manufacturer_or_packer: manufacturer_or_packer !== undefined ? manufacturer_or_packer : existingProduct.manufacturer_or_packer,
+          consumer_care_contact: consumer_care_contact !== undefined ? consumer_care_contact : existingProduct.consumer_care_contact,
+          lead_time_days: lead_time_days !== undefined ? lead_time_days : existingProduct.lead_time_days,
+          care_instructions: care_instructions !== undefined ? care_instructions : existingProduct.care_instructions,
+          updated_at: now
+        }
+      });
 
       // 2. Handle Variants update if provided
       if (Array.isArray(variants)) {
-        db.prepare('DELETE FROM product_variants WHERE product_id = ?').run(id);
+        await tx.product_variants.deleteMany({ where: { product_id: id } });
 
-        const insertVar = db.prepare(`
-          INSERT INTO product_variants (
-            product_id, sku, size, colour, mrp, selling_price, currency, hsn_code, gst_rate,
-            net_quantity, packed_weight_kg, packed_l_cm, packed_b_cm, packed_h_cm, stock, position, created_at, updated_at
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `);
-
-        variants.forEach((v: any, idx: number) => {
-          insertVar.run(
-            id,
-            v.sku || null,
-            v.size || null,
-            v.colour || null,
-            v.mrp !== undefined && v.mrp !== null && v.mrp !== '' ? parseFloat(v.mrp) : null,
-            v.selling_price !== undefined && v.selling_price !== null && v.selling_price !== '' ? parseFloat(v.selling_price) : null,
-            v.currency || 'INR',
-            v.hsn_code || null,
-            v.gst_rate !== undefined && v.gst_rate !== null && v.gst_rate !== '' ? parseFloat(v.gst_rate) : null,
-            v.net_quantity || null,
-            v.packed_weight_kg !== undefined && v.packed_weight_kg !== null && v.packed_weight_kg !== '' ? parseFloat(v.packed_weight_kg) : null,
-            v.packed_l_cm !== undefined && v.packed_l_cm !== null && v.packed_l_cm !== '' ? parseFloat(v.packed_l_cm) : null,
-            v.packed_b_cm !== undefined && v.packed_b_cm !== null && v.packed_b_cm !== '' ? parseFloat(v.packed_b_cm) : null,
-            v.packed_h_cm !== undefined && v.packed_h_cm !== null && v.packed_h_cm !== '' ? parseFloat(v.packed_h_cm) : null,
-            v.stock !== undefined && v.stock !== null && v.stock !== '' ? parseInt(v.stock, 10) : null,
-            idx + 1,
-            now,
-            now
-          );
-        });
+        for (let idx = 0; idx < variants.length; idx++) {
+          const v = variants[idx];
+          await tx.product_variants.create({
+            data: {
+              product_id: id,
+              sku: v.sku || null,
+              size: v.size || null,
+              colour: v.colour || null,
+              mrp: v.mrp !== undefined && v.mrp !== null && v.mrp !== '' ? parseFloat(v.mrp) : null,
+              selling_price: v.selling_price !== undefined && v.selling_price !== null && v.selling_price !== '' ? parseFloat(v.selling_price) : null,
+              currency: v.currency || 'INR',
+              hsn_code: v.hsn_code || null,
+              gst_rate: v.gst_rate !== undefined && v.gst_rate !== null && v.gst_rate !== '' ? parseFloat(v.gst_rate) : null,
+              net_quantity: v.net_quantity || null,
+              packed_weight_kg: v.packed_weight_kg !== undefined && v.packed_weight_kg !== null && v.packed_weight_kg !== '' ? parseFloat(v.packed_weight_kg) : null,
+              packed_l_cm: v.packed_l_cm !== undefined && v.packed_l_cm !== null && v.packed_l_cm !== '' ? parseFloat(v.packed_l_cm) : null,
+              packed_b_cm: v.packed_b_cm !== undefined && v.packed_b_cm !== null && v.packed_b_cm !== '' ? parseFloat(v.packed_b_cm) : null,
+              packed_h_cm: v.packed_h_cm !== undefined && v.packed_h_cm !== null && v.packed_h_cm !== '' ? parseFloat(v.packed_h_cm) : null,
+              stock: v.stock !== undefined && v.stock !== null && v.stock !== '' ? parseInt(v.stock, 10) : null,
+              position: idx + 1,
+              created_at: now,
+              updated_at: now
+            }
+          });
+        }
       }
 
       // 3. Handle Images update if provided
       if (Array.isArray(images)) {
-        db.prepare('DELETE FROM product_images WHERE product_id = ?').run(id);
+        await tx.product_images.deleteMany({ where: { product_id: id } });
 
-        const insertImg = db.prepare(`
-          INSERT INTO product_images (product_id, url, alt, position, is_primary, created_at, updated_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?)
-        `);
-
-        images.forEach((img: any, idx: number) => {
-          insertImg.run(
-            id,
-            img.url,
-            img.alt || name || existingProduct.name,
-            idx + 1,
-            idx === 0 ? 1 : 0,
-            now,
-            now
-          );
-        });
+        for (let idx = 0; idx < images.length; idx++) {
+          const img = images[idx];
+          await tx.product_images.create({
+            data: {
+              product_id: id,
+              url: img.url,
+              alt: img.alt || name || existingProduct.name,
+              position: idx + 1,
+              is_primary: idx === 0 ? 1 : 0,
+              created_at: now,
+              updated_at: now
+            }
+          });
+        }
       }
 
       // 4. Re-evaluate Purchasability & Update is_purchasable column
-      const updatedProduct = db.prepare('SELECT * FROM products WHERE id = ?').get(id) as any;
-      const updatedVariants = db.prepare('SELECT * FROM product_variants WHERE product_id = ?').all(id) as any[];
+      const updatedProduct = await tx.products.findUnique({ where: { id } });
+      const updatedVariants = await tx.product_variants.findMany({ where: { product_id: id } });
       const evalRes = evaluatePurchasability(updatedProduct, updatedVariants);
 
-      db.prepare('UPDATE products SET is_purchasable = ? WHERE id = ?').run(evalRes.isPurchasable ? 1 : 0, id);
-    })();
+      await tx.products.update({
+        where: { id },
+        data: { is_purchasable: evalRes.isPurchasable ? 1 : 0 }
+      });
+    });
 
-    const finalProduct = db.prepare('SELECT * FROM products WHERE id = ?').get(id);
+    const finalProduct = await prisma.products.findUnique({ where: { id } });
 
-    logAuditAction({
+    await logAuditAction({
       actorId: user.id,
       action: 'UPDATE',
       entity: 'products',
@@ -179,23 +185,26 @@ export const PUT: APIRoute = async ({ request, params }) => {
 };
 
 export const DELETE: APIRoute = async ({ request, params }) => {
-  const user = getSessionUser(request);
+  const user = await getSessionUser(request);
   if (!user) {
     return new Response(JSON.stringify({ error: 'Unauthorized admin access.' }), { status: 401 });
   }
 
   const id = parseInt(params.id || '0', 10);
-  const existingProduct = db.prepare('SELECT * FROM products WHERE id = ?').get(id) as any;
+  const existingProduct = await prisma.products.findUnique({ where: { id } });
 
   if (!existingProduct) {
     return new Response(JSON.stringify({ error: 'Product not found.' }), { status: 404 });
   }
 
-  const now = new Date().toISOString();
+  const now = new Date();
   // Soft delete per §2 table specifications
-  db.prepare('UPDATE products SET deleted_at = ? WHERE id = ?').run(now, id);
+  await prisma.products.update({
+    where: { id },
+    data: { deleted_at: now }
+  });
 
-  logAuditAction({
+  await logAuditAction({
     actorId: user.id,
     action: 'ARCHIVE',
     entity: 'products',

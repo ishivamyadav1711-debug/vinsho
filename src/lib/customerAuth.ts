@@ -1,4 +1,4 @@
-import { db } from './db.js';
+import { prisma } from './db.js';
 import crypto from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import { parseCookies } from './auth.js';
@@ -9,10 +9,10 @@ export interface CustomerUser {
   name: string;
   email: string | null;
   phone: string;
-  city?: string;
-  state?: string;
-  pincode?: string;
-  country?: string;
+  city?: string | null;
+  state?: string | null;
+  pincode?: string | null;
+  country?: string | null;
   status?: string;
 }
 
@@ -22,66 +22,80 @@ const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000; // 30 days session persist
 /**
  * Creates a new secure customer session in the database and returns token & cookie header.
  */
-export function createCustomerSessionToken(customerId: number, ip = '', userAgent = ''): { token: string; expiresAt: number } {
+export async function createCustomerSessionToken(customerId: number, ip = '', userAgent = ''): Promise<{ token: string; expiresAt: number }> {
   const token = crypto.randomBytes(32).toString('hex');
-  const expiresAt = Date.now() + SESSION_DURATION_MS;
-  const now = new Date().toISOString();
+  const expiresAtMs = Date.now() + SESSION_DURATION_MS;
+  const expiresAt = BigInt(expiresAtMs);
+  const now = new Date();
 
-  db.prepare(`
-    INSERT INTO customer_sessions (token, customer_id, expires_at, ip, user_agent, created_at)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `).run(token, customerId, expiresAt, ip, userAgent, now);
+  await prisma.customerSessions.create({
+    data: {
+      token,
+      customer_id: customerId,
+      expires_at: expiresAt,
+      ip,
+      user_agent: userAgent,
+      created_at: now
+    }
+  });
 
-  db.prepare('UPDATE customers SET updated_at = ? WHERE id = ?').run(now, customerId);
+  await prisma.customers.update({
+    where: { id: customerId },
+    data: { updated_at: now }
+  });
 
-  return { token, expiresAt };
+  return { token, expiresAt: expiresAtMs };
 }
 
 /**
  * Gets the current authenticated customer from HTTP request cookies.
  */
-export function getCustomerFromSession(request: Request): CustomerUser | null {
+export async function getCustomerFromSession(request: Request): Promise<CustomerUser | null> {
   const cookieHeader = request.headers.get('cookie');
   const cookies = parseCookies(cookieHeader);
   const token = cookies[CUSTOMER_SESSION_COOKIE];
 
   if (!token) return null;
 
-  const now = Date.now();
-  const row = db.prepare(`
-    SELECT s.token, s.expires_at, c.id, c.name, c.email, c.phone, c.city, c.state, c.pincode, c.country, c.status
-    FROM customer_sessions s
-    JOIN customers c ON s.customer_id = c.id
-    WHERE s.token = ? AND s.expires_at > ? AND c.deleted_at IS NULL
-  `).get(token, now) as any;
+  const now = BigInt(Date.now());
+  const session = await prisma.customerSessions.findUnique({
+    where: { token },
+    include: { customer: true }
+  });
 
-  if (!row) {
-    db.prepare('DELETE FROM customer_sessions WHERE token = ?').run(token);
+  if (!session || session.expires_at <= now || session.customer.deleted_at !== null) {
+    if (session) {
+      await prisma.customerSessions.delete({ where: { token } }).catch(() => {});
+    }
     return null;
   }
 
   return {
-    id: row.id,
-    name: row.name,
-    email: row.email,
-    phone: row.phone,
-    city: row.city,
-    state: row.state,
-    pincode: row.pincode,
-    country: row.country,
-    status: row.status
+    id: session.customer.id,
+    name: session.customer.name,
+    email: session.customer.email,
+    phone: session.customer.phone,
+    city: session.customer.city,
+    state: session.customer.state,
+    pincode: session.customer.pincode,
+    country: session.customer.country,
+    status: session.customer.status
   };
 }
 
 /**
  * Destroys the customer session.
  */
-export function destroyCustomerSession(request: Request) {
+export async function destroyCustomerSession(request: Request): Promise<void> {
   const cookieHeader = request.headers.get('cookie');
   const cookies = parseCookies(cookieHeader);
   const token = cookies[CUSTOMER_SESSION_COOKIE];
   if (token) {
-    db.prepare('DELETE FROM customer_sessions WHERE token = ?').run(token);
+    try {
+      await prisma.customerSessions.delete({ where: { token } });
+    } catch (err) {
+      // Ignore if already deleted
+    }
   }
 }
 
@@ -90,12 +104,7 @@ export function destroyCustomerSession(request: Request) {
  */
 export function getCustomerSessionCookieHeader(token: string, expiresAt: number): string {
   const expiresDate = new Date(expiresAt).toUTCString();
-  // Secure flag is added in production (HTTPS only).
-  // Omit in development so local HTTP remains usable.
   const secure = getEnvConfig().isProduction ? '; Secure' : '';
-  // SameSite=Lax: correct for customer-facing storefront — allows cookie to be
-  // sent on top-level navigations (e.g. after payment redirect) while blocking
-  // cross-site sub-resource requests.
   return `${CUSTOMER_SESSION_COOKIE}=${encodeURIComponent(token)}; Path=/; HttpOnly${secure}; SameSite=Lax; Expires=${expiresDate}`;
 }
 
@@ -124,15 +133,18 @@ export function verifyPassword(password: string, hash: string): boolean {
 /**
  * Generate 6-digit or random token for password reset
  */
-export function generatePasswordResetToken(customerId: number): { token: string; expiresAt: number } {
+export async function generatePasswordResetToken(customerId: number): Promise<{ token: string; expiresAt: number }> {
   const token = crypto.randomBytes(20).toString('hex');
-  const expiresAt = Date.now() + 60 * 60 * 1000; // 1 hour validity
+  const expiresAtMs = Date.now() + 60 * 60 * 1000; // 1 hour validity
+  const expiresAt = BigInt(expiresAtMs);
 
-  db.prepare('UPDATE customers SET reset_token = ?, reset_expires = ? WHERE id = ?').run(
-    token,
-    expiresAt,
-    customerId
-  );
+  await prisma.customers.update({
+    where: { id: customerId },
+    data: {
+      reset_token: token,
+      reset_expires: expiresAt
+    }
+  });
 
-  return { token, expiresAt };
+  return { token, expiresAt: expiresAtMs };
 }

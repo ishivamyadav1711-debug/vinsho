@@ -1,11 +1,11 @@
 import type { APIRoute } from 'astro';
-import { db, logAuditAction } from '../../../lib/db.js';
+import { prisma, logAuditAction } from '../../../lib/db.js';
 import { getSessionUser, createSessionToken, getSessionCookieHeader } from '../../../lib/auth.js';
 import bcrypt from 'bcryptjs';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    const user = getSessionUser(request);
+    const user = await getSessionUser(request);
     if (!user) {
       return new Response(JSON.stringify({ success: false, message: 'Unauthorized: Session missing or expired.' }), {
         status: 401,
@@ -60,7 +60,13 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    const userRecord = db.prepare('SELECT * FROM admin_users WHERE id = ? AND is_active = 1').get(user.id) as any;
+    const userRecord = await prisma.adminUsers.findFirst({
+      where: {
+        id: user.id,
+        is_active: true
+      }
+    });
+
     if (!userRecord || !bcrypt.compareSync(currentPassword, userRecord.password_hash)) {
       return new Response(JSON.stringify({ success: false, message: 'Current password is incorrect.' }), {
         status: 400,
@@ -68,21 +74,29 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    const now = new Date().toISOString();
+    const now = new Date();
     const newHash = bcrypt.hashSync(newPassword, 10);
 
     // Update user password in database
-    db.prepare('UPDATE admin_users SET password_hash = ?, updated_at = ? WHERE id = ?').run(newHash, now, user.id);
+    await prisma.adminUsers.update({
+      where: { id: user.id },
+      data: {
+        password_hash: newHash,
+        updated_at: now
+      }
+    });
 
     // Invalidate prior sessions & rotate current session
-    db.prepare('DELETE FROM admin_sessions WHERE user_id = ?').run(user.id);
+    await prisma.adminSessions.deleteMany({
+      where: { user_id: user.id }
+    });
 
     const clientIp = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '127.0.0.1';
     const userAgent = request.headers.get('user-agent') || '';
-    const { token, expiresAt } = createSessionToken(user.id, clientIp, userAgent);
+    const { token, expiresAt } = await createSessionToken(user.id, clientIp, userAgent);
     const cookieHeader = getSessionCookieHeader(token, expiresAt);
 
-    logAuditAction({
+    await logAuditAction({
       actorId: user.id,
       action: 'PASSWORD_CHANGE',
       entity: 'admin_users',

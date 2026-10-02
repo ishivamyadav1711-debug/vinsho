@@ -1,5 +1,5 @@
 import crypto from 'node:crypto';
-import { db } from '../db.js';
+import { prisma } from '../db.js';
 import { atomicDecrementStock } from '../inventory.js';
 import { generateInvoiceRecord } from '../tax.js';
 import { logNotification } from '../notifications.js';
@@ -16,12 +16,18 @@ export class RazorpayMockProvider implements PaymentProvider {
     const providerPaymentId = 'pay_' + crypto.randomBytes(8).toString('hex');
     const checkoutUrl = `https://checkout.vinsho.com/hosted?pay_id=${providerPaymentId}&order_id=${order.id}&amount=${order.grand_total}`;
 
-    // Record initial payment record
-    const now = new Date().toISOString();
-    db.prepare(`
-      INSERT INTO payments (order_id, provider, provider_payment_id, amount, status, method, created_at)
-      VALUES (?, 'RAZORPAY', ?, ?, 'pending', 'HOSTED_CHECKOUT', ?)
-    `).run(order.id, providerPaymentId, order.grand_total, now);
+    const now = new Date();
+    await prisma.payments.create({
+      data: {
+        order_id: order.id,
+        provider: 'RAZORPAY',
+        provider_payment_id: providerPaymentId,
+        amount: Number(order.grand_total),
+        status: 'pending',
+        method: 'HOSTED_CHECKOUT',
+        created_at: now
+      }
+    });
 
     return { providerPaymentId, checkoutUrl };
   }
@@ -31,7 +37,6 @@ export class RazorpayMockProvider implements PaymentProvider {
     const envConfig = getEnvConfig();
     const webhookSecret = envConfig.razorpayWebhookSecret;
     const expected = crypto.createHmac('sha256', webhookSecret).update(rawBody).digest('hex');
-    // In dev / test mode allow mock test signatures
     return signature === expected || signature.includes('mock_valid_sig');
   }
 
@@ -40,70 +45,107 @@ export class RazorpayMockProvider implements PaymentProvider {
     const eventType = payload.event || 'payment.captured';
     const providerPaymentId = payload.payment_id || payload.payload?.payment?.entity?.id || 'pay_test';
 
-    const now = new Date().toISOString();
+    const now = new Date();
 
-    // 1. Webhook Replay Protection: Check if provider_event_id has already been processed (§6)
-    const existingEvent = db.prepare('SELECT * FROM payment_events WHERE provider_event_id = ?').get(eventId) as any;
+    // 1. Webhook Replay Protection: Check if provider_event_id has already been processed
+    const existingEvent = await prisma.paymentEvents.findUnique({
+      where: { provider_event_id: eventId }
+    });
+
     if (existingEvent) {
       console.log(`[WEBHOOK REPLAY DETECTED] Event ${eventId} was already processed at ${existingEvent.processed_at}`);
-      const payment = db.prepare('SELECT order_id FROM payments WHERE id = ?').get(existingEvent.payment_id) as any;
+      const payment = existingEvent.payment_id ? await prisma.payments.findUnique({ where: { id: existingEvent.payment_id } }) : null;
       return { success: true, eventId, orderId: payment ? payment.order_id : 0, status: 'ALREADY_PROCESSED' };
     }
 
     // 2. Find Payment Record & Linked Order
-    let payment = db.prepare('SELECT * FROM payments WHERE provider_payment_id = ?').get(providerPaymentId) as any;
+    let payment = await prisma.payments.findUnique({
+      where: { provider_payment_id: providerPaymentId }
+    });
+
     if (!payment) {
-      // Find order by order_id in payload if provider payment ID was generated dynamically
-      const orderId = payload.order_id || payload.payload?.payment?.entity?.notes?.order_id;
-      const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(orderId) as any;
+      const orderId = Number(payload.order_id || payload.payload?.payment?.entity?.notes?.order_id);
+      const order = await prisma.orders.findUnique({ where: { id: orderId } });
       if (!order) {
         throw new Error(`Order not found for webhook payment ${providerPaymentId}`);
       }
-      const res = db.prepare(`
-        INSERT INTO payments (order_id, provider, provider_payment_id, amount, status, method, created_at)
-        VALUES (?, 'RAZORPAY', ?, ?, 'pending', 'HOSTED_CHECKOUT', ?)
-      `).run(order.id, providerPaymentId, order.grand_total, now);
-      payment = db.prepare('SELECT * FROM payments WHERE id = ?').get(res.lastInsertRowid);
+      payment = await prisma.payments.create({
+        data: {
+          order_id: order.id,
+          provider: 'RAZORPAY',
+          provider_payment_id: providerPaymentId,
+          amount: Number(order.grand_total),
+          status: 'pending',
+          method: 'HOSTED_CHECKOUT',
+          created_at: now
+        }
+      });
     }
 
     const orderId = payment.order_id;
-    const order = db.prepare('SELECT * FROM orders WHERE id = ?').get(orderId) as any;
+    const order = await prisma.orders.findUnique({ where: { id: orderId } });
+    if (!order) {
+      throw new Error(`Order ${orderId} not found`);
+    }
 
-    return db.transaction(() => {
+    return await prisma.$transaction(async (tx) => {
       // Record payment_event to prevent future replays
-      db.prepare(`
-        INSERT INTO payment_events (payment_id, provider_event_id, type, payload, processed_at)
-        VALUES (?, ?, ?, ?, ?)
-      `).run(payment.id, eventId, eventType, JSON.stringify(payload), now);
+      await tx.paymentEvents.create({
+        data: {
+          payment_id: payment.id,
+          provider_event_id: eventId,
+          type: eventType,
+          payload: JSON.stringify(payload),
+          processed_at: now
+        }
+      });
 
       if (eventType === 'payment.captured' || eventType === 'payment.authorized') {
-        // Handle out-of-order delivery & payment confirmation (§6)
-        db.prepare('UPDATE payments SET status = "paid", raw_payload = ? WHERE id = ?').run(JSON.stringify(payload), payment.id);
-        db.prepare('UPDATE orders SET status = "Confirmed", payment_status = "paid", updated_at = ? WHERE id = ?').run(now, orderId);
+        await tx.payments.update({
+          where: { id: payment.id },
+          data: {
+            status: 'paid',
+            raw_payload: JSON.stringify(payload)
+          }
+        });
 
-        // 3. Decrement Inventory Stock (§8)
-        const orderItems = db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(orderId) as any[];
+        await tx.orders.update({
+          where: { id: orderId },
+          data: {
+            status: 'Confirmed',
+            payment_status: 'paid',
+            updated_at: now
+          }
+        });
+
+        // 3. Decrement Inventory Stock
+        const orderItems = await tx.orderItems.findMany({ where: { order_id: orderId } });
         for (const item of orderItems) {
-          atomicDecrementStock({
+          await atomicDecrementStock({
             variantId: item.variant_id,
             delta: -item.qty,
             reason: 'SALE',
             orderId
-          });
+          }, tx);
         }
 
-        // 4. Generate Invoice PDF / Document Record (§9)
-        const shippingAddress = db.prepare('SELECT * FROM addresses WHERE id = ?').get(order.shipping_address_id) as any;
-        const invRecord = generateInvoiceRecord(order, orderItems, shippingAddress);
+        // 4. Generate Invoice Record
+        const shippingAddress = await tx.addresses.findUnique({ where: { id: order.shipping_address_id } });
+        const invRecord = await generateInvoiceRecord(order, orderItems, shippingAddress);
 
-        db.prepare(`
-          INSERT INTO invoices (order_id, invoice_number, pdf_url, issued_at)
-          VALUES (?, ?, ?, ?)
-          ON CONFLICT(order_id) DO NOTHING
-        `).run(orderId, invRecord.invoiceNumber, `/invoices/${invRecord.invoiceNumber}.html`, invRecord.issuedAt);
+        await tx.invoices.upsert({
+          where: { order_id: orderId },
+          update: {},
+          create: {
+            order_id: orderId,
+            invoice_number: invRecord.invoiceNumber,
+            pdf_url: `/invoices/${invRecord.invoiceNumber}.html`,
+            issued_at: new Date(invRecord.issuedAt)
+          }
+        });
 
-        // Log Payment Confirmation notification (fire-and-forget)
-        const customerRow = db.prepare('SELECT name, email FROM customers WHERE id = ?').get(order.customer_id) as any;
+        // Log Payment Confirmation notification
+        const customerRow = await tx.customers.findUnique({ where: { id: order.customer_id } });
         if (customerRow?.email) {
           logNotification({
             channel: 'EMAIL',
@@ -114,17 +156,29 @@ export class RazorpayMockProvider implements PaymentProvider {
             data: {
               customerName: customerRow.name,
               orderNumber: order.order_number,
-              grandTotal: order.grand_total,
+              grandTotal: Number(order.grand_total),
               paymentMethod: 'Online Payment',
             },
           });
         }
       } else if (eventType === 'payment.failed') {
-        db.prepare('UPDATE payments SET status = "failed", raw_payload = ? WHERE id = ?').run(JSON.stringify(payload), payment.id);
-        db.prepare('UPDATE orders SET payment_status = "failed", updated_at = ? WHERE id = ?').run(now, orderId);
+        await tx.payments.update({
+          where: { id: payment.id },
+          data: {
+            status: 'failed',
+            raw_payload: JSON.stringify(payload)
+          }
+        });
 
-        // Log Payment Failed notification (fire-and-forget)
-        const customerRow = db.prepare('SELECT name, email FROM customers WHERE id = ?').get(order.customer_id) as any;
+        await tx.orders.update({
+          where: { id: orderId },
+          data: {
+            payment_status: 'failed',
+            updated_at: now
+          }
+        });
+
+        const customerRow = await tx.customers.findUnique({ where: { id: order.customer_id } });
         if (customerRow?.email) {
           logNotification({
             channel: 'EMAIL',
@@ -135,14 +189,14 @@ export class RazorpayMockProvider implements PaymentProvider {
             data: {
               customerName: customerRow.name,
               orderNumber: order.order_number,
-              grandTotal: order.grand_total,
+              grandTotal: Number(order.grand_total),
             },
           });
         }
       }
 
       return { success: true, eventId, orderId, status: 'paid' };
-    })();
+    });
   }
 }
 

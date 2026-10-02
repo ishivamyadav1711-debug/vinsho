@@ -1,4 +1,4 @@
-import { db, getNextSequenceNumber } from './db.js';
+import { prisma, getNextSequenceNumber } from './db.js';
 import { calculateShipping } from './shipping.js';
 import { calculateLineTax } from './tax.js';
 import { atomicDecrementStock } from './inventory.js';
@@ -33,14 +33,16 @@ export interface OrderCreationResult {
   error?: string;
 }
 
-export function createOrder(params: CreateOrderParams): OrderCreationResult {
+export async function createOrder(params: CreateOrderParams): Promise<OrderCreationResult> {
   const cleanIdempotencyKey = params.idempotencyKey.trim();
 
   // Idempotency check: Double-submitted checkout must produce 1 order, not 2
-  const existingOrder = db.prepare('SELECT * FROM orders WHERE idempotency_key = ?').get(cleanIdempotencyKey) as any;
+  const existingOrder = await prisma.orders.findUnique({
+    where: { idempotency_key: cleanIdempotencyKey },
+    include: { OrderItems: true }
+  });
   if (existingOrder) {
-    const items = db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(existingOrder.id);
-    return { success: true, order: { ...existingOrder, items } };
+    return { success: true, order: existingOrder };
   }
 
   const rawItems = params.items || [];
@@ -51,28 +53,40 @@ export function createOrder(params: CreateOrderParams): OrderCreationResult {
   // Load variant details directly from DB
   const cartItems: any[] = [];
   for (const raw of rawItems) {
-    const v = db.prepare(`
-      SELECT v.*, p.slug as product_slug, p.name as product_name, p.shipping_class, p.launch_phase, p.sellable_online, p.is_purchasable
-      FROM product_variants v
-      JOIN products p ON v.product_id = p.id
-      WHERE v.id = ? AND p.deleted_at IS NULL
-    `).get(raw.variantId) as any;
+    const v = await prisma.productVariants.findFirst({
+      where: {
+        id: raw.variantId,
+        product: {
+          deleted_at: null,
+          id: { not: 999999 } // Guard against stubs
+        }
+      },
+      include: {
+        product: true
+      }
+    });
+
     if (!v) {
       return { success: false, error: `Variant ID ${raw.variantId} not found in database.` };
     }
     cartItems.push({
       variantId: v.id,
-      productSlug: v.product_slug,
-      productName: v.product_name,
-      shippingClass: v.shipping_class,
-      packedWeightKg: v.packed_weight_kg,
-      packedL: v.packed_l_cm,
-      packedB: v.packed_b_cm,
-      packedH: v.packed_h_cm,
+      productSlug: v.product.slug,
+      productName: v.product.name,
+      shippingClass: v.product.shipping_class,
+      packedWeightKg: v.packed_weight_kg ? Number(v.packed_weight_kg) : undefined,
+      packedL: v.packed_l_cm ? Number(v.packed_l_cm) : undefined,
+      packedB: v.packed_b_cm ? Number(v.packed_b_cm) : undefined,
+      packedH: v.packed_h_cm ? Number(v.packed_h_cm) : undefined,
       qty: raw.qty,
-      sellingPrice: v.selling_price,
+      sellingPrice: v.selling_price ? Number(v.selling_price) : 0,
       stock: v.stock !== null && v.stock !== undefined ? v.stock : 100,
-      isPurchasable: v.is_purchasable
+      isPurchasable: v.product.is_purchasable,
+      gstRate: v.gst_rate ? Number(v.gst_rate) : 18,
+      hsnCode: v.hsn_code || '9404',
+      size: v.size,
+      colour: v.colour,
+      sku: v.sku
     });
   }
 
@@ -82,7 +96,7 @@ export function createOrder(params: CreateOrderParams): OrderCreationResult {
       return { success: false, error: `Checkout blocked: Item '${item.productName}' fails Legal Metrology purchasability gate or is Made-to-Order.` };
     }
 
-    const comboAvail = getComboAvailability(item.variantId);
+    const comboAvail = await getComboAvailability(item.variantId);
     if (comboAvail.isBundle) {
       if (comboAvail.maxSellableCombos < item.qty) {
         return { success: false, error: `Checkout blocked: Item '${item.productName}' has insufficient component stock balance (Requested: ${item.qty}, Available: ${comboAvail.maxSellableCombos}).` };
@@ -115,23 +129,23 @@ export function createOrder(params: CreateOrderParams): OrderCreationResult {
   }
 
   // 3. Save / Resolve Shipping & Billing Addresses
-  const now = new Date().toISOString();
-  const addrRes = db.prepare(`
-    INSERT INTO addresses (customer_id, type, name, phone, line1, line2, city, state, pincode, country, created_at)
-    VALUES (?, 'SHIPPING', ?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `).run(
-    params.customerId,
-    params.shippingAddress.name.trim(),
-    params.shippingAddress.phone.trim(),
-    params.shippingAddress.line1.trim(),
-    (params.shippingAddress.line2 || '').trim(),
-    params.shippingAddress.city.trim(),
-    params.shippingAddress.state.trim(),
-    params.shippingAddress.pincode.trim(),
-    params.shippingAddress.country || 'India',
-    now
-  );
-  const addressId = addrRes.lastInsertRowid as number;
+  const now = new Date();
+  const address = await prisma.addresses.create({
+    data: {
+      customer_id: params.customerId,
+      type: 'SHIPPING',
+      name: params.shippingAddress.name.trim(),
+      phone: params.shippingAddress.phone.trim(),
+      line1: params.shippingAddress.line1.trim(),
+      line2: (params.shippingAddress.line2 || '').trim(),
+      city: params.shippingAddress.city.trim(),
+      state: params.shippingAddress.state.trim(),
+      pincode: params.shippingAddress.pincode.trim(),
+      country: params.shippingAddress.country || 'India',
+      created_at: now
+    }
+  });
+  const addressId = address.id;
 
   // 4. Calculate Taxes & Line Item Snapshots
   let subtotal = 0;
@@ -140,29 +154,23 @@ export function createOrder(params: CreateOrderParams): OrderCreationResult {
   const buyerState = params.shippingAddress.state;
 
   for (const item of cartItems) {
-    const variantRow = db.prepare(`
-      SELECT v.*, p.name as product_name
-      FROM product_variants v JOIN products p ON v.product_id = p.id
-      WHERE v.id = ?
-    `).get(item.variantId) as any;
-
-    const unitPrice = variantRow.selling_price; // Always server-recomputed!
+    const unitPrice = item.sellingPrice;
     const lineSubtotal = unitPrice * item.qty;
-    const gstRate = variantRow.gst_rate || 18;
-    const hsnCode = variantRow.hsn_code || '9404';
+    const gstRate = item.gstRate;
+    const hsnCode = item.hsnCode;
 
     const taxResult = calculateLineTax(unitPrice, item.qty, gstRate, buyerState);
 
     subtotal += lineSubtotal;
     taxTotal += taxResult.totalTax;
 
-    const variantLabel = [variantRow.size, variantRow.colour].filter(Boolean).join(' / ') || 'Standard';
+    const variantLabel = [item.size, item.colour].filter(Boolean).join(' / ') || 'Standard';
 
     processedOrderItems.push({
       variantId: item.variantId,
-      productNameSnapshot: variantRow.product_name,
+      productNameSnapshot: item.productName,
       variantLabelSnapshot: variantLabel,
-      skuSnapshot: variantRow.sku || `SKU-${item.variantId}`,
+      skuSnapshot: item.sku || `SKU-${item.variantId}`,
       hsnSnapshot: hsnCode,
       gstRateSnapshot: gstRate,
       unitPriceSnapshot: unitPrice,
@@ -185,106 +193,115 @@ export function createOrder(params: CreateOrderParams): OrderCreationResult {
     appliedCouponCode = couponRes.code || params.couponCode.trim().toUpperCase();
   }
 
-  // Guard against discount exceeding subtotal or being negative
   discountTotal = Math.max(0, Math.min(discountTotal, subtotal));
 
   const shippingTotal = shipResult.shippingFee;
   const grandTotal = Number(Math.max(0, subtotal - discountTotal + taxTotal + shippingTotal).toFixed(2));
-  const isInterstate = shipResult.serviceable ? (buyerState.toLowerCase() !== 'haryana' ? 1 : 0) : 0;
+  const isInterstate = shipResult.serviceable ? (buyerState.toLowerCase() !== 'haryana') : false;
 
   // Generate Gapless Order Number (VIN-2026-000001)
-  const orderNumber = getNextSequenceNumber('ORDER', 'VIN');
+  const orderNumber = await getNextSequenceNumber('ORDER', 'VIN');
 
-  return db.transaction(() => {
-    // Insert Order Record
-    const orderRes = db.prepare(`
-      INSERT INTO orders (
-        order_number, customer_id, status, payment_status, subtotal, tax_total, shipping_total, discount_total, coupon_code,
-        grand_total, currency, shipping_address_id, billing_address_id, is_interstate, placed_at, idempotency_key, created_at, updated_at
-      ) VALUES (?, ?, 'Pending', 'pending', ?, ?, ?, ?, ?, ?, 'INR', ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      orderNumber,
-      params.customerId,
-      subtotal,
-      taxTotal,
-      shippingTotal,
-      discountTotal,
-      appliedCouponCode,
-      grandTotal,
-      addressId,
-      addressId,
-      isInterstate,
-      now,
-      cleanIdempotencyKey,
-      now,
-      now
-    );
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      // Insert Order Record
+      const createdOrder = await tx.orders.create({
+        data: {
+          order_number: orderNumber,
+          customer_id: params.customerId,
+          status: 'Pending',
+          payment_status: 'pending',
+          subtotal: subtotal,
+          tax_total: taxTotal,
+          shipping_total: shippingTotal,
+          discount_total: discountTotal,
+          coupon_code: appliedCouponCode,
+          grand_total: grandTotal,
+          currency: 'INR',
+          shipping_address_id: addressId,
+          billing_address_id: addressId,
+          is_interstate: isInterstate,
+          placed_at: now,
+          idempotency_key: cleanIdempotencyKey,
+          created_at: now,
+          updated_at: now
+        }
+      });
 
-    const orderId = orderRes.lastInsertRowid as number;
+      const orderId = createdOrder.id;
 
-    // Insert Snapshotted Order Items & Deduct Component/Standalone Inventory
-    for (const oi of processedOrderItems) {
-      db.prepare(`
-        INSERT INTO order_items (
-          order_id, variant_id, product_name_snapshot, variant_label_snapshot, sku_snapshot,
-          hsn_snapshot, gst_rate_snapshot, unit_price_snapshot, qty, tax_amount, line_total
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(
-        orderId,
-        oi.variantId,
-        oi.productNameSnapshot,
-        oi.variantLabelSnapshot,
-        oi.skuSnapshot,
-        oi.hsnSnapshot,
-        oi.gstRateSnapshot,
-        oi.unitPriceSnapshot,
-        oi.qty,
-        oi.taxAmount,
-        oi.lineTotal
-      );
+      // Insert Snapshotted Order Items & Deduct Component/Standalone Inventory
+      for (const oi of processedOrderItems) {
+        await tx.orderItems.create({
+          data: {
+            order_id: orderId,
+            variant_id: oi.variantId,
+            product_name_snapshot: oi.productNameSnapshot,
+            variant_label_snapshot: oi.variantLabelSnapshot,
+            sku_snapshot: oi.skuSnapshot,
+            hsn_snapshot: oi.hsnSnapshot,
+            gst_rate_snapshot: oi.gstRateSnapshot,
+            unit_price_snapshot: oi.unitPriceSnapshot,
+            qty: oi.qty,
+            tax_amount: oi.taxAmount,
+            line_total: oi.lineTotal
+          }
+        });
 
-      const comboComponents = getComboComponents(oi.variantId);
-      if (comboComponents.length > 0) {
-        // Atomic component stock deduction for bundles
-        for (const comp of comboComponents) {
-          const totalCompQty = comp.quantity * oi.qty;
-          const stockRes = atomicDecrementStock({
-            variantId: comp.component_variant_id,
-            delta: -totalCompQty,
+        const comboComponents = await getComboComponents(oi.variantId);
+        if (comboComponents.length > 0) {
+          // Atomic component stock deduction for bundles
+          for (const comp of comboComponents) {
+            const totalCompQty = comp.quantity * oi.qty;
+            const stockRes = await atomicDecrementStock({
+              variantId: comp.component_variant_id,
+              delta: -totalCompQty,
+              reason: 'SALE',
+              orderId
+            }, tx);
+            if (!stockRes.success) {
+              throw new Error(`Stock deduction failed for component '${comp.component_name}' (ID ${comp.component_variant_id}): ${stockRes.error}`);
+            }
+          }
+        } else {
+          // Atomic stock deduction for standalone variants
+          const stockRes = await atomicDecrementStock({
+            variantId: oi.variantId,
+            delta: -oi.qty,
             reason: 'SALE',
             orderId
-          });
+          }, tx);
           if (!stockRes.success) {
-            throw new Error(`Stock deduction failed for component '${comp.component_name}' (ID ${comp.component_variant_id}): ${stockRes.error}`);
+            throw new Error(stockRes.error || `Stock deduction failed for variant ID ${oi.variantId}`);
           }
         }
-      } else {
-        // Atomic stock deduction for standalone variants
-        const stockRes = atomicDecrementStock({
-          variantId: oi.variantId,
-          delta: -oi.qty,
-          reason: 'SALE',
-          orderId
-        });
-        if (!stockRes.success) {
-          throw new Error(stockRes.error || `Stock deduction failed for variant ID ${oi.variantId}`);
-        }
       }
-    }
 
-    const createdOrder = db.prepare('SELECT * FROM orders WHERE id = ?').get(orderId) as any;
-    const items = db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(orderId) as any[];
+      const fullOrder = await tx.orders.findUnique({
+        where: { id: orderId },
+        include: { OrderItems: true }
+      });
 
-    return { success: true, order: { ...createdOrder, items } };
-  })();
+      return fullOrder;
+    });
+
+    return { success: true, order: result };
+  } catch (err: any) {
+    console.error('createOrder transaction error:', err);
+    return { success: false, error: err.message || 'Order creation failed' };
+  }
 }
 
 /**
  * Fires order confirmation emails after a successful createOrder().
  */
-export function sendOrderNotifications(order: any, customer: { name: string; email?: string | null }, adminEmail: string): void {
-  const items = db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(order.id) as any[];
-  const addr = db.prepare('SELECT * FROM addresses WHERE id = ?').get(order.shipping_address_id) as any;
+export async function sendOrderNotifications(order: any, customer: { name: string; email?: string | null }, adminEmail: string): Promise<void> {
+  const items = await prisma.orderItems.findMany({
+    where: { order_id: order.id }
+  });
+  const addr = await prisma.addresses.findUnique({
+    where: { id: order.shipping_address_id }
+  });
 
   if (customer.email) {
     logNotification({
@@ -296,8 +313,8 @@ export function sendOrderNotifications(order: any, customer: { name: string; ema
       data: {
         customerName: customer.name,
         orderNumber: order.order_number,
-        grandTotal: order.grand_total,
-        discountTotal: order.discount_total || 0,
+        grandTotal: Number(order.grand_total),
+        discountTotal: Number(order.discount_total || 0),
         couponCode: order.coupon_code || '',
         items,
         shippingAddress: addr || {},

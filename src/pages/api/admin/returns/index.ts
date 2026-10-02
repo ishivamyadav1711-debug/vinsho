@@ -1,38 +1,45 @@
 import type { APIRoute } from 'astro';
-import { db } from '../../../../lib/db.js';
+import { prisma } from '../../../../lib/db.js';
 import { getSessionUser } from '../../../../lib/auth.js';
 import { requestReturn, inspectAndProcessReturn } from '../../../../lib/returns.js';
 
 export const GET: APIRoute = async ({ request, url }) => {
-  const user = getSessionUser(request);
+  const user = await getSessionUser(request);
   if (!user) {
     return new Response(JSON.stringify({ error: 'Unauthorized admin access.' }), { status: 401 });
   }
 
   const status = url.searchParams.get('status');
-  let query = `
-    SELECT r.*, o.order_number, c.name as customer_name, c.phone as customer_phone, u.name as inspector_name
-    FROM returns r
-    JOIN orders o ON r.order_id = o.id
-    JOIN customers c ON r.customer_id = c.id
-    LEFT JOIN admin_users u ON r.inspected_by = u.id
-    WHERE 1=1
-  `;
-  const params: any[] = [];
 
-  if (status) {
-    query += ` AND r.status = ?`;
-    params.push(status);
-  }
+  const returnsList = await prisma.returns.findMany({
+    where: status ? { status } : undefined,
+    include: {
+      orders: {
+        select: { order_number: true }
+      },
+      customers: {
+        select: { name: true, phone: true }
+      },
+      admin_users: {
+        select: { name: true }
+      }
+    },
+    orderBy: { created_at: 'desc' }
+  });
 
-  query += ` ORDER BY r.created_at DESC`;
+  const formattedReturns = returnsList.map((r: any) => ({
+    ...r,
+    order_number: r.orders?.order_number,
+    customer_name: r.customers?.name,
+    customer_phone: r.customers?.phone,
+    inspector_name: r.admin_users?.name || null
+  }));
 
-  const returnsList = db.prepare(query).all(...params);
-  return new Response(JSON.stringify({ success: true, count: returnsList.length, returns: returnsList }), { status: 200 });
+  return new Response(JSON.stringify({ success: true, count: formattedReturns.length, returns: formattedReturns }), { status: 200 });
 };
 
 export const POST: APIRoute = async ({ request }) => {
-  const user = getSessionUser(request);
+  const user = await getSessionUser(request);
   if (!user) {
     return new Response(JSON.stringify({ error: 'Unauthorized admin access.' }), { status: 401 });
   }
@@ -41,7 +48,7 @@ export const POST: APIRoute = async ({ request }) => {
     const { action, returnId, result, notes, orderId, customerId, orderItemId, qty, reason, type } = await request.json();
 
     if (action === 'request') {
-      const res = requestReturn({ orderId, customerId, orderItemId, qty, reason, type });
+      const res = await requestReturn({ orderId, customerId, orderItemId, qty, reason, type });
       if (!res.success) {
         return new Response(JSON.stringify({ error: res.error }), { status: 400 });
       }
@@ -53,7 +60,7 @@ export const POST: APIRoute = async ({ request }) => {
         return new Response(JSON.stringify({ error: 'returnId and inspection result (PASS/FAIL) are required.' }), { status: 400 });
       }
 
-      const res = inspectAndProcessReturn({
+      const res = await inspectAndProcessReturn({
         returnId,
         inspectedBy: user.id,
         result,

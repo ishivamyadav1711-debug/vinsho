@@ -1,6 +1,6 @@
 import taxonomyData from '../../vinsho-taxonomy.json';
 import contentData from '../../vinsho-content.json';
-import { db } from '../lib/db.js';
+import { prisma } from '../lib/db.js';
 import { isProductPurchasable } from '../lib/purchasability';
 
 export interface Subcategory {
@@ -125,24 +125,35 @@ export function getTaxonomy() {
   return taxonomyData;
 }
 
-export function getCollections(): Collection[] {
+/** Async: Fetch collections from PostgreSQL, fallback to JSON seed. */
+export async function getCollections(): Promise<Collection[]> {
   try {
-    const dbCols = db.prepare('SELECT * FROM collections WHERE deleted_at IS NULL ORDER BY order_index ASC').all() as any[];
+    const dbCols = await prisma.collections.findMany({
+      where: { deleted_at: null },
+      orderBy: { order_index: 'asc' }
+    });
+
     if (dbCols && dbCols.length > 0) {
-      return dbCols.map((c) => {
-        const subRows = db.prepare('SELECT * FROM subcategories WHERE collection_id = ? AND deleted_at IS NULL ORDER BY order_index ASC').all(c.id) as any[];
-        return {
-          key: c.key,
-          name: c.name,
-          blurb: c.blurb || '',
-          order: c.order_index,
-          subcategories: subRows.map((s) => ({
-            key: s.key,
-            name: s.name,
-            blurb: s.blurb || ''
-          }))
-        };
-      });
+      const result: Collection[] = await Promise.all(
+        dbCols.map(async (c) => {
+          const subRows = await prisma.subcategories.findMany({
+            where: { collection_id: c.id, deleted_at: null },
+            orderBy: { order_index: 'asc' }
+          });
+          return {
+            key: c.key,
+            name: c.name,
+            blurb: c.blurb || '',
+            order: c.order_index ?? undefined,
+            subcategories: subRows.map((s) => ({
+              key: s.key,
+              name: s.name,
+              blurb: s.blurb || ''
+            }))
+          };
+        })
+      );
+      return result;
     }
   } catch (err) {
     console.warn('DB taxonomy read fallback to JSON:', err);
@@ -150,48 +161,36 @@ export function getCollections(): Collection[] {
   return taxonomyData.collections as Collection[];
 }
 
-export function getAllProducts(): ProductItem[] {
+/** Async: Fetch all products from PostgreSQL, fallback to JSON seed. */
+export async function getAllProducts(): Promise<ProductItem[]> {
   try {
-    const dbProducts = db.prepare(`
-      SELECT 
-        p.id, p.slug, p.name, p.description, p.tagline, p.features, p.closing_line, p.material, p.is_purchasable, p.gift_eligible,
-        c.name as collection, c.key as collection_key,
-        s.name as subcategory, s.key as subcategory_key,
-        (SELECT url FROM product_images WHERE product_id = p.id AND is_primary = 1 LIMIT 1) as image,
-        (SELECT selling_price FROM product_variants WHERE product_id = p.id LIMIT 1) as price
-      FROM products p
-      JOIN collections c ON p.collection_id = c.id
-      JOIN subcategories s ON p.subcategory_id = s.id
-      WHERE p.deleted_at IS NULL
-      ORDER BY p.name ASC
-    `).all() as any[];
+    const dbProducts = await prisma.products.findMany({
+      where: { deleted_at: null },
+      include: {
+        collections: true,
+        subcategories: true,
+        product_images: { orderBy: [{ position: 'asc' }, { id: 'asc' }] },
+        product_variants: { orderBy: [{ position: 'asc' }, { id: 'asc' }] }
+      },
+      orderBy: { name: 'asc' }
+    });
 
     if (dbProducts && dbProducts.length > 0) {
       return dbProducts.map((p) => {
         let parsedFeatures: Array<{ title: string; description: string }> = [];
         if (p.features) {
           try {
-            parsedFeatures = typeof p.features === 'string' ? JSON.parse(p.features) : p.features;
+            parsedFeatures = typeof p.features === 'string' ? JSON.parse(p.features as string) : (p.features as any);
           } catch {
             parsedFeatures = [];
           }
         }
 
-        const variantRows = db.prepare(`
-          SELECT id, product_id, sku, size, colour, mrp, selling_price, stock
-          FROM product_variants
-          WHERE product_id = ?
-          ORDER BY position ASC, id ASC
-        `).all(p.id) as any[];
-
-        const imgRows = db.prepare(`
-          SELECT url FROM product_images WHERE product_id = ? ORDER BY position ASC, id ASC
-        `).all(p.id) as any[];
-        const imageList = imgRows.map((r) => r.url).filter(Boolean);
-        const primaryImage = imageList[0] || p.image || '';
+        const imageList = p.product_images.map((img) => img.url).filter(Boolean);
+        const primaryImage = imageList[0] || '';
         const allImages = imageList.length > 0 ? imageList : (primaryImage ? [primaryImage] : []);
 
-        const variants: ProductVariant[] = variantRows.map((v) => {
+        const variants: ProductVariant[] = p.product_variants.map((v) => {
           const label = [v.size, v.colour].filter(Boolean).join(' / ') || 'Standard Variant';
           return {
             id: v.id,
@@ -199,37 +198,37 @@ export function getAllProducts(): ProductItem[] {
             sku: v.sku || `SKU-${p.slug}`,
             size: v.size || undefined,
             colour: v.colour || undefined,
-            mrp: v.mrp || null,
-            sellingPrice: v.selling_price || p.price || 0,
+            mrp: v.mrp !== null ? Number(v.mrp) : null,
+            sellingPrice: v.selling_price !== null ? Number(v.selling_price) : 0,
             stock: v.stock !== null && v.stock !== undefined ? v.stock : 100,
             label
           };
         });
 
-        const activePrice = variants[0]?.sellingPrice || p.price || null;
+        const normColKey = normalizeCollectionKey(p.collections?.key || '');
+        const firstPrice = variants[0]?.sellingPrice || null;
 
-        const normColKey = normalizeCollectionKey(p.collection_key);
         const isPurchasable = isProductPurchasable({
           slug: p.slug,
           name: p.name,
           collectionKey: normColKey,
-          collection: p.collection,
-          subcategoryKey: p.subcategory_key,
-          subcategory: p.subcategory,
+          collection: p.collections?.name || '',
+          subcategoryKey: p.subcategories?.key || '',
+          subcategory: p.subcategories?.name || '',
           isPurchasable: Boolean(p.is_purchasable)
         });
-        const finalPrice = isPurchasable ? (activePrice || 499) : null;
+        const finalPrice = isPurchasable ? (firstPrice || 499) : null;
 
         return {
           id: p.id,
           slug: p.slug,
           name: p.name,
           collectionKey: normColKey,
-          collection: p.collection,
-          subcategoryKey: normalizeSubcategoryKey(p.subcategory_key),
-          subcategory: p.subcategory,
-          mainCategory: p.collection,
-          subCategory: p.subcategory,
+          collection: p.collections?.name || '',
+          subcategoryKey: normalizeSubcategoryKey(p.subcategories?.key || ''),
+          subcategory: p.subcategories?.name || '',
+          mainCategory: p.collections?.name || '',
+          subCategory: p.subcategories?.name || '',
           isPurchasable,
           giftEligible: Boolean(p.gift_eligible),
           price: finalPrice,
@@ -242,7 +241,7 @@ export function getAllProducts(): ProductItem[] {
           closing_line: p.closing_line || '',
           closingLine: p.closing_line || '',
           variants
-        };
+        } as ProductItem;
       });
     }
   } catch (err) {
@@ -253,6 +252,7 @@ export function getAllProducts(): ProductItem[] {
     (contentData.products || []).map(p => [p.slug, p.description])
   );
 
+  const seedProducts = (taxonomyData as any).products || [];
   return (seedProducts as any[]).map(p => {
     const colKey = normalizeCollectionKey(p.collectionKey || p.collection || '');
     const isPurchasable = isProductPurchasable({
@@ -288,48 +288,54 @@ export function getAllProducts(): ProductItem[] {
   });
 }
 
-export function getActiveProducts(): ProductItem[] {
-  return getAllProducts().filter(p => !p.mergedTo);
+export async function getActiveProducts(): Promise<ProductItem[]> {
+  const all = await getAllProducts();
+  return all.filter(p => !p.mergedTo);
 }
 
-export function getCollectionByKey(key: string): Collection | undefined {
+export async function getCollectionByKey(key: string): Promise<Collection | undefined> {
   const norm = normalizeCollectionKey(key);
-  return getCollections().find(c => c.key === norm || c.key === key);
+  const cols = await getCollections();
+  return cols.find(c => c.key === norm || c.key === key);
 }
 
-export function getSubcategoryByKey(collectionKey: string, subKey: string): Subcategory | undefined {
-  const col = getCollectionByKey(collectionKey);
+export async function getSubcategoryByKey(collectionKey: string, subKey: string): Promise<Subcategory | undefined> {
+  const col = await getCollectionByKey(collectionKey);
   const normSub = normalizeSubcategoryKey(subKey);
   return col?.subcategories.find(s => s.key === normSub || s.key === subKey);
 }
 
-export function getCollectionProductCount(collectionKey: string): number {
+export async function getCollectionProductCount(collectionKey: string): Promise<number> {
   const normCol = normalizeCollectionKey(collectionKey);
-  return getActiveProducts().filter(p => p.collectionKey === normCol).length;
+  const active = await getActiveProducts();
+  return active.filter(p => p.collectionKey === normCol).length;
 }
 
-export function getSubcategoryProductCount(collectionKey: string, subcategoryKey: string): number {
+export async function getSubcategoryProductCount(collectionKey: string, subcategoryKey: string): Promise<number> {
   const normCol = normalizeCollectionKey(collectionKey);
   const normSub = normalizeSubcategoryKey(subcategoryKey);
-  return getActiveProducts().filter(
+  const active = await getActiveProducts();
+  return active.filter(
     p => p.collectionKey === normCol && p.subcategoryKey === normSub
   ).length;
 }
 
-export function getProductsByCollection(collectionKey: string): ProductItem[] {
+export async function getProductsByCollection(collectionKey: string): Promise<ProductItem[]> {
   const normCol = normalizeCollectionKey(collectionKey);
-  return getActiveProducts().filter(p => p.collectionKey === normCol);
+  const active = await getActiveProducts();
+  return active.filter(p => p.collectionKey === normCol);
 }
 
-export function getProductsBySubcategory(collectionKey: string, subcategoryKey: string): ProductItem[] {
+export async function getProductsBySubcategory(collectionKey: string, subcategoryKey: string): Promise<ProductItem[]> {
   const normCol = normalizeCollectionKey(collectionKey);
   const normSub = normalizeSubcategoryKey(subcategoryKey);
-  return getActiveProducts().filter(
+  const active = await getActiveProducts();
+  return active.filter(
     p => p.collectionKey === normCol && p.subcategoryKey === normSub
   );
 }
 
-export function getProductBySlug(slug: string): ProductItem | undefined {
-  return getAllProducts().find(p => p.slug === slug);
+export async function getProductBySlug(slug: string): Promise<ProductItem | undefined> {
+  const all = await getAllProducts();
+  return all.find(p => p.slug === slug);
 }
-

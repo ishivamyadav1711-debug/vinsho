@@ -3,7 +3,7 @@ import { createOrder, sendOrderNotifications } from '../../../lib/orders.js';
 import { findOrCreateCustomer } from '../../../lib/crm.js';
 import { getCustomerFromSession } from '../../../lib/customerAuth.js';
 import { checkRateLimit, tooManyRequestsResponse, getClientIp, LIMITS } from '../../../lib/rateLimiter.js';
-import { db } from '../../../lib/db.js';
+import { prisma } from '../../../lib/db.js';
 import { getEnvConfig } from '../../../lib/env.js';
 
 export const POST: APIRoute = async ({ request }) => {
@@ -18,7 +18,7 @@ export const POST: APIRoute = async ({ request }) => {
     } = body;
 
     // Check for authenticated customer session (§8, §10)
-    const authenticatedCustomer = getCustomerFromSession(request);
+    const authenticatedCustomer = await getCustomerFromSession(request);
 
     if (!name || !phone || !line1 || !city || !state || !pincode || !idempotencyKey) {
       return new Response(JSON.stringify({ error: 'Name, Phone, Shipping Address, and Idempotency Key are required.' }), { status: 400 });
@@ -38,7 +38,7 @@ export const POST: APIRoute = async ({ request }) => {
     if (authenticatedCustomer) {
       customerId = authenticatedCustomer.id;
     } else {
-      const { customer } = findOrCreateCustomer({
+      const { customer } = await findOrCreateCustomer({
         name,
         phone: cleanPhone,
         email,
@@ -47,7 +47,7 @@ export const POST: APIRoute = async ({ request }) => {
       customerId = customer.id;
     }
 
-    const orderRes = createOrder({
+    const orderRes = await createOrder({
       sessionToken,
       customerId,
       couponCode: couponCode || null,
@@ -62,7 +62,10 @@ export const POST: APIRoute = async ({ request }) => {
 
     // Fire order confirmation emails (fire-and-forget — never blocks response)
     try {
-      const customer = db.prepare('SELECT name, email FROM customers WHERE id = ?').get(customerId) as any;
+      const customer = await prisma.customers.findUnique({
+        where: { id: customerId },
+        select: { name: true, email: true }
+      });
       const { adminEmail } = getEnvConfig();
       sendOrderNotifications(orderRes.order, customer || { name, email }, adminEmail);
     } catch (_) { /* email failure must not affect the order response */ }

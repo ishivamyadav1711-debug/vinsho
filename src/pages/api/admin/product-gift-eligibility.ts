@@ -1,14 +1,21 @@
 import type { APIRoute } from 'astro';
-import { db } from '../../../lib/db';
+import { prisma } from '../../../lib/db';
 
 export const GET: APIRoute = async () => {
   try {
-    const products = db.prepare(`
-      SELECT p.id, p.slug, p.name, p.gift_eligible, c.name as collection_name
-      FROM products p
-      LEFT JOIN collections c ON p.collection_id = c.id
-      ORDER BY p.name ASC
-    `).all();
+    const products = await prisma.products.findMany({
+      where: { deleted_at: null },
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        gift_eligible: true,
+        collections: {
+          select: { name: true }
+        }
+      },
+      orderBy: { name: 'asc' }
+    });
 
     return new Response(JSON.stringify({
       success: true,
@@ -16,7 +23,7 @@ export const GET: APIRoute = async () => {
         id: p.id,
         slug: p.slug,
         name: p.name,
-        collection: p.collection_name,
+        collection: p.collections?.name || null,
         giftEligible: Boolean(p.gift_eligible)
       }))
     }), {
@@ -38,12 +45,23 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const isEligible = giftEligible ? 1 : 0;
-    const stmt = db.prepare('UPDATE products SET gift_eligible = ?, updated_at = datetime("now") WHERE slug = ?');
-    const result = stmt.run(isEligible, slug);
+    const now = new Date();
 
-    if (result.changes === 0) {
+    const product = await prisma.products.findFirst({
+      where: { slug }
+    });
+
+    if (!product) {
       return new Response(JSON.stringify({ success: false, error: 'Product not found' }), { status: 404 });
     }
+
+    await prisma.products.update({
+      where: { id: product.id },
+      data: {
+        gift_eligible: isEligible,
+        updated_at: now
+      }
+    });
 
     return new Response(JSON.stringify({
       success: true,

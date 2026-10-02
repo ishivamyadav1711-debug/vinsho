@@ -1,4 +1,4 @@
-import { db, logAuditAction } from './db.js';
+import { prisma, logAuditAction } from './db.js';
 export { logAuditAction };
 import crypto from 'node:crypto';
 import bcrypt from 'bcryptjs';
@@ -9,7 +9,7 @@ export interface AdminUser {
   name: string;
   email: string;
   role: string;
-  is_active: number;
+  is_active: boolean | number;
 }
 
 const SESSION_COOKIE_NAME = 'vinsho_admin_session';
@@ -34,8 +34,11 @@ export function parseCookies(cookieHeader: string | null): Record<string, string
 /**
  * Seed default super admin user if empty
  */
-export function ensureDefaultAdminUser(): AdminUser {
-  const existing = db.prepare('SELECT * FROM admin_users WHERE role = ?').get('SUPER_ADMIN') as any;
+export async function ensureDefaultAdminUser(): Promise<AdminUser> {
+  const existing = await prisma.adminUsers.findFirst({
+    where: { role: 'SUPER_ADMIN' }
+  });
+
   if (existing) {
     return {
       id: existing.id,
@@ -46,73 +49,93 @@ export function ensureDefaultAdminUser(): AdminUser {
     };
   }
 
-  const now = new Date().toISOString();
+  const now = new Date();
   const envConfig = getEnvConfig();
   const defaultPassword = envConfig.adminPassword;
   const defaultEmail = envConfig.adminEmail;
   const passwordHash = bcrypt.hashSync(defaultPassword, 10);
 
-  const res = db.prepare(`
-    INSERT INTO admin_users (name, email, password_hash, role, is_active, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `).run('VINSHO Super Admin', defaultEmail, passwordHash, 'SUPER_ADMIN', 1, now, now);
+  const created = await prisma.adminUsers.create({
+    data: {
+      name: 'VINSHO Super Admin',
+      email: defaultEmail,
+      password_hash: passwordHash,
+      role: 'SUPER_ADMIN',
+      is_active: true,
+      created_at: now,
+      updated_at: now
+    }
+  });
 
   return {
-    id: res.lastInsertRowid as number,
-    name: 'VINSHO Super Admin',
-    email: defaultEmail,
-    role: 'SUPER_ADMIN',
-    is_active: 1
+    id: created.id,
+    name: created.name,
+    email: created.email,
+    role: created.role,
+    is_active: created.is_active
   };
 }
 
 /**
  * Check login rate limits (max 5 failed attempts per 15 minutes)
  */
-export function checkRateLimit(ip: string): { allowed: boolean; remainingMinutes: number } {
-  const now = Date.now();
-  const row = db.prepare('SELECT * FROM login_rate_limits WHERE ip = ?').get(ip) as any;
+export async function checkRateLimit(ip: string): Promise<{ allowed: boolean; remainingMinutes: number }> {
+  const now = BigInt(Date.now());
+  const row = await prisma.loginRateLimits.findUnique({
+    where: { ip }
+  });
 
   if (!row) return { allowed: true, remainingMinutes: 0 };
 
-  if (row.blocked_until > now) {
-    const remainingMinutes = Math.ceil((row.blocked_until - now) / 60000);
+  if (row.blocked_until && row.blocked_until > now) {
+    const remainingMinutes = Math.ceil(Number(row.blocked_until - now) / 60000);
     return { allowed: false, remainingMinutes };
   }
 
   return { allowed: true, remainingMinutes: 0 };
 }
 
-export function recordFailedLogin(ip: string) {
-  const now = Date.now();
-  const windowMs = 15 * 60 * 1000;
+export async function recordFailedLogin(ip: string): Promise<void> {
+  const nowMs = Date.now();
+  const now = BigInt(nowMs);
+  const windowMs = BigInt(15 * 60 * 1000);
   const maxAttempts = 5;
 
-  const row = db.prepare('SELECT * FROM login_rate_limits WHERE ip = ?').get(ip) as any;
+  const row = await prisma.loginRateLimits.findUnique({
+    where: { ip }
+  });
 
-  if (!row || now - row.first_failed_at > windowMs) {
-    db.prepare(`
-      INSERT INTO login_rate_limits (ip, attempts, first_failed_at, blocked_until)
-      VALUES (?, 1, ?, 0)
-      ON CONFLICT(ip) DO UPDATE SET attempts = 1, first_failed_at = ?, blocked_until = 0
-    `).run(ip, now, now);
+  if (!row || (now - row.first_failed_at) > windowMs) {
+    await prisma.loginRateLimits.upsert({
+      where: { ip },
+      update: { attempts: 1, first_failed_at: now, blocked_until: BigInt(0) },
+      create: { ip, attempts: 1, first_failed_at: now, blocked_until: BigInt(0) }
+    });
   } else {
-    const attempts = row.attempts + 1;
-    const blockedUntil = attempts >= maxAttempts ? now + windowMs : 0;
-    db.prepare('UPDATE login_rate_limits SET attempts = ?, blocked_until = ? WHERE ip = ?').run(
-      attempts,
-      blockedUntil,
-      ip
-    );
+    const attempts = (row.attempts ?? 0) + 1;
+    const blockedUntil = attempts >= maxAttempts ? now + windowMs : BigInt(0);
+    await prisma.loginRateLimits.update({
+      where: { ip },
+      data: {
+        attempts,
+        blocked_until: blockedUntil
+      }
+    });
   }
 }
 
-export function clearRateLimit(ip: string) {
-  db.prepare('DELETE FROM login_rate_limits WHERE ip = ?').run(ip);
+export async function clearRateLimit(ip: string): Promise<void> {
+  try {
+    await prisma.loginRateLimits.delete({
+      where: { ip }
+    });
+  } catch (err) {
+    // Ignore not found
+  }
 }
 
-export function getSessionUser(request: Request): AdminUser | null {
-  ensureDefaultAdminUser();
+export async function getSessionUser(request: Request): Promise<AdminUser | null> {
+  await ensureDefaultAdminUser();
 
   const cookieHeader = request.headers.get('cookie');
   const cookies = parseCookies(cookieHeader);
@@ -120,25 +143,25 @@ export function getSessionUser(request: Request): AdminUser | null {
 
   if (!token) return null;
 
-  const now = Date.now();
-  const row = db.prepare(`
-    SELECT s.token, s.expires_at, u.id, u.email, u.name, u.role, u.is_active
-    FROM admin_sessions s
-    JOIN admin_users u ON s.user_id = u.id
-    WHERE s.token = ? AND s.expires_at > ? AND u.is_active = 1
-  `).get(token, now) as any;
+  const now = BigInt(Date.now());
+  const session = await prisma.adminSessions.findUnique({
+    where: { token },
+    include: { user: true }
+  });
 
-  if (!row) {
-    db.prepare('DELETE FROM admin_sessions WHERE token = ?').run(token);
+  if (!session || session.expires_at <= now || !session.user.is_active) {
+    if (session) {
+      await prisma.adminSessions.delete({ where: { token } }).catch(() => {});
+    }
     return null;
   }
 
   return {
-    id: row.id,
-    email: row.email,
-    name: row.name,
-    role: row.role,
-    is_active: row.is_active
+    id: session.user.id,
+    email: session.user.email,
+    name: session.user.name,
+    role: session.user.role,
+    is_active: session.user.is_active
   };
 }
 
@@ -185,8 +208,8 @@ export function redactCustomerPii(customer: any, userRole: string): any {
   return customer;
 }
 
-export function requireSuperAdmin(request: Request): { allowed: boolean; user: AdminUser | null; error?: string } {
-  const user = getSessionUser(request);
+export async function requireSuperAdmin(request: Request): Promise<{ allowed: boolean; user: AdminUser | null; error?: string }> {
+  const user = await getSessionUser(request);
   if (!user) return { allowed: false, user: null, error: 'Unauthorized: Session missing' };
   if (user.role !== 'SUPER_ADMIN') {
     return { allowed: false, user, error: 'Forbidden: Super Admin role required' };
@@ -194,8 +217,8 @@ export function requireSuperAdmin(request: Request): { allowed: boolean; user: A
   return { allowed: true, user };
 }
 
-export function requireSalesOrAdmin(request: Request): { allowed: boolean; user: AdminUser | null; error?: string } {
-  const user = getSessionUser(request);
+export async function requireSalesOrAdmin(request: Request): Promise<{ allowed: boolean; user: AdminUser | null; error?: string }> {
+  const user = await getSessionUser(request);
   if (!user) return { allowed: false, user: null, error: 'Unauthorized: Session missing' };
   if (user.role !== 'SUPER_ADMIN' && user.role !== 'ADMIN' && user.role !== 'SALES') {
     return { allowed: false, user, error: 'Forbidden: Insufficient role privileges' };
@@ -203,34 +226,49 @@ export function requireSalesOrAdmin(request: Request): { allowed: boolean; user:
   return { allowed: true, user };
 }
 
-export function createSessionToken(userId: number, ip = '', userAgent = ''): { token: string; expiresAt: number } {
+export async function createSessionToken(userId: number, ip = '', userAgent = ''): Promise<{ token: string; expiresAt: number }> {
   const token = crypto.randomBytes(32).toString('hex');
-  const expiresAt = Date.now() + SESSION_DURATION_MS;
-  const now = new Date().toISOString();
+  const expiresAtMs = Date.now() + SESSION_DURATION_MS;
+  const expiresAt = BigInt(expiresAtMs);
+  const now = new Date();
 
-  db.prepare(`
-    INSERT INTO admin_sessions (token, user_id, expires_at, ip, user_agent, created_at)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `).run(token, userId, expiresAt, ip, userAgent, now);
+  await prisma.adminSessions.create({
+    data: {
+      token,
+      user_id: userId,
+      expires_at: expiresAt,
+      ip,
+      user_agent: userAgent,
+      created_at: now
+    }
+  });
 
-  db.prepare('UPDATE admin_users SET last_login_at = ?, updated_at = ? WHERE id = ?').run(now, now, userId);
+  await prisma.adminUsers.update({
+    where: { id: userId },
+    data: {
+      last_login_at: now,
+      updated_at: now
+    }
+  });
 
-  return { token, expiresAt };
+  return { token, expiresAt: expiresAtMs };
 }
 
-export function destroySession(request: Request) {
+export async function destroySession(request: Request): Promise<void> {
   const cookieHeader = request.headers.get('cookie');
   const cookies = parseCookies(cookieHeader);
   const token = cookies[SESSION_COOKIE_NAME];
   if (token) {
-    db.prepare('DELETE FROM admin_sessions WHERE token = ?').run(token);
+    try {
+      await prisma.adminSessions.delete({ where: { token } });
+    } catch (err) {
+      // Ignore if already deleted
+    }
   }
 }
 
 export function getSessionCookieHeader(token: string, expiresAt: number): string {
   const expiresDate = new Date(expiresAt).toUTCString();
-  // Add Secure flag in production so the cookie is only sent over HTTPS.
-  // Omit in development so local HTTP servers remain usable.
   const secure = getEnvConfig().isProduction ? '; Secure' : '';
   return `${SESSION_COOKIE_NAME}=${encodeURIComponent(token)}; Path=/; HttpOnly${secure}; SameSite=Strict; Expires=${expiresDate}`;
 }

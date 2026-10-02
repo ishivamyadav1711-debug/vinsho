@@ -1,63 +1,84 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
-import { db } from '../../lib/db';
+import { prisma } from '../../lib/db';
 import { getSessionUser } from '../../lib/auth';
 
-const user = getSessionUser(Astro.request);
+const user = await getSessionUser(Astro.request);
 if (!user) {
   return Astro.redirect('/crm/login');
 }
 
-const nowIso = new Date().toISOString();
-const currentMonth = nowIso.substring(0, 7); // 'YYYY-MM'
+const now = new Date();
+const nowIso = now.toISOString();
+const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+const currentMonth = nowIso.substring(0, 7); // Keep for template display
 
-// Dynamic Metrics from Database
-const totalCustomers = (db.prepare('SELECT COUNT(*) as cnt FROM customers WHERE deleted_at IS NULL').get() as any).cnt;
-const newCustomersMonth = (db.prepare(`SELECT COUNT(*) as cnt FROM customers WHERE deleted_at IS NULL AND strftime('%Y-%m', created_at) = ?`).get(currentMonth) as any).cnt;
+// Dynamic Metrics from Database via Prisma
+const [
+  totalCustomers,
+  newCustomersMonth,
+  totalEnquiries,
+  openEnquiries,
+  convertedMonth,
+  overdueFollowups
+] = await Promise.all([
+  prisma.customers.count({ where: { deleted_at: null } }),
+  prisma.customers.count({ where: { deleted_at: null, created_at: { gte: currentMonthStart, lt: nextMonthStart } } }),
+  prisma.enquiries.count(),
+  prisma.enquiries.count({ where: { status: { notIn: ['Converted', 'Lost'] } } }),
+  prisma.enquiries.count({ where: { status: 'Converted', closed_at: { gte: currentMonthStart.toISOString(), lt: nextMonthStart.toISOString() } } }),
+  prisma.follow_ups.count({ where: { status: 'PENDING', due_at: { lt: nowIso } } })
+]);
 
-const totalEnquiries = (db.prepare('SELECT COUNT(*) as cnt FROM enquiries').get() as any).cnt;
-const openEnquiries = (db.prepare(`SELECT COUNT(*) as cnt FROM enquiries WHERE status NOT IN ('Converted', 'Lost')`).get() as any).cnt;
-const convertedMonth = (db.prepare(`SELECT COUNT(*) as cnt FROM enquiries WHERE status = 'Converted' AND strftime('%Y-%m', closed_at) = ?`).get(currentMonth) as any).cnt;
-const overdueFollowups = (db.prepare(`SELECT COUNT(*) as cnt FROM follow_ups WHERE status = 'PENDING' AND due_at < ?`).get(nowIso) as any).cnt;
-
-// Enquiries by Product (Client Pricing Priority Indicator §6)
-const productDemand = db.prepare(`
-  SELECT p.name, p.slug, p.shipping_class, COUNT(e.id) as enquiry_count
-  FROM enquiries e
-  JOIN products p ON e.product_id = p.id
-  GROUP BY p.id
-  ORDER BY enquiry_count DESC
-  LIMIT 5
-`).all() as any[];
+// Enquiries by Product
+const productDemandRaw = await prisma.enquiries.groupBy({
+  by: ['product_id'],
+  _count: { id: true },
+  orderBy: { _count: { id: 'desc' } },
+  take: 5,
+  where: { product_id: { not: null } }
+});
+const productDemand = await Promise.all(
+  productDemandRaw.map(async (pd) => {
+    const product = await prisma.products.findUnique({ where: { id: pd.product_id! } });
+    return {
+      name: product?.name || 'Unknown',
+      slug: product?.slug || '',
+      shipping_class: product?.shipping_class || '',
+      enquiry_count: pd._count.id
+    };
+  })
+);
 
 // Recent Enquiries Pipeline List
-const recentEnquiries = db.prepare(`
-  SELECT e.*, c.name as customer_name, c.phone as customer_phone, c.email as customer_email, p.name as product_name
-  FROM enquiries e
-  JOIN customers c ON e.customer_id = c.id
-  LEFT JOIN products p ON e.product_id = p.id
-  ORDER BY e.created_at DESC
-  LIMIT 10
-`).all() as any[];
+const recentEnquiriesRaw = await prisma.enquiries.findMany({
+  orderBy: { created_at: 'desc' },
+  take: 10,
+  include: {
+    customers: { select: { name: true, phone: true, email: true } },
+    products: { select: { name: true } }
+  }
+});
+const recentEnquiries = recentEnquiriesRaw.map(e => ({
+  ...e,
+  customer_name: e.customers?.name || '',
+  phone: e.customers?.phone || '',
+  customer_email: e.customers?.email || '',
+  product_name: e.products?.name || null
+}));
 
-// Overdue & Upcoming Follow-ups
-const upcomingFollowups = db.prepare(`
-  SELECT f.*, u.name as assignee_name
-  FROM follow_ups f
-  LEFT JOIN admin_users u ON f.assigned_to = u.id
-  WHERE f.status = 'PENDING'
-  ORDER BY f.due_at ASC
-  LIMIT 5
-`).all() as any[];
-
-// Recent Activity Timeline
-const recentActivities = db.prepare(`
-  SELECT a.*, u.name as actor_name
-  FROM crm_activities a
-  LEFT JOIN admin_users u ON a.actor_id = u.id
-  ORDER BY a.created_at DESC
-  LIMIT 8
-`).all() as any[];
+// Upcoming Follow-ups
+const upcomingFollowupsRaw = await prisma.follow_ups.findMany({
+  where: { status: 'PENDING' },
+  orderBy: { due_at: 'asc' },
+  take: 5,
+  include: { admin_users: { select: { name: true } } }
+});
+const upcomingFollowups = upcomingFollowupsRaw.map(f => ({
+  ...f,
+  assignee_name: f.admin_users?.name || null
+}));
 ---
 
 <AdminLayout title="CRM Lead & Enquiry Dashboard" activeNav="crm">

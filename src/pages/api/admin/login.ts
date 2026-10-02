@@ -1,14 +1,14 @@
 import type { APIRoute } from 'astro';
-import { db, logAuditAction } from '../../../lib/db.js';
+import { prisma, logAuditAction } from '../../../lib/db.js';
 import { createSessionToken, getSessionCookieHeader, checkRateLimit, recordFailedLogin, clearRateLimit, ensureDefaultAdminUser } from '../../../lib/auth.js';
 import bcrypt from 'bcryptjs';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
-    ensureDefaultAdminUser();
+    await ensureDefaultAdminUser();
 
     const clientIp = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || '127.0.0.1';
-    const rateCheck = checkRateLimit(clientIp);
+    const rateCheck = await checkRateLimit(clientIp);
 
     if (!rateCheck.allowed) {
       return new Response(JSON.stringify({ 
@@ -28,23 +28,28 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    const user = db.prepare('SELECT * FROM admin_users WHERE email = ? AND is_active = 1').get(email.trim().toLowerCase()) as any;
+    const user = await prisma.adminUsers.findFirst({
+      where: {
+        email: email.trim().toLowerCase(),
+        is_active: true
+      }
+    });
 
     if (!user || !bcrypt.compareSync(password, user.password_hash)) {
-      recordFailedLogin(clientIp);
+      await recordFailedLogin(clientIp);
       return new Response(JSON.stringify({ error: 'Invalid admin credentials.' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' }
       });
     }
 
-    clearRateLimit(clientIp);
+    await clearRateLimit(clientIp);
 
     const userAgent = request.headers.get('user-agent') || '';
-    const { token, expiresAt } = createSessionToken(user.id, clientIp, userAgent);
+    const { token, expiresAt } = await createSessionToken(user.id, clientIp, userAgent);
     const cookieHeader = getSessionCookieHeader(token, expiresAt);
 
-    logAuditAction({
+    await logAuditAction({
       actorId: user.id,
       action: 'LOGIN',
       entity: 'admin_users',

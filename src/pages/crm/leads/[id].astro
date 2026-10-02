@@ -1,10 +1,10 @@
 ---
 import AdminLayout from '../../../layouts/AdminLayout.astro';
-import { db } from '../../../lib/db';
+import { prisma } from '../../../lib/db';
 import { getSessionUser } from '../../../lib/auth';
 import taxonomyData from '../../../../vinsho-taxonomy.json';
 
-const user = getSessionUser(Astro.request);
+const user = await getSessionUser(Astro.request);
 if (!user) {
   return Astro.redirect('/crm/login');
 }
@@ -12,26 +12,36 @@ if (!user) {
 const { id } = Astro.params;
 if (!id) return Astro.redirect('/crm/leads');
 
-const lead = db.prepare('SELECT * FROM leads WHERE id = ?').get(id) as any;
+const lead = await prisma.leads.findUnique({ where: { id: parseInt(id, 10) } });
 if (!lead) return Astro.redirect('/crm/leads');
 
-const activities = db.prepare('SELECT * FROM lead_activities WHERE lead_id = ? ORDER BY created_at DESC').all(id) as any[];
-const notes = db.prepare('SELECT * FROM lead_notes WHERE lead_id = ? ORDER BY created_at DESC').all(id) as any[];
-const followUps = db.prepare('SELECT * FROM follow_ups WHERE lead_id = ? ORDER BY scheduled_at ASC').all(id) as any[];
-const users = db.prepare('SELECT id, name FROM admin_users ORDER BY name ASC').all() as any[];
+const [activities, notes, followUps, users] = await Promise.all([
+  prisma.lead_activities.findMany({ where: { lead_id: parseInt(id, 10) }, orderBy: { created_at: 'desc' } }),
+  prisma.lead_notes.findMany({ where: { lead_id: parseInt(id, 10) }, orderBy: { created_at: 'desc' } }),
+  prisma.follow_ups.findMany({ where: { lead_id: parseInt(id, 10) }, orderBy: { due_at: 'asc' } }),
+  prisma.adminUsers.findMany({ select: { id: true, name: true }, orderBy: { name: 'asc' } })
+]);
 
 // Duplicate check
 let duplicateLead: any = null;
 if (lead.email || lead.phone) {
-  duplicateLead = db.prepare(`
-    SELECT id, name, email, phone, status, created_at FROM leads
-    WHERE id != ? AND ((email != '' AND email = ?) OR (phone != '' AND phone = ?))
-    LIMIT 1
-  `).get(id, lead.email || '', lead.phone || '');
+  duplicateLead = await prisma.leads.findFirst({
+    where: {
+      id: { not: parseInt(id, 10) },
+      OR: [
+        lead.email ? { email: lead.email } : {},
+        lead.phone ? { phone: lead.phone } : {}
+      ].filter(c => Object.keys(c).length > 0)
+    },
+    select: { id: true, name: true, email: true, phone: true, status: true, created_at: true }
+  });
 }
 
 // Customer record check
-const customerRecord = db.prepare('SELECT id, converted_at FROM customers WHERE lead_id = ?').get(id) as any;
+const customerRecord = await prisma.customers.findFirst({
+  where: { lead_id: parseInt(id, 10) },
+  select: { id: true, converted_at: true }
+});
 
 const productObj = taxonomyData.products.find(p => p.slug === lead.product_slug);
 const collectionObj = taxonomyData.collections.find(c => c.key === lead.collection_key);

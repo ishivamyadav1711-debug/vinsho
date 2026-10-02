@@ -1,13 +1,13 @@
 import type { APIRoute } from 'astro';
-import { db } from '../../../lib/db.js';
+import { prisma } from '../../../lib/db.js';
 import { 
   createCustomerSessionToken, 
   getCustomerSessionCookieHeader, 
   getCustomerLogoutCookieHeader, 
-  destroyCustomerSession,
+  destroyCustomerSession, 
   hashPassword, 
-  verifyPassword,
-  generatePasswordResetToken
+  verifyPassword, 
+  generatePasswordResetToken 
 } from '../../../lib/customerAuth.js';
 import { checkRateLimit, tooManyRequestsResponse, getClientIp, LIMITS } from '../../../lib/rateLimiter.js';
 
@@ -59,13 +59,16 @@ export const POST: APIRoute = async ({ request }) => {
       }
 
       // Check if email or phone already registered
-      const existing = db.prepare(`
-        SELECT id, password_hash, email, phone FROM customers 
-        WHERE (email = ? AND email IS NOT NULL AND email != '') 
-           OR (phone = ? AND phone IS NOT NULL AND phone != '')
-      `).get(cleanEmail, cleanPhone) as any;
+      const existing = await prisma.customers.findFirst({
+        where: {
+          OR: [
+            ...(cleanEmail ? [{ email: cleanEmail }] : []),
+            ...(cleanPhone ? [{ phone: cleanPhone }] : [])
+          ]
+        }
+      });
 
-      const now = new Date().toISOString();
+      const now = new Date();
       const passwordHash = hashPassword(cleanPassword);
       let customerId: number;
 
@@ -74,23 +77,37 @@ export const POST: APIRoute = async ({ request }) => {
           return new Response(JSON.stringify({ error: 'An account with this email or phone already exists. Please log in.' }), { status: 400 });
         }
         // Update existing lead record with password & details
-        db.prepare(`
-          UPDATE customers 
-          SET name = ?, email = ?, phone = ?, password_hash = ?, status = 'Active', updated_at = ? 
-          WHERE id = ?
-        `).run(cleanName, cleanEmail, cleanPhone, passwordHash, now, existing.id);
-        customerId = existing.id;
+        const updated = await prisma.customers.update({
+          where: { id: existing.id },
+          data: {
+            name: cleanName,
+            email: cleanEmail || existing.email,
+            phone: cleanPhone || existing.phone,
+            password_hash: passwordHash,
+            status: 'Active',
+            updated_at: now
+          }
+        });
+        customerId = updated.id;
       } else {
         // Create new customer record
-        const res = db.prepare(`
-          INSERT INTO customers (name, email, phone, password_hash, status, source, created_at, updated_at)
-          VALUES (?, ?, ?, ?, 'Active', 'Website Signup', ?, ?)
-        `).run(cleanName, cleanEmail, cleanPhone, passwordHash, now, now);
-        customerId = res.lastInsertRowid as number;
+        const created = await prisma.customers.create({
+          data: {
+            name: cleanName,
+            email: cleanEmail,
+            phone: cleanPhone,
+            password_hash: passwordHash,
+            status: 'Active',
+            source: 'Website Signup',
+            created_at: now,
+            updated_at: now
+          }
+        });
+        customerId = created.id;
       }
 
       // Create Session
-      const { token: sessionToken, expiresAt } = createCustomerSessionToken(customerId);
+      const { token: sessionToken, expiresAt } = await createCustomerSessionToken(customerId, ip);
       const cookieHeader = getCustomerSessionCookieHeader(sessionToken, expiresAt);
 
       return new Response(JSON.stringify({
@@ -119,10 +136,15 @@ export const POST: APIRoute = async ({ request }) => {
         return new Response(JSON.stringify({ error: 'Password is required.' }), { status: 400 });
       }
 
-      const customer = db.prepare(`
-        SELECT * FROM customers 
-        WHERE (LOWER(email) = ? OR phone = ?) AND deleted_at IS NULL
-      `).get(cleanEmailOrPhone, cleanEmailOrPhone) as any;
+      const customer = await prisma.customers.findFirst({
+        where: {
+          OR: [
+            { email: { equals: cleanEmailOrPhone, mode: 'insensitive' } },
+            { phone: cleanEmailOrPhone }
+          ],
+          deleted_at: null
+        }
+      });
 
       if (!customer || !customer.password_hash) {
         return new Response(JSON.stringify({ error: 'Account not found. Please register or check your credentials.' }), { status: 401 });
@@ -134,7 +156,7 @@ export const POST: APIRoute = async ({ request }) => {
       }
 
       // Create Session
-      const { token: sessionToken, expiresAt } = createCustomerSessionToken(customer.id);
+      const { token: sessionToken, expiresAt } = await createCustomerSessionToken(customer.id, ip);
       const cookieHeader = getCustomerSessionCookieHeader(sessionToken, expiresAt);
 
       return new Response(JSON.stringify({
@@ -152,7 +174,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     // 3. LOGOUT ACTION
     if (action === 'logout') {
-      destroyCustomerSession(request);
+      await destroyCustomerSession(request);
       const logoutCookie = getCustomerLogoutCookieHeader();
       return new Response(JSON.stringify({ success: true, message: 'Logged out successfully.' }), {
         status: 200,
@@ -170,7 +192,14 @@ export const POST: APIRoute = async ({ request }) => {
         return new Response(JSON.stringify({ error: 'Email address is required.' }), { status: 400 });
       }
 
-      const customer = db.prepare('SELECT id, name, email FROM customers WHERE LOWER(email) = ? AND deleted_at IS NULL').get(cleanEmail) as any;
+      const customer = await prisma.customers.findFirst({
+        where: {
+          email: { equals: cleanEmail, mode: 'insensitive' },
+          deleted_at: null
+        },
+        select: { id: true, name: true, email: true }
+      });
+
       if (!customer) {
         // Return success message to prevent user enumeration
         return new Response(JSON.stringify({
@@ -179,7 +208,7 @@ export const POST: APIRoute = async ({ request }) => {
         }), { status: 200 });
       }
 
-      const { token: resetToken } = generatePasswordResetToken(customer.id);
+      const { token: resetToken } = await generatePasswordResetToken(customer.id);
 
       return new Response(JSON.stringify({
         success: true,
@@ -201,15 +230,27 @@ export const POST: APIRoute = async ({ request }) => {
         return new Response(JSON.stringify({ error: 'New password must be at least 6 characters long.' }), { status: 400 });
       }
 
-      const now = Date.now();
-      const customer = db.prepare('SELECT id FROM customers WHERE reset_token = ? AND reset_expires > ?').get(cleanToken, now) as any;
+      const now = BigInt(Date.now());
+      const customer = await prisma.customers.findFirst({
+        where: {
+          reset_token: cleanToken,
+          reset_expires: { gt: now }
+        }
+      });
 
       if (!customer) {
         return new Response(JSON.stringify({ error: 'Password reset link is invalid or has expired.' }), { status: 400 });
       }
 
       const newHash = hashPassword(cleanPassword);
-      db.prepare('UPDATE customers SET password_hash = ?, reset_token = NULL, reset_expires = NULL WHERE id = ?').run(newHash, customer.id);
+      await prisma.customers.update({
+        where: { id: customer.id },
+        data: {
+          password_hash: newHash,
+          reset_token: null,
+          reset_expires: null
+        }
+      });
 
       return new Response(JSON.stringify({ success: true, message: 'Password reset successfully. You can now log in with your new password.' }), { status: 200 });
     }

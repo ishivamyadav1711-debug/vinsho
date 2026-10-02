@@ -2,7 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import { getSessionUser } from '../../lib/auth';
 
-const user = getSessionUser(Astro.request);
+const user = await getSessionUser(Astro.request);
 if (user) {
   return Astro.redirect('/crm/dashboard');
 }

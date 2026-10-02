@@ -1,20 +1,32 @@
 import type { APIRoute } from 'astro';
-import { db, logAuditAction } from '../../../lib/db.js';
+import { prisma, logAuditAction } from '../../../lib/db.js';
 import { requireSuperAdmin } from '../../../lib/auth.js';
 import bcrypt from 'bcryptjs';
 
 export const GET: APIRoute = async ({ request }) => {
-  const authCheck = requireSuperAdmin(request);
+  const authCheck = await requireSuperAdmin(request);
   if (!authCheck.allowed) {
     return new Response(JSON.stringify({ error: authCheck.error }), { status: authCheck.user ? 403 : 401 });
   }
 
-  const users = db.prepare('SELECT id, email, name, role, is_active, last_login_at, created_at FROM admin_users ORDER BY name ASC').all();
+  const users = await prisma.adminUsers.findMany({
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+      is_active: true,
+      last_login_at: true,
+      created_at: true
+    },
+    orderBy: { name: 'asc' }
+  });
+
   return new Response(JSON.stringify({ success: true, users }), { status: 200 });
 };
 
 export const POST: APIRoute = async ({ request }) => {
-  const authCheck = requireSuperAdmin(request);
+  const authCheck = await requireSuperAdmin(request);
   if (!authCheck.allowed) {
     return new Response(JSON.stringify({ error: authCheck.error }), { status: authCheck.user ? 403 : 401 });
   }
@@ -28,26 +40,34 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const cleanEmail = email.trim().toLowerCase();
-    const existing = db.prepare('SELECT id FROM admin_users WHERE email = ?').get(cleanEmail);
+    const existing = await prisma.adminUsers.findFirst({
+      where: { email: cleanEmail }
+    });
+
     if (existing) {
       return new Response(JSON.stringify({ error: 'User with this email already exists.' }), { status: 400 });
     }
 
-    const now = new Date().toISOString();
+    const now = new Date();
     const passwordHash = bcrypt.hashSync(password, 10);
 
-    const res = db.prepare(`
-      INSERT INTO admin_users (name, email, password_hash, role, is_active, created_at, updated_at)
-      VALUES (?, ?, ?, ?, 1, ?, ?)
-    `).run(name.trim(), cleanEmail, passwordHash, role || 'SALES', now, now);
+    const newUser = await prisma.adminUsers.create({
+      data: {
+        name: name.trim(),
+        email: cleanEmail,
+        password_hash: passwordHash,
+        role: role || 'SALES',
+        is_active: true,
+        created_at: now,
+        updated_at: now
+      }
+    });
 
-    const newUserId = res.lastInsertRowid as number;
-
-    logAuditAction({
+    await logAuditAction({
       actorId: admin.id,
       action: 'CREATE_USER',
       entity: 'admin_users',
-      entityId: newUserId,
+      entityId: newUser.id,
       after: { email: cleanEmail, name, role: role || 'SALES' },
       ip: request.headers.get('x-forwarded-for') || '127.0.0.1'
     });

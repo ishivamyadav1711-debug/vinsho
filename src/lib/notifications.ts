@@ -1,18 +1,4 @@
-/**
- * VINSHO — Notification Dispatch Hub
- *
- * Single entry point for all transactional notifications.
- *
- * Rules:
- * 1. This function never throws — all errors are caught and logged.
- * 2. Email delivery is always fire-and-forget (async) — it never blocks
- *    the caller's DB transaction or HTTP response.
- * 3. Every notification attempt is recorded in the notification_log table
- *    with a final status of SENT, FAILED, or LOGGED_DEV.
- * 4. No secrets are passed as arguments — they are read from env.
- */
-
-import { db } from './db.js';
+import { prisma } from './db.js';
 import { sendEmail } from './email/transporter.js';
 import {
   passwordResetTemplate,
@@ -29,12 +15,10 @@ import {
 export type NotificationChannel = 'WHATSAPP' | 'EMAIL';
 
 export type NotificationTemplate =
-  // Existing (retained for backward compat)
   | 'NEW_ENQUIRY_STAFF'
   | 'FOLLOWUP_DUE'
   | 'ENQUIRY_CONVERTED'
   | 'ENQUIRY_LOST'
-  // New email templates
   | 'PASSWORD_RESET'
   | 'ORDER_CONFIRMATION'
   | 'PAYMENT_CONFIRMATION'
@@ -44,68 +28,55 @@ export type NotificationTemplate =
 export interface NotificationPayload {
   channel: NotificationChannel;
   template: NotificationTemplate;
-  /** Primary recipient email (or phone for WHATSAPP) */
   recipient: string;
   entityType?: string;
   entityId?: number;
-  /** Additional data required to render the template */
   data?: Record<string, any>;
 }
 
 // ─── Main dispatch function ───────────────────────────────────────────────────
 
-/**
- * Log and dispatch a notification.
- *
- * Always returns synchronously with a logId — the actual email send
- * happens asynchronously after the log row is committed.
- *
- * This guarantees:
- * - The caller's DB transaction is never delayed by SMTP latency.
- * - Email failure does not roll back or corrupt the order.
- */
-export function logNotification(payload: NotificationPayload): { success: boolean; logId: number } {
-  const now = new Date().toISOString();
+export function logNotification(payload: NotificationPayload): { success: boolean } {
+  const now = new Date();
 
-  // Insert with pending status — will be updated asynchronously
-  const res = db.prepare(`
-    INSERT INTO notification_log (channel, template, recipient, entity_type, entity_id, status, sent_at, created_at)
-    VALUES (?, ?, ?, ?, ?, 'PENDING', ?, ?)
-  `).run(
-    payload.channel,
-    payload.template,
-    payload.recipient,
-    payload.entityType || null,
-    payload.entityId || null,
-    now,
-    now
-  );
+  // Dispatch asynchronously — never blocks caller
+  (async () => {
+    try {
+      const record = await prisma.notificationLog.create({
+        data: {
+          channel: payload.channel,
+          template: payload.template,
+          recipient: payload.recipient,
+          entity_type: payload.entityType || null,
+          entity_id: payload.entityId || null,
+          status: 'PENDING',
+          sent_at: now,
+          created_at: now
+        }
+      });
 
-  const logId = res.lastInsertRowid as number;
+      await _dispatchNotification(record.id, payload);
+    } catch (err) {
+      console.error('[NOTIFICATION LOG INSERT ERROR]', err);
+    }
+  })().catch(err => console.error('[UNHANDLED NOTIFICATION DISPATCH ERROR]', err));
 
-  // Dispatch asynchronously — does not block caller
-  _dispatchNotification(logId, payload).catch((err) => {
-    console.error(`[NOTIFICATION DISPATCH ERROR] logId=${logId}`, err);
-  });
-
-  return { success: true, logId };
+  return { success: true };
 }
 
 // ─── Internal async dispatcher ────────────────────────────────────────────────
 
 async function _dispatchNotification(logId: number, payload: NotificationPayload): Promise<void> {
   if (payload.channel !== 'EMAIL') {
-    // WhatsApp / other channels: mark as LOGGED_DEV (not yet implemented)
     console.log(`[DEV NOTIFICATION LOG] Channel: ${payload.channel} | Template: ${payload.template} | Recipient: ${payload.recipient}`);
-    _updateLog(logId, 'LOGGED_DEV', undefined);
+    await _updateLog(logId, 'LOGGED_DEV', undefined);
     return;
   }
 
   try {
     const email = await _buildEmail(payload);
     if (!email) {
-      // Template not matched — mark as skipped
-      _updateLog(logId, 'SKIPPED', 'No email template matched');
+      await _updateLog(logId, 'SKIPPED', 'No email template matched');
       return;
     }
 
@@ -117,23 +88,28 @@ async function _dispatchNotification(logId: number, payload: NotificationPayload
     });
 
     if (result.devLogOnly) {
-      _updateLog(logId, 'LOGGED_DEV', undefined);
+      await _updateLog(logId, 'LOGGED_DEV', undefined);
     } else if (result.success) {
-      _updateLog(logId, 'SENT', undefined);
+      await _updateLog(logId, 'SENT', undefined);
     } else {
-      _updateLog(logId, 'FAILED', result.error);
+      await _updateLog(logId, 'FAILED', result.error);
     }
   } catch (err: any) {
     console.error(`[EMAIL BUILD ERROR] logId=${logId} template=${payload.template}`, err);
-    _updateLog(logId, 'FAILED', err.message || 'Unknown error');
+    await _updateLog(logId, 'FAILED', err.message || 'Unknown error');
   }
 }
 
-function _updateLog(logId: number, status: string, error: string | undefined): void {
+async function _updateLog(logId: number, status: string, error: string | undefined): Promise<void> {
   try {
-    db.prepare(`
-      UPDATE notification_log SET status = ?, error = ?, sent_at = ? WHERE id = ?
-    `).run(status, error || null, new Date().toISOString(), logId);
+    await prisma.notificationLog.update({
+      where: { id: logId },
+      data: {
+        status,
+        error: error || null,
+        sent_at: new Date()
+      }
+    });
   } catch (err) {
     console.error(`[NOTIFICATION LOG UPDATE FAILED] logId=${logId}`, err);
   }
@@ -194,7 +170,6 @@ async function _buildEmail(payload: NotificationPayload): Promise<{
 
     case 'FOLLOWUP_DUE':
     case 'ENQUIRY_LOST':
-      // Admin internal templates — log only, no email template yet
       console.log(`[DEV NOTIFICATION LOG] Template: ${payload.template} | Recipient: ${payload.recipient}`);
       return null;
 

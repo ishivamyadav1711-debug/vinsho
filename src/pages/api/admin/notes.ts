@@ -1,10 +1,10 @@
 import type { APIRoute } from 'astro';
-import { db } from '../../../lib/db.js';
+import { prisma } from '../../../lib/db.js';
 import { getSessionUser } from '../../../lib/auth.js';
 import { logCrmActivity } from '../../../lib/crm.js';
 
 export const POST: APIRoute = async ({ request }) => {
-  const user = getSessionUser(request);
+  const user = await getSessionUser(request);
   if (!user) {
     return new Response(JSON.stringify({ error: 'Unauthorized admin access.' }), { status: 401 });
   }
@@ -15,27 +15,37 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response(JSON.stringify({ error: 'entityType, entityId and note body are required.' }), { status: 400 });
     }
 
-    const now = new Date().toISOString();
-    const res = db.prepare(`
-      INSERT INTO crm_notes (entity_type, entity_id, author_id, body, is_internal, created_at)
-      VALUES (?, ?, ?, ?, 1, ?)
-    `).run(entityType, entityId, user.id, body.trim(), now);
+    const now = new Date();
+    const parsedEntityId = parseInt(entityId, 10);
 
-    const noteId = res.lastInsertRowid as number;
+    const newNote = await prisma.crm_notes.create({
+      data: {
+        entity_type: entityType,
+        entity_id: parsedEntityId,
+        author_id: user.id,
+        body: body.trim(),
+        is_internal: true,
+        created_at: now
+      },
+      include: {
+        admin_users: {
+          select: { name: true }
+        }
+      }
+    });
 
-    logCrmActivity({
+    await logCrmActivity({
       entityType: entityType as 'customer' | 'enquiry',
-      entityId: parseInt(entityId, 10),
+      entityId: parsedEntityId,
       actorId: user.id,
       type: 'NOTE_ADDED',
       summary: `Internal note added by ${user.name}: "${body.trim().substring(0, 50)}..."`
     });
 
-    const note = db.prepare(`
-      SELECT n.*, u.name as author_name
-      FROM crm_notes n JOIN admin_users u ON n.author_id = u.id
-      WHERE n.id = ?
-    `).get(noteId);
+    const note = {
+      ...newNote,
+      author_name: newNote.admin_users?.name || 'Admin'
+    };
 
     return new Response(JSON.stringify({ success: true, note }), { status: 201 });
   } catch (err: any) {

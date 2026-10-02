@@ -1,10 +1,10 @@
 import type { APIRoute } from 'astro';
-import { db } from '../../../../lib/db.js';
+import { prisma } from '../../../../lib/db.js';
 import { getCustomerFromSession } from '../../../../lib/customerAuth.js';
 
 export const GET: APIRoute = async ({ request, params }) => {
   try {
-    const customer = getCustomerFromSession(request);
+    const customer = await getCustomerFromSession(request);
     if (!customer) {
       return new Response(JSON.stringify({ error: 'Unauthorized: Please log in.' }), {
         status: 401,
@@ -17,10 +17,17 @@ export const GET: APIRoute = async ({ request, params }) => {
       return new Response(JSON.stringify({ error: 'Order ID is required.' }), { status: 400 });
     }
 
+    const parsedId = !isNaN(Number(orderIdParam)) ? Number(orderIdParam) : -1;
+
     // Fetch order record
-    const order = db.prepare(`
-      SELECT * FROM orders WHERE (id = ? OR order_number = ?)
-    `).get(orderIdParam, orderIdParam) as any;
+    const order = await prisma.orders.findFirst({
+      where: {
+        OR: [
+          { id: parsedId },
+          { order_number: orderIdParam }
+        ]
+      }
+    });
 
     if (!order) {
       return new Response(JSON.stringify({ error: 'Order not found.' }), { status: 404 });
@@ -34,21 +41,49 @@ export const GET: APIRoute = async ({ request, params }) => {
       });
     }
 
-    // Fetch items
-    const items = db.prepare(`
-      SELECT oi.*, p_img.url as image_url, p.slug as product_slug
-      FROM order_items oi
-      LEFT JOIN product_variants pv ON oi.variant_id = pv.id
-      LEFT JOIN products p ON pv.product_id = p.id
-      LEFT JOIN product_images p_img ON (p_img.product_id = pv.product_id AND p_img.is_primary = 1)
-      WHERE oi.order_id = ?
-    `).all(order.id);
+    // Fetch items with variant and primary product image
+    const rawItems = await prisma.order_items.findMany({
+      where: { order_id: order.id },
+      include: {
+        product_variants: {
+          include: {
+            products: {
+              include: {
+                product_images: {
+                  where: { is_primary: 1 },
+                  take: 1
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+
+    const items = rawItems.map((oi: any) => ({
+      ...oi,
+      image_url: oi.product_variants?.products?.product_images?.[0]?.url || null,
+      product_slug: oi.product_variants?.products?.slug || null
+    }));
 
     // Fetch shipping address
-    const shippingAddress = db.prepare('SELECT * FROM addresses WHERE id = ?').get(order.shipping_address_id);
+    const shippingAddress = order.shipping_address_id
+      ? await prisma.addresses.findUnique({ where: { id: order.shipping_address_id } })
+      : null;
 
     // Fetch payment info if available
-    const payment = db.prepare('SELECT id, provider, amount, status, method, created_at FROM payments WHERE order_id = ? ORDER BY id DESC LIMIT 1').get(order.id);
+    const payment = await prisma.payments.findFirst({
+      where: { order_id: order.id },
+      select: {
+        id: true,
+        provider: true,
+        amount: true,
+        status: true,
+        method: true,
+        created_at: true
+      },
+      orderBy: { id: 'desc' }
+    });
 
     return new Response(JSON.stringify({
       success: true,

@@ -1,34 +1,42 @@
 ---
 import Base from '../../../layouts/Base.astro';
 import { getSessionUser } from '../../../lib/auth';
-import { db } from '../../../lib/db';
+import { prisma } from '../../../lib/db';
 import { evaluatePurchasability, COMMERCE_MODE } from '../../../lib/purchasability';
 
-const user = getSessionUser(Astro.request);
+const user = await getSessionUser(Astro.request);
 if (!user) {
   return Astro.redirect('/admin/login');
 }
 
-const collections = db.prepare('SELECT * FROM collections WHERE deleted_at IS NULL ORDER BY name ASC').all() as any[];
-const products = db.prepare(`
-  SELECT 
-    p.*,
-    c.name as collection_name,
-    s.name as subcategory_name,
-    (SELECT url FROM product_images WHERE product_id = p.id AND is_primary = 1 LIMIT 1) as image_url,
-    (SELECT COUNT(*) FROM product_variants WHERE product_id = p.id) as variant_count
-  FROM products p
-  JOIN collections c ON p.collection_id = c.id
-  JOIN subcategories s ON p.subcategory_id = s.id
-  WHERE p.deleted_at IS NULL
-  ORDER BY p.name ASC
-`).all() as any[];
+const collections = await prisma.collections.findMany({
+  where: { deleted_at: null },
+  orderBy: { name: 'asc' }
+});
 
-const productsWithEval = products.map((p) => {
-  const variants = db.prepare('SELECT * FROM product_variants WHERE product_id = ?').all(p.id) as any[];
-  const evalRes = evaluatePurchasability(p, variants);
+const productsRaw = await prisma.products.findMany({
+  where: { deleted_at: null },
+  orderBy: { name: 'asc' },
+  include: {
+    collections: { select: { name: true } },
+    subcategories: { select: { name: true } },
+    product_images: {
+      where: { is_primary: true },
+      take: 1,
+      select: { url: true }
+    },
+    product_variants: true
+  }
+});
+
+const productsWithEval = productsRaw.map((p) => {
+  const evalRes = evaluatePurchasability(p, p.product_variants as any[]);
   return {
     ...p,
+    collection_name: p.collections?.name || '',
+    subcategory_name: p.subcategories?.name || '',
+    image_url: p.product_images[0]?.url || null,
+    variant_count: p.product_variants.length,
     purchasability: evalRes
   };
 });

@@ -1,4 +1,4 @@
-import { db } from './db.js';
+import { prisma } from './db.js';
 
 export interface CartItemView {
   cartItemId: number;
@@ -19,39 +19,51 @@ export interface CartItemView {
   variantTitle?: string;
 }
 
-export function getOrCreateCart(sessionToken: string): number {
-  let cart = db.prepare("SELECT id FROM carts WHERE session_token = ? AND status = 'ACTIVE'").get(sessionToken) as any;
+export async function getOrCreateCart(sessionToken: string): Promise<number> {
+  const cart = await prisma.carts.findFirst({
+    where: { session_token: sessionToken, status: 'ACTIVE' }
+  });
   if (cart) return cart.id;
 
-  const now = new Date().toISOString();
-  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+  const now = new Date();
+  const expiresAt = BigInt(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-  const res = db.prepare(`
-    INSERT INTO carts (session_token, status, expires_at, created_at, updated_at)
-    VALUES (?, 'ACTIVE', ?, ?, ?)
-  `).run(sessionToken, expiresAt, now, now);
+  const newCart = await prisma.carts.create({
+    data: {
+      session_token: sessionToken,
+      status: 'ACTIVE',
+      expires_at: expiresAt,
+      created_at: now,
+      updated_at: now
+    }
+  });
 
-  return res.lastInsertRowid as number;
+  return newCart.id;
 }
 
-export function addItemToCart(params: {
+export async function addItemToCart(params: {
   sessionToken: string;
   variantId?: number;
   slug?: string;
   productId?: number;
   qty: number;
-}): { success: boolean; error?: string } {
-  const cartId = getOrCreateCart(params.sessionToken);
+}): Promise<{ success: boolean; error?: string }> {
+  const cartId = await getOrCreateCart(params.sessionToken);
 
   let targetVariantId = params.variantId;
   if (!targetVariantId && (params.slug || params.productId)) {
-    const v = db.prepare(`
-      SELECT v.id FROM product_variants v
-      JOIN products p ON v.product_id = p.id
-      WHERE (p.slug = ? OR p.id = ?) AND p.deleted_at IS NULL
-      ORDER BY v.position ASC, v.id ASC
-      LIMIT 1
-    `).get(params.slug || '', params.productId || 0) as any;
+    const v = await prisma.productVariants.findFirst({
+      where: {
+        product: {
+          OR: [
+            params.slug ? { slug: params.slug } : {},
+            params.productId ? { id: params.productId } : {}
+          ],
+          deleted_at: null
+        }
+      },
+      orderBy: [{ position: 'asc' }, { id: 'asc' }]
+    });
     if (v) targetVariantId = v.id;
   }
 
@@ -59,22 +71,27 @@ export function addItemToCart(params: {
     return { success: false, error: 'Product variant not found in database.' };
   }
 
-  const variant = db.prepare(`
-    SELECT v.*, p.id as product_id, p.slug, p.name, p.shipping_class, p.launch_phase, p.sellable_online, p.is_purchasable, p.country_of_origin, p.manufacturer_or_packer, p.consumer_care_contact, c.key as collection_key
-    FROM product_variants v
-    JOIN products p ON v.product_id = p.id
-    JOIN collections c ON p.collection_id = c.id
-    WHERE v.id = ? AND p.deleted_at IS NULL
-  `).get(targetVariantId) as any;
+  const variant = await prisma.productVariants.findFirst({
+    where: {
+      id: targetVariantId,
+      product: { deleted_at: null }
+    },
+    include: {
+      product: {
+        include: { collection: true }
+      }
+    }
+  });
 
   if (!variant) {
     return { success: false, error: 'Product variant not found in database.' };
   }
 
-  const colKey = (variant.collection_key || '').toLowerCase();
-  const isGifting = colKey.includes('gifting') || colKey.includes('gift') || variant.slug.includes('combo') || variant.slug.includes('gifting');
+  const colKey = (variant.product.collection?.key || '').toLowerCase();
+  const isGifting = colKey.includes('gifting') || colKey.includes('gift') || variant.product.slug.includes('combo') || variant.product.slug.includes('gifting');
 
-  if (!variant.is_purchasable || !isGifting) {
+  // Protection: Ensure stub dummy products or non-purchasable items cannot be added
+  if (!variant.product.is_purchasable || !isGifting || variant.product.collection_id === 999999 || variant.product.id === 999999) {
     return { success: false, error: 'This product is available at store only and cannot be added to online cart.' };
   }
 
@@ -82,69 +99,101 @@ export function addItemToCart(params: {
     return { success: false, error: 'Invalid quantity. Must be a positive integer between 1 and 999.' };
   }
 
-  const existingItem = db.prepare('SELECT id, qty FROM cart_items WHERE cart_id = ? AND variant_id = ?').get(cartId, targetVariantId) as any;
-  const now = new Date().toISOString();
+  const existingItem = await prisma.cartItems.findFirst({
+    where: { cart_id: cartId, variant_id: targetVariantId }
+  });
+
+  const now = new Date();
+  const unitPrice = variant.selling_price ? Number(variant.selling_price) : 0;
 
   if (existingItem) {
-    db.prepare('UPDATE cart_items SET qty = qty + ? WHERE id = ?').run(params.qty, existingItem.id);
+    await prisma.cartItems.update({
+      where: { id: existingItem.id },
+      data: { qty: { increment: params.qty } }
+    });
   } else {
-    db.prepare(`
-      INSERT INTO cart_items (cart_id, variant_id, qty, unit_price_snapshot, created_at)
-      VALUES (?, ?, ?, ?, ?)
-    `).run(cartId, targetVariantId, params.qty, variant.selling_price, now);
+    await prisma.cartItems.create({
+      data: {
+        cart_id: cartId,
+        variant_id: targetVariantId,
+        qty: params.qty,
+        unit_price_snapshot: unitPrice,
+        created_at: now
+      }
+    });
   }
 
   return { success: true };
 }
 
-export function getCartItems(sessionToken: string): CartItemView[] {
-  const cart = db.prepare("SELECT id FROM carts WHERE session_token = ? AND status = 'ACTIVE'").get(sessionToken) as any;
+export async function getCartItems(sessionToken: string): Promise<CartItemView[]> {
+  const cart = await prisma.carts.findFirst({
+    where: { session_token: sessionToken, status: 'ACTIVE' }
+  });
   if (!cart) return [];
 
-  const rows = db.prepare(`
-    SELECT 
-      ci.id as cart_item_id, ci.qty, ci.unit_price_snapshot,
-      v.id as variant_id, v.sku, v.size, v.colour, v.mrp, v.selling_price, v.stock,
-      v.packed_weight_kg, v.packed_l_cm, v.packed_b_cm, v.packed_h_cm,
-      p.id as product_id, p.slug as product_slug, p.name as product_name, p.shipping_class, p.launch_phase, p.sellable_online,
-      p.country_of_origin, p.manufacturer_or_packer, p.consumer_care_contact, c.key as collection_key,
-      (SELECT url FROM product_images WHERE product_id = p.id ORDER BY is_primary DESC, position ASC LIMIT 1) as image_url
-    FROM cart_items ci
-    JOIN product_variants v ON ci.variant_id = v.id
-    JOIN products p ON v.product_id = p.id
-    JOIN collections c ON p.collection_id = c.id
-    WHERE ci.cart_id = ? AND p.deleted_at IS NULL
-  `).all(cart.id) as any[];
+  const items = await prisma.cartItems.findMany({
+    where: {
+      cart_id: cart.id,
+      variant: {
+        product: {
+          deleted_at: null,
+          id: { not: 999999 } // Ensure dummy stubs are excluded
+        }
+      }
+    },
+    include: {
+      variant: {
+        include: {
+          product: {
+            include: {
+              collection: true,
+              ProductImages: {
+                orderBy: [{ is_primary: 'desc' }, { position: 'asc' }],
+                take: 1
+              }
+            }
+          }
+        }
+      }
+    }
+  });
 
-  return rows.map((r) => {
-    const colKey = (r.collection_key || '').toLowerCase();
-    const isGiftingCol = colKey.includes('gifting') || colKey.includes('gift') || r.product_slug.includes('combo') || r.product_slug.includes('gifting');
+  return items.map((ci) => {
+    const v = ci.variant;
+    const p = v.product;
+    const c = p.collection;
 
-    const isPurchasable = r.shipping_class !== 'made-to-order' &&
-      r.launch_phase > 0 &&
-      Boolean(r.sellable_online) &&
+    const colKey = (c?.key || '').toLowerCase();
+    const isGiftingCol = colKey.includes('gifting') || colKey.includes('gift') || p.slug.includes('combo') || p.slug.includes('gifting');
+
+    const isPurchasable = p.shipping_class !== 'made-to-order' &&
+      p.launch_phase > 0 &&
+      Boolean(p.sellable_online) &&
       isGiftingCol &&
-      Boolean(r.country_of_origin) &&
-      Boolean(r.manufacturer_or_packer) &&
-      Boolean(r.consumer_care_contact);
+      Boolean(p.country_of_origin) &&
+      Boolean(p.manufacturer_or_packer) &&
+      Boolean(p.consumer_care_contact);
+
+    const primaryImage = p.ProductImages?.[0]?.url || '/placeholder.png';
 
     return {
-      cartItemId: r.cart_item_id,
-      variantId: r.variant_id,
-      productSlug: r.product_slug,
-      productName: r.product_name,
-      shippingClass: r.shipping_class,
-      packedWeightKg: r.packed_weight_kg,
-      packedL: r.packed_l_cm,
-      packedB: r.packed_b_cm,
-      packedH: r.packed_h_cm,
-      qty: r.qty,
-      sellingPrice: r.selling_price,
-      mrp: r.mrp,
-      stock: r.stock || 100,
+      cartItemId: ci.id,
+      variantId: v.id,
+      productSlug: p.slug,
+      productName: p.name,
+      shippingClass: p.shipping_class,
+      packedWeightKg: v.packed_weight_kg ? Number(v.packed_weight_kg) : undefined,
+      packedL: v.packed_l_cm ? Number(v.packed_l_cm) : undefined,
+      packedB: v.packed_b_cm ? Number(v.packed_b_cm) : undefined,
+      packedH: v.packed_h_cm ? Number(v.packed_h_cm) : undefined,
+      qty: ci.qty,
+      sellingPrice: v.selling_price ? Number(v.selling_price) : 0,
+      mrp: v.mrp ? Number(v.mrp) : undefined,
+      stock: v.stock || 100,
       isPurchasable,
-      image: r.image_url || '/placeholder.png',
-      variantTitle: [r.size, r.colour].filter(Boolean).join(' / ') || 'Standard Variant'
+      image: primaryImage,
+      variantTitle: [v.size, v.colour].filter(Boolean).join(' / ') || 'Standard Variant'
     };
   });
 }

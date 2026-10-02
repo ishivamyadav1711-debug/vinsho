@@ -1,40 +1,48 @@
 ---
 import Base from '../../../layouts/Base.astro';
 import { getSessionUser } from '../../../lib/auth';
-import { db } from '../../../lib/db';
+import { prisma } from '../../../lib/db';
 import { evaluatePurchasability, COMMERCE_MODE } from '../../../lib/purchasability';
 import { getComboAvailability } from '../../../lib/combos';
 
-const user = getSessionUser(Astro.request);
+const user = await getSessionUser(Astro.request);
 if (!user) {
   return Astro.redirect('/admin/login');
 }
 
 const productId = parseInt(Astro.params.id || '0', 10);
 
-const product = db.prepare('SELECT * FROM products WHERE id = ?').get(productId) as any;
+const product = await prisma.products.findUnique({ where: { id: productId } });
 if (!product) {
   return Astro.redirect('/admin/products');
 }
 
-const collections = db.prepare('SELECT * FROM collections WHERE deleted_at IS NULL ORDER BY name ASC').all() as any[];
-const subcategories = db.prepare('SELECT * FROM subcategories WHERE deleted_at IS NULL ORDER BY name ASC').all() as any[];
-const images = db.prepare('SELECT * FROM product_images WHERE product_id = ? ORDER BY position ASC').all(productId) as any[];
-const variants = db.prepare('SELECT * FROM product_variants WHERE product_id = ? ORDER BY position ASC').all(productId) as any[];
-const allSelectableVariants = db.prepare(`
-  SELECT v.id, v.sku, p.name as product_name
-  FROM product_variants v
-  JOIN products p ON v.product_id = p.id
-  WHERE p.deleted_at IS NULL AND p.id != ?
-  ORDER BY p.name ASC
-`).all(productId) as any[];
+const [collections, subcategories, images, variants, allSelectableVariantsRaw] = await Promise.all([
+  prisma.collections.findMany({ where: { deleted_at: null }, orderBy: { name: 'asc' } }),
+  prisma.subcategories.findMany({ where: { deleted_at: null }, orderBy: { name: 'asc' } }),
+  prisma.product_images.findMany({ where: { product_id: productId }, orderBy: { position: 'asc' } }),
+  prisma.product_variants.findMany({ where: { product_id: productId }, orderBy: { position: 'asc' } }),
+  prisma.product_variants.findMany({
+    where: { products: { deleted_at: null }, NOT: { product_id: productId } },
+    include: { products: { select: { name: true } } },
+    orderBy: { products: { name: 'asc' } }
+  })
+]);
 
-const variantsWithCombos = variants.map(v => ({
-  ...v,
-  comboAvailability: getComboAvailability(v.id)
+const allSelectableVariants = allSelectableVariantsRaw.map(v => ({
+  id: v.id,
+  sku: v.sku,
+  product_name: v.products?.name || ''
 }));
 
-const purchasability = evaluatePurchasability(product, variants);
+const variantsWithCombos = await Promise.all(
+  variants.map(async v => ({
+    ...v,
+    comboAvailability: await getComboAvailability(v.id)
+  }))
+);
+
+const purchasability = evaluatePurchasability(product, variants as any[]);
 const missingFields = [...purchasability.missingProductFields, ...purchasability.missingVariantFields];
 ---
 

@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { db } from '../../../lib/db';
+import { prisma } from '../../../lib/db';
 import { checkRateLimit, tooManyRequestsResponse, getClientIp, LIMITS } from '../../../lib/rateLimiter.js';
 
 export interface HamperConfigPayload {
@@ -51,30 +51,71 @@ export const POST: APIRoute = async ({ request }) => {
     let serverSubtotal = 0;
     const validatedItems = [];
 
-    // Server-side inventory & price verification against SQLite DB
+    // Server-side inventory & price verification against PostgreSQL DB
     for (const item of payload.items) {
       let variantRow: any = null;
 
-      if (item.variantId && item.variantId !== 0 && item.variantId !== '0') {
-        variantRow = db.prepare(`
-          SELECT v.*, p.slug as prod_slug, p.name as prod_name,
-                 (SELECT url FROM product_images WHERE product_id = p.id AND is_primary = 1 LIMIT 1) as primary_image
-          FROM product_variants v
-          JOIN products p ON v.product_id = p.id
-          WHERE v.id = ? AND p.deleted_at IS NULL
-        `).get(item.variantId);
+      const numVariantId = Number(item.variantId);
+      if (item.variantId && !isNaN(numVariantId) && numVariantId !== 0) {
+        const found = await prisma.product_variants.findFirst({
+          where: {
+            id: numVariantId,
+            products: { deleted_at: null }
+          },
+          include: {
+            products: {
+              include: {
+                product_images: {
+                  where: { is_primary: 1 },
+                  take: 1
+                }
+              }
+            }
+          }
+        });
+
+        if (found) {
+          variantRow = {
+            ...found,
+            prod_slug: found.products?.slug,
+            prod_name: found.products?.name,
+            primary_image: found.products?.product_images?.[0]?.url || null
+          };
+        }
       }
 
       if (!variantRow && item.productSlug) {
-        variantRow = db.prepare(`
-          SELECT v.*, p.slug as prod_slug, p.name as prod_name,
-                 (SELECT url FROM product_images WHERE product_id = p.id AND is_primary = 1 LIMIT 1) as primary_image
-          FROM product_variants v
-          JOIN products p ON v.product_id = p.id
-          WHERE p.slug = ? AND p.deleted_at IS NULL
-          ORDER BY v.position ASC, v.id ASC
-          LIMIT 1
-        `).get(item.productSlug);
+        const found = await prisma.product_variants.findFirst({
+          where: {
+            products: {
+              slug: item.productSlug,
+              deleted_at: null
+            }
+          },
+          orderBy: [
+            { position: 'asc' },
+            { id: 'asc' }
+          ],
+          include: {
+            products: {
+              include: {
+                product_images: {
+                  where: { is_primary: 1 },
+                  take: 1
+                }
+              }
+            }
+          }
+        });
+
+        if (found) {
+          variantRow = {
+            ...found,
+            prod_slug: found.products?.slug,
+            prod_name: found.products?.name,
+            primary_image: found.products?.product_images?.[0]?.url || null
+          };
+        }
       }
 
       if (!variantRow) {

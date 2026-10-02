@@ -44,24 +44,34 @@ export function calculateLineTax(unitPrice: number, qty: number, gstRatePercent:
  * Generate Invoice Document HTML/PDF record with gapless sequence number.
  * Tagged: TODO: CA to review before first live order
  */
-export function generateInvoiceRecord(order: any, orderItems: any[], shippingAddress: any): { invoiceNumber: string; htmlContent: string; issuedAt: string } {
-  const invoiceNumber = getNextSequenceNumber('INVOICE', 'INV');
+export async function generateInvoiceRecord(order: any, orderItems: any[], shippingAddress: any): Promise<{ invoiceNumber: string; htmlContent: string; issuedAt: string }> {
+  const invoiceNumber = await getNextSequenceNumber('INVOICE', 'INV');
   const issuedAt = new Date().toISOString();
 
-  const isInterstate = order.is_interstate === 1;
+  const isInterstate = Boolean(order.is_interstate);
 
-  const itemsHtml = orderItems.map((item: any) => `
+  const itemsHtml = orderItems.map((item: any) => {
+    const unitPrice = Number(item.unit_price_snapshot || 0);
+    const taxAmount = Number(item.tax_amount || 0);
+    const lineTotal = Number(item.line_total || 0);
+    return `
     <tr>
       <td>${item.product_name_snapshot} (${item.variant_label_snapshot})</td>
       <td>${item.sku_snapshot}</td>
       <td>${item.hsn_snapshot}</td>
-      <td>₹${item.unit_price_snapshot.toFixed(2)}</td>
+      <td>₹${unitPrice.toFixed(2)}</td>
       <td>${item.qty}</td>
       <td>${item.gst_rate_snapshot}%</td>
-      <td>₹${item.tax_amount.toFixed(2)}</td>
-      <td>₹${item.line_total.toFixed(2)}</td>
+      <td>₹${taxAmount.toFixed(2)}</td>
+      <td>₹${lineTotal.toFixed(2)}</td>
     </tr>
-  `).join('');
+  `;
+  }).join('');
+
+  const subtotal = Number(order.subtotal || 0);
+  const taxTotal = Number(order.tax_total || 0);
+  const shippingTotal = Number(order.shipping_total || 0);
+  const grandTotal = Number(order.grand_total || 0);
 
   const htmlContent = `
     <!DOCTYPE html>
@@ -104,14 +114,14 @@ export function generateInvoiceRecord(order: any, orderItems: any[], shippingAdd
       <div style="display: flex; justify-content: space-between; margin-top: 20px;">
         <div>
           <b>Billed &amp; Shipped To:</b><br/>
-          ${shippingAddress.name}<br/>
-          ${shippingAddress.line1}, ${shippingAddress.line2 || ''}<br/>
-          ${shippingAddress.city}, ${shippingAddress.state} - ${shippingAddress.pincode}<br/>
-          Phone: ${shippingAddress.phone}
+          ${shippingAddress?.name || ''}<br/>
+          ${shippingAddress?.line1 || ''}, ${shippingAddress?.line2 || ''}<br/>
+          ${shippingAddress?.city || ''}, ${shippingAddress?.state || ''} - ${shippingAddress?.pincode || ''}<br/>
+          Phone: ${shippingAddress?.phone || ''}
         </div>
         <div>
           <b>Supply Type:</b> ${isInterstate ? 'Inter-State (IGST Applicable)' : 'Intra-State (CGST + SGST Applicable)'}<br/>
-          <b>Place of Supply:</b> ${shippingAddress.state}
+          <b>Place of Supply:</b> ${shippingAddress?.state || ''}
         </div>
       </div>
 
@@ -134,10 +144,10 @@ export function generateInvoiceRecord(order: any, orderItems: any[], shippingAdd
       </table>
 
       <div class="totals">
-        <div class="totals-row"><span>Subtotal:</span> <span>₹${order.subtotal.toFixed(2)}</span></div>
-        <div class="totals-row"><span>Tax Total:</span> <span>₹${order.tax_total.toFixed(2)}</span></div>
-        <div class="totals-row"><span>Shipping:</span> <span>₹${order.shipping_total.toFixed(2)}</span></div>
-        <div class="totals-row grand"><span>Grand Total:</span> <span>₹${order.grand_total.toFixed(2)}</span></div>
+        <div class="totals-row"><span>Subtotal:</span> <span>₹${subtotal.toFixed(2)}</span></div>
+        <div class="totals-row"><span>Tax Total:</span> <span>₹${taxTotal.toFixed(2)}</span></div>
+        <div class="totals-row"><span>Shipping:</span> <span>₹${shippingTotal.toFixed(2)}</span></div>
+        <div class="totals-row grand"><span>Grand Total:</span> <span>₹${grandTotal.toFixed(2)}</span></div>
       </div>
     </body>
     </html>

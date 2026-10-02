@@ -3,9 +3,9 @@ import Base from '../../../layouts/Base.astro';
 import Nav from '../../../components/Nav.astro';
 import Footer from '../../../components/Footer.astro';
 import { getCustomerFromSession } from '../../../lib/customerAuth';
-import { db } from '../../../lib/db';
+import { prisma } from '../../../lib/db';
 
-const customer = getCustomerFromSession(Astro.request);
+const customer = await getCustomerFromSession(Astro.request);
 if (!customer) {
   return Astro.redirect(`/login?redirect=${encodeURIComponent(Astro.url.pathname)}`);
 }
@@ -16,10 +16,17 @@ if (!id) {
   return Astro.redirect('/account');
 }
 
+const parsedId = !isNaN(Number(id)) ? Number(id) : -1;
+
 // Query Order
-const order = db.prepare(`
-  SELECT * FROM orders WHERE (id = ? OR order_number = ?)
-`).get(id, id) as any;
+const order = await prisma.orders.findFirst({
+  where: {
+    OR: [
+      { id: parsedId },
+      { order_number: id }
+    ]
+  }
+});
 
 if (!order) {
   return Astro.redirect('/account');
@@ -30,21 +37,41 @@ if (order.customer_id !== customer.id) {
   return Astro.redirect('/account');
 }
 
-// Query Order Items
-const items = db.prepare(`
-  SELECT oi.*, p_img.url as image_url, p.slug as product_slug
-  FROM order_items oi
-  LEFT JOIN product_variants pv ON oi.variant_id = pv.id
-  LEFT JOIN products p ON pv.product_id = p.id
-  LEFT JOIN product_images p_img ON (p_img.product_id = pv.product_id AND p_img.is_primary = 1)
-  WHERE oi.order_id = ?
-`).all(order.id);
+// Query Order Items with variant, product, and primary image
+const rawItems = await prisma.order_items.findMany({
+  where: { order_id: order.id },
+  include: {
+    product_variants: {
+      include: {
+        products: {
+          include: {
+            product_images: {
+              where: { is_primary: 1 },
+              take: 1
+            }
+          }
+        }
+      }
+    }
+  }
+});
+
+const items = rawItems.map((oi: any) => ({
+  ...oi,
+  image_url: oi.product_variants?.products?.product_images?.[0]?.url || null,
+  product_slug: oi.product_variants?.products?.slug || null
+}));
 
 // Query Shipping Address
-const shippingAddress = db.prepare('SELECT * FROM addresses WHERE id = ?').get(order.shipping_address_id) as any;
+const shippingAddress = order.shipping_address_id
+  ? await prisma.addresses.findUnique({ where: { id: order.shipping_address_id } })
+  : null;
 
 // Query Payment Record
-const payment = db.prepare('SELECT * FROM payments WHERE order_id = ? ORDER BY id DESC LIMIT 1').get(order.id) as any;
+const payment = await prisma.payments.findFirst({
+  where: { order_id: order.id },
+  orderBy: { id: 'desc' }
+});
 
 const formattedDate = order.placed_at ? new Date(order.placed_at).toLocaleDateString('en-IN', {
   day: 'numeric',

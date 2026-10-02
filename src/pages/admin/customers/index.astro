@@ -1,9 +1,9 @@
 ---
 import AdminLayout from '../../../layouts/AdminLayout.astro';
-import { db } from '../../../lib/db';
+import { prisma } from '../../../lib/db';
 import { getSessionUser } from '../../../lib/auth';
 
-const user = getSessionUser(Astro.request);
+const user = await getSessionUser(Astro.request);
 if (!user) {
   return Astro.redirect('/admin/login');
 }
@@ -11,18 +11,17 @@ if (!user) {
 const url = new URL(Astro.request.url);
 const q = (url.searchParams.get('q') || '').trim().toLowerCase();
 
-let sql = 'SELECT * FROM customers WHERE 1=1';
-const params: any[] = [];
-
-if (q) {
-  sql += ' AND (LOWER(name) LIKE ? OR LOWER(email) LIKE ? OR LOWER(phone) LIKE ? OR LOWER(company) LIKE ?)';
-  const term = `%${q}%`;
-  params.push(term, term, term, term);
-}
-
-sql += ' ORDER BY created_at DESC';
-
-const customers = db.prepare(sql).all(...params) as any[];
+const customers = await prisma.customers.findMany({
+  where: q ? {
+    OR: [
+      { name: { contains: q, mode: 'insensitive' } },
+      { email: { contains: q, mode: 'insensitive' } },
+      { phone: { contains: q, mode: 'insensitive' } },
+      { company: { contains: q, mode: 'insensitive' } }
+    ]
+  } : undefined,
+  orderBy: { created_at: 'desc' }
+});
 ---
 
 <AdminLayout title="Customer Database" activeNav="customers">

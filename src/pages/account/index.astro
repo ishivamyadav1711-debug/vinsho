@@ -3,36 +3,72 @@ import Base from '../../layouts/Base.astro';
 import Nav from '../../components/Nav.astro';
 import Footer from '../../components/Footer.astro';
 import { getCustomerFromSession } from '../../lib/customerAuth';
-import { db } from '../../lib/db';
+import { prisma } from '../../lib/db';
 
-const customer = getCustomerFromSession(Astro.request);
+const customer = await getCustomerFromSession(Astro.request);
 if (!customer) {
   return Astro.redirect('/login?redirect=/account');
 }
 
 // Fetch orders belonging to authenticated customer
-const orders = db.prepare(`
-  SELECT id, order_number, status, payment_status, subtotal, tax_total, shipping_total, discount_total, grand_total, currency, placed_at, created_at
-  FROM orders
-  WHERE customer_id = ?
-  ORDER BY id DESC
-`).all(customer.id) as any[];
-
-const enrichedOrders = orders.map((o) => {
-  const items = db.prepare(`
-    SELECT oi.id, oi.product_name_snapshot, oi.variant_label_snapshot, oi.unit_price_snapshot, oi.qty, oi.line_total, p_img.url as image_url
-    FROM order_items oi
-    LEFT JOIN product_variants pv ON oi.variant_id = pv.id
-    LEFT JOIN product_images p_img ON (p_img.product_id = pv.product_id AND p_img.is_primary = 1)
-    WHERE oi.order_id = ?
-  `).all(o.id);
-  return { ...o, items };
+const ordersRaw = await prisma.orders.findMany({
+  where: { customer_id: customer.id },
+  orderBy: { id: 'desc' },
+  select: {
+    id: true,
+    order_number: true,
+    status: true,
+    payment_status: true,
+    subtotal: true,
+    tax_total: true,
+    shipping_total: true,
+    discount_total: true,
+    grand_total: true,
+    currency: true,
+    placed_at: true,
+    created_at: true,
+    order_items: {
+      select: {
+        id: true,
+        product_name_snapshot: true,
+        variant_label_snapshot: true,
+        unit_price_snapshot: true,
+        qty: true,
+        line_total: true,
+        product_variants: {
+          select: {
+            product_images: {
+              where: { is_primary: true },
+              take: 1,
+              select: { url: true }
+            }
+          }
+        }
+      }
+    }
+  }
 });
 
+const enrichedOrders = ordersRaw.map((o) => ({
+  ...o,
+  grand_total: Number(o.grand_total ?? 0),
+  subtotal: Number(o.subtotal ?? 0),
+  tax_total: Number(o.tax_total ?? 0),
+  shipping_total: Number(o.shipping_total ?? 0),
+  discount_total: Number(o.discount_total ?? 0),
+  items: o.order_items.map(oi => ({
+    ...oi,
+    unit_price_snapshot: Number(oi.unit_price_snapshot ?? 0),
+    line_total: Number(oi.line_total ?? 0),
+    image_url: oi.product_variants?.product_images?.[0]?.url || null
+  }))
+}));
+
 // Fetch customer saved addresses
-const addresses = db.prepare(`
-  SELECT * FROM addresses WHERE customer_id = ? ORDER BY id DESC
-`).all(customer.id);
+const addresses = await prisma.addresses.findMany({
+  where: { customer_id: customer.id },
+  orderBy: { id: 'desc' }
+});
 ---
 
 <Base title="My Account | VINSHO" description="Manage your VINSHO profile, saved addresses and view order history.">

@@ -1,4 +1,4 @@
-import { db } from './db.js';
+import { prisma } from './db.js';
 
 export interface ComponentDetail {
   componentVariantId: number;
@@ -20,16 +20,36 @@ export interface ComboAvailability {
 /**
  * Retrieves the raw component rows for a combo variant.
  */
-export function getComboComponents(comboVariantId: number): any[] {
-  return db.prepare(`
-    SELECT ci.id as mapping_id, ci.combo_variant_id, ci.component_variant_id, ci.quantity,
-           pv.sku as component_sku, pv.stock as component_stock, pv.selling_price as component_price,
-           p.id as product_id, p.name as component_name
-    FROM combo_items ci
-    JOIN product_variants pv ON ci.component_variant_id = pv.id
-    JOIN products p ON pv.product_id = p.id
-    WHERE ci.combo_variant_id = ? AND p.deleted_at IS NULL
-  `).all(comboVariantId) as any[];
+export async function getComboComponents(comboVariantId: number): Promise<any[]> {
+  const items = await prisma.comboItems.findMany({
+    where: {
+      combo_variant_id: comboVariantId,
+      component_variant: {
+        product: {
+          deleted_at: null
+        }
+      }
+    },
+    include: {
+      component_variant: {
+        include: {
+          product: true
+        }
+      }
+    }
+  });
+
+  return items.map((ci) => ({
+    mapping_id: ci.id,
+    combo_variant_id: ci.combo_variant_id,
+    component_variant_id: ci.component_variant_id,
+    quantity: ci.quantity,
+    component_sku: ci.component_variant.sku,
+    component_stock: ci.component_variant.stock,
+    component_price: ci.component_variant.selling_price ? Number(ci.component_variant.selling_price) : 0,
+    product_id: ci.component_variant.product.id,
+    component_name: ci.component_variant.product.name
+  }));
 }
 
 /**
@@ -37,11 +57,13 @@ export function getComboComponents(comboVariantId: number): any[] {
  * If combo has components: maxSellable = min_i floor(stock(C_i) / qty_i)
  * If combo has NO components: returns standalone variant stock balance.
  */
-export function getComboAvailability(comboVariantId: number): ComboAvailability {
-  const components = getComboComponents(comboVariantId);
+export async function getComboAvailability(comboVariantId: number): Promise<ComboAvailability> {
+  const components = await getComboComponents(comboVariantId);
 
   if (components.length === 0) {
-    const variant = db.prepare('SELECT stock FROM product_variants WHERE id = ?').get(comboVariantId) as any;
+    const variant = await prisma.productVariants.findUnique({
+      where: { id: comboVariantId }
+    });
     const standaloneStock = variant && variant.stock !== null && variant.stock !== undefined ? variant.stock : 100;
     return {
       comboVariantId,
@@ -92,11 +114,14 @@ export function getComboAvailability(comboVariantId: number): ComboAvailability 
  * 3. Duplicate component check.
  * 4. Positive quantity check.
  */
-export function setComboComponents(
+export async function setComboComponents(
   comboVariantId: number,
   components: Array<{ componentVariantId: number; quantity: number }>
-): { success: boolean; error?: string } {
-  const comboVar = db.prepare('SELECT * FROM product_variants WHERE id = ?').get(comboVariantId) as any;
+): Promise<{ success: boolean; error?: string }> {
+  const comboVar = await prisma.productVariants.findUnique({
+    where: { id: comboVariantId }
+  });
+
   if (!comboVar) {
     return { success: false, error: 'Combo variant not found in database.' };
   }
@@ -119,38 +144,49 @@ export function setComboComponents(
     }
     seen.add(compId);
 
-    const compVar = db.prepare('SELECT * FROM product_variants WHERE id = ?').get(compId) as any;
+    const compVar = await prisma.productVariants.findUnique({
+      where: { id: compId }
+    });
     if (!compVar) {
       return { success: false, error: `Component variant ID ${compId} does not exist.` };
     }
 
     // Prevent nested combo (component variant is already a combo variant with mappings)
-    const isAlreadyCombo = db.prepare('SELECT COUNT(*) as cnt FROM combo_items WHERE combo_variant_id = ?').get(compId) as any;
-    if (isAlreadyCombo && isAlreadyCombo.cnt > 0) {
+    const isAlreadyCombo = await prisma.comboItems.count({
+      where: { combo_variant_id: compId }
+    });
+    if (isAlreadyCombo > 0) {
       return { success: false, error: `Nested combos rejected: Component variant ID ${compId} is already a combo.` };
     }
   }
 
   // Prevent this combo variant from being converted if it's already used as a component in another combo
-  const isUsedAsComponent = db.prepare('SELECT COUNT(*) as cnt FROM combo_items WHERE component_variant_id = ?').get(comboVariantId) as any;
-  if (isUsedAsComponent && isUsedAsComponent.cnt > 0 && components.length > 0) {
+  const isUsedAsComponent = await prisma.comboItems.count({
+    where: { component_variant_id: comboVariantId }
+  });
+  if (isUsedAsComponent > 0 && components.length > 0) {
     return { success: false, error: `Nested combos rejected: Variant ID ${comboVariantId} is already used as a component in another combo.` };
   }
 
-  const now = new Date().toISOString();
+  const now = new Date();
 
-  return db.transaction(() => {
-    db.prepare('DELETE FROM combo_items WHERE combo_variant_id = ?').run(comboVariantId);
+  await prisma.$transaction(async (tx) => {
+    await tx.comboItems.deleteMany({
+      where: { combo_variant_id: comboVariantId }
+    });
 
-    const insertStmt = db.prepare(`
-      INSERT INTO combo_items (combo_variant_id, component_variant_id, quantity, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?)
-    `);
-
-    for (const c of components) {
-      insertStmt.run(comboVariantId, Number(c.componentVariantId), Number(c.quantity), now, now);
+    if (components.length > 0) {
+      await tx.comboItems.createMany({
+        data: components.map(c => ({
+          combo_variant_id: comboVariantId,
+          component_variant_id: Number(c.componentVariantId),
+          quantity: Number(c.quantity),
+          created_at: now,
+          updated_at: now
+        }))
+      });
     }
+  });
 
-    return { success: true };
-  })();
+  return { success: true };
 }

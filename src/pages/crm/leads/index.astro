@@ -1,10 +1,10 @@
 ---
 import AdminLayout from '../../../layouts/AdminLayout.astro';
-import { db } from '../../../lib/db';
+import { prisma } from '../../../lib/db';
 import { getSessionUser } from '../../../lib/auth';
 import taxonomyData from '../../../../vinsho-taxonomy.json';
 
-const user = getSessionUser(Astro.request);
+const user = await getSessionUser(Astro.request);
 if (!user) {
   return Astro.redirect('/crm/login');
 }
@@ -17,39 +17,36 @@ const colFilter = url.searchParams.get('collectionKey') || '';
 const assignedFilter = url.searchParams.get('assignedTo') || '';
 const sortFilter = url.searchParams.get('sort') || 'newest';
 
-let sql = 'SELECT * FROM leads WHERE 1=1';
-const params: any[] = [];
-
+// Build Prisma where filter
+const where: any = {};
 if (q) {
-  sql += ' AND (LOWER(name) LIKE ? OR LOWER(email) LIKE ? OR LOWER(phone) LIKE ? OR LOWER(company) LIKE ? OR LOWER(product_slug) LIKE ?)';
-  const term = `%${q}%`;
-  params.push(term, term, term, term, term);
+  where.OR = [
+    { name: { contains: q, mode: 'insensitive' } },
+    { email: { contains: q, mode: 'insensitive' } },
+    { phone: { contains: q, mode: 'insensitive' } },
+    { company: { contains: q, mode: 'insensitive' } },
+    { product_slug: { contains: q, mode: 'insensitive' } }
+  ];
 }
-if (statusFilter) {
-  sql += ' AND status = ?';
-  params.push(statusFilter);
-}
-if (sourceFilter) {
-  sql += ' AND source = ?';
-  params.push(sourceFilter);
-}
-if (colFilter) {
-  sql += ' AND collection_key = ?';
-  params.push(colFilter);
-}
-if (assignedFilter) {
-  sql += ' AND assigned_to = ?';
-  params.push(assignedFilter);
-}
+if (statusFilter) where.status = statusFilter;
+if (sourceFilter) where.source = sourceFilter;
+if (colFilter) where.collection_key = colFilter;
+if (assignedFilter) where.assigned_to = parseInt(assignedFilter, 10);
 
-if (sortFilter === 'oldest') sql += ' ORDER BY created_at ASC';
-else if (sortFilter === 'name') sql += ' ORDER BY name ASC';
-else if (sortFilter === 'last_contact') sql += ' ORDER BY last_contact_at DESC';
-else if (sortFilter === 'next_follow_up') sql += ' ORDER BY next_follow_up_at ASC';
-else sql += ' ORDER BY created_at DESC';
+// Build Prisma orderBy
+const orderByMap: Record<string, any> = {
+  'oldest': { created_at: 'asc' },
+  'name': { name: 'asc' },
+  'last_contact': { last_contact_at: 'desc' },
+  'next_follow_up': { next_follow_up_at: 'asc' },
+  'newest': { created_at: 'desc' }
+};
+const orderBy = orderByMap[sortFilter] || { created_at: 'desc' };
 
-const leads = db.prepare(sql).all(...params) as any[];
-const users = db.prepare('SELECT id, name FROM admin_users ORDER BY name ASC').all() as any[];
+const [leads, users] = await Promise.all([
+  prisma.leads.findMany({ where, orderBy }),
+  prisma.adminUsers.findMany({ select: { id: true, name: true }, orderBy: { name: 'asc' } })
+]);
 
 const collections = taxonomyData.collections;
 ---

@@ -1,10 +1,10 @@
 ---
 import AdminLayout from '../../../layouts/AdminLayout.astro';
-import { db } from '../../../lib/db';
+import { prisma } from '../../../lib/db';
 import { getSessionUser } from '../../../lib/auth';
 import { computeCustomerStatus } from '../../../lib/crm';
 
-const user = getSessionUser(Astro.request);
+const user = await getSessionUser(Astro.request);
 if (!user) {
   return Astro.redirect('/admin/login');
 }
@@ -12,49 +12,66 @@ if (!user) {
 const { id } = Astro.params;
 if (!id) return Astro.redirect('/admin/customers');
 
-const customer = db.prepare('SELECT * FROM customers WHERE id = ? AND deleted_at IS NULL').get(id) as any;
+const customer = await prisma.customers.findFirst({
+  where: { id: parseInt(id, 10), deleted_at: null }
+});
 if (!customer) return Astro.redirect('/admin/customers');
 
-const computedStatus = computeCustomerStatus(customer);
+const computedStatus = computeCustomerStatus(customer as any);
 
 // Addresses
-const addresses = db.prepare('SELECT * FROM addresses WHERE customer_id = ? ORDER BY created_at DESC').all(id) as any[];
+const addresses = await prisma.addresses.findMany({
+  where: { customer_id: parseInt(id, 10) },
+  orderBy: { created_at: 'desc' }
+});
 const shippingAddr = addresses.find(a => a.type === 'SHIPPING') || addresses[0];
 const billingAddr = addresses.find(a => a.type === 'BILLING') || shippingAddr;
 
 // Enquiries
-const enquiries = db.prepare('SELECT * FROM enquiries WHERE customer_id = ? ORDER BY created_at DESC').all(id) as any[];
+const enquiries = await prisma.enquiries.findMany({
+  where: { customer_id: parseInt(id, 10) },
+  orderBy: { created_at: 'desc' }
+});
 const openEnquiries = enquiries.filter(e => e.status !== 'Converted' && e.status !== 'Lost');
 
 // Follow-ups
-const followups = db.prepare(`
-  SELECT f.*, u.name as assignee_name
-  FROM follow_ups f
-  LEFT JOIN admin_users u ON f.assigned_to = u.id
-  WHERE f.entity_type = 'customer' AND f.entity_id = ?
-  ORDER BY f.due_at DESC
-`).all(id) as any[];
-
+const followupsRaw = await prisma.follow_ups.findMany({
+  where: { entity_type: 'customer', entity_id: parseInt(id, 10) },
+  orderBy: { due_at: 'desc' },
+  include: { admin_users: { select: { name: true } } }
+});
+const followups = followupsRaw.map(f => ({ ...f, assignee_name: f.admin_users?.name || null }));
 const nextFollowup = followups.find(f => f.status === 'PENDING');
 
 // Quotations
-const quotations = db.prepare('SELECT * FROM quotations WHERE customer_id = ? ORDER BY created_at DESC').all(id) as any[];
+const quotations = await prisma.quotations.findMany({
+  where: { customer_id: parseInt(id, 10) },
+  orderBy: { created_at: 'desc' }
+});
 const acceptedQuotes = quotations.filter(q => q.status === 'ACCEPTED');
 
 // Orders
-const orders = db.prepare('SELECT * FROM orders WHERE customer_id = ? ORDER BY created_at DESC').all(id) as any[];
+const orders = await prisma.orders.findMany({
+  where: { customer_id: parseInt(id, 10) },
+  orderBy: { created_at: 'desc' }
+});
 
 // Payments (Full Financial Breakdown)
-const payments = db.prepare(`
-  SELECT p.*, o.order_number, o.grand_total as order_total
-  FROM payments p
-  JOIN orders o ON p.order_id = o.id
-  WHERE o.customer_id = ?
-  ORDER BY p.created_at DESC
-`).all(id) as any[];
+const paymentsRaw = await prisma.payments.findMany({
+  where: { orders: { customer_id: parseInt(id, 10) } },
+  orderBy: { created_at: 'desc' },
+  include: { orders: { select: { order_number: true, grand_total: true } } }
+});
+const payments = paymentsRaw.map(p => ({
+  ...p,
+  order_number: p.orders?.order_number || '',
+  order_total: Number(p.orders?.grand_total ?? 0),
+  amount: Number(p.amount ?? 0),
+  refund_amount: p.refund_amount !== null ? Number(p.refund_amount) : null
+}));
 
 // Financial calculations
-const totalSpent = customer.total_spend || 0;
+const totalSpent = Number(customer.total_spend ?? 0);
 const totalOrdersCount = orders.length;
 const aov = totalOrdersCount > 0 ? Math.round(totalSpent / totalOrdersCount) : 0;
 
@@ -64,9 +81,9 @@ let totalRefunded = 0;
 
 orders.forEach(o => {
   if (o.payment_status === 'paid') {
-    totalPaid += o.grand_total;
+    totalPaid += Number(o.grand_total ?? 0);
   } else if (o.payment_status === 'pending') {
-    totalPending += o.grand_total;
+    totalPending += Number(o.grand_total ?? 0);
   }
 });
 
@@ -79,16 +96,32 @@ payments.forEach(p => {
 const balanceDue = Math.max(0, totalPending);
 
 // Unified Chronological Activity Timeline
-const rawActivities = db.prepare(`
-  SELECT a.*, u.name as actor_name
-  FROM crm_activities a
-  LEFT JOIN admin_users u ON a.actor_id = u.id
-  WHERE (a.entity_type = 'customer' AND a.entity_id = ?)
-  ORDER BY a.created_at DESC
-  LIMIT 20
-`).all(id) as any[];
+const rawActivitiesData = await prisma.crm_activities.findMany({
+  where: { entity_type: 'customer', entity_id: parseInt(id, 10) },
+  orderBy: { created_at: 'desc' },
+  take: 20,
+  include: { admin_users: { select: { name: true } } }
+});
+const rawActivities = rawActivitiesData.map(a => ({ ...a, actor_name: a.admin_users?.name || 'System' }));
 
-const products = db.prepare('SELECT v.id as variant_id, p.name as product_name, v.size, v.colour, v.selling_price FROM product_variants v JOIN products p ON v.product_id = p.id WHERE p.deleted_at IS NULL LIMIT 50').all() as any[];
+const productsRaw = await prisma.product_variants.findMany({
+  where: { products: { deleted_at: null } },
+  take: 50,
+  select: {
+    id: true,
+    size: true,
+    colour: true,
+    selling_price: true,
+    products: { select: { name: true } }
+  }
+});
+const products = productsRaw.map(v => ({
+  variant_id: v.id,
+  product_name: v.products?.name || '',
+  size: v.size,
+  colour: v.colour,
+  selling_price: Number(v.selling_price ?? 0)
+}));
 ---
 
 <AdminLayout title={`Customer 360° Profile — ${customer.name}`} activeNav="customers">

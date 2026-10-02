@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { db } from '../../lib/db.js';
+import { prisma } from '../../lib/db.js';
 import { findOrCreateCustomer, logCrmActivity } from '../../lib/crm.js';
 import { logNotification } from '../../lib/notifications.js';
 import content from '../../../vinsho-content.json';
@@ -31,8 +31,11 @@ export const POST: APIRoute = async ({ request }) => {
     const windowMs = 10 * 60 * 1000;
     const maxSubmissions = 3;
 
-    const rateRow = db.prepare('SELECT * FROM enquiry_rate_limits WHERE identifier = ?').get(rateIdentifier) as any;
-    if (rateRow && now - rateRow.first_attempt_at < windowMs && rateRow.attempts >= maxSubmissions) {
+    const rateRow = await prisma.enquiry_rate_limits.findUnique({
+      where: { identifier: rateIdentifier }
+    });
+
+    if (rateRow && (now - Number(rateRow.first_attempt_at)) < windowMs && (rateRow.attempts || 0) >= maxSubmissions) {
       return new Response(JSON.stringify({
         error: 'Too many submissions. Please wait 10 minutes before submitting again.'
       }), {
@@ -41,14 +44,26 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    if (!rateRow || now - rateRow.first_attempt_at > windowMs) {
-      db.prepare(`
-        INSERT INTO enquiry_rate_limits (identifier, attempts, first_attempt_at)
-        VALUES (?, 1, ?)
-        ON CONFLICT(identifier) DO UPDATE SET attempts = 1, first_attempt_at = ?
-      `).run(rateIdentifier, now, now);
+    if (!rateRow || (now - Number(rateRow.first_attempt_at)) > windowMs) {
+      await prisma.enquiry_rate_limits.upsert({
+        where: { identifier: rateIdentifier },
+        create: {
+          identifier: rateIdentifier,
+          attempts: 1,
+          first_attempt_at: BigInt(now)
+        },
+        update: {
+          attempts: 1,
+          first_attempt_at: BigInt(now)
+        }
+      });
     } else {
-      db.prepare('UPDATE enquiry_rate_limits SET attempts = attempts + 1 WHERE identifier = ?').run(rateIdentifier);
+      await prisma.enquiry_rate_limits.update({
+        where: { identifier: rateIdentifier },
+        data: {
+          attempts: { increment: 1 }
+        }
+      });
     }
 
     // 3. Input Validation
@@ -70,10 +85,10 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // 4. Customer Deduplication (Phone first, then Email)
-    const consentTime = new Date().toISOString();
+    const consentTime = new Date();
     const consentText = dpdp_consent ? 'Customer service & enquiry under DPDP Act 2023' : 'Implicit submission consent under DPDP Act 2023';
 
-    const { customer } = findOrCreateCustomer({
+    const { customer } = await findOrCreateCustomer({
       name: cleanName,
       phone: cleanPhone || 'Not Provided',
       email: cleanEmail || null,
@@ -93,7 +108,10 @@ export const POST: APIRoute = async ({ request }) => {
     let productId: number | null = null;
     let productName = productSlug || (cleanSubject ? `Subject: ${cleanSubject}` : 'General Inquiry');
     if (productSlug) {
-      const pRow = db.prepare('SELECT id, name FROM products WHERE slug = ?').get(productSlug) as any;
+      const pRow = await prisma.products.findFirst({
+        where: { slug: productSlug, deleted_at: null },
+        select: { id: true, name: true }
+      });
       if (pRow) {
         productId = pRow.id;
         productName = pRow.name;
@@ -101,26 +119,25 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // 5. Create Enquiry Record
-    const enquiryRes = db.prepare(`
-      INSERT INTO enquiries (
-        customer_id, product_id, name, phone, email, message, source, status, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, 'New', ?, ?)
-    `).run(
-      customer.id,
-      productId,
-      cleanName,
-      cleanPhone || 'Not Provided',
-      cleanEmail || null,
-      finalMessage,
-      source || 'Contact Us Page',
-      consentTime,
-      consentTime
-    );
+    const newEnquiry = await prisma.enquiries.create({
+      data: {
+        customer_id: customer.id,
+        product_id: productId,
+        name: cleanName,
+        phone: cleanPhone || 'Not Provided',
+        email: cleanEmail || null,
+        message: finalMessage,
+        source: source || 'Contact Us Page',
+        status: 'New',
+        created_at: consentTime,
+        updated_at: consentTime
+      }
+    });
 
-    const enquiryId = enquiryRes.lastInsertRowid as number;
+    const enquiryId = newEnquiry.id;
 
     // 6. Log Activity Audit Timeline
-    logCrmActivity({
+    await logCrmActivity({
       entityType: 'enquiry',
       entityId: enquiryId,
       actorId: null,
@@ -130,7 +147,7 @@ export const POST: APIRoute = async ({ request }) => {
     });
 
     // 7. Log Notification Event
-    logNotification({
+    await logNotification({
       channel: 'WHATSAPP',
       template: 'NEW_ENQUIRY_STAFF',
       recipient: content.brand.phone,

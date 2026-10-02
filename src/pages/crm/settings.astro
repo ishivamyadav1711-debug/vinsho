@@ -1,16 +1,19 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
-import { db } from '../../lib/db';
+import { prisma } from '../../lib/db';
 import { getSessionUser } from '../../lib/auth';
 
-const user = getSessionUser(Astro.request);
+const user = await getSessionUser(Astro.request);
 if (!user) {
   return Astro.redirect('/crm/login');
 }
 
 const isSuperAdmin = user.role === 'SUPER_ADMIN';
-const users = isSuperAdmin 
-  ? db.prepare('SELECT id, email, name, role, created_at FROM admin_users ORDER BY name ASC').all() as any[]
+const users = isSuperAdmin
+  ? await prisma.adminUsers.findMany({
+      select: { id: true, email: true, name: true, role: true, created_at: true },
+      orderBy: { name: 'asc' }
+    })
   : [];
 ---
 

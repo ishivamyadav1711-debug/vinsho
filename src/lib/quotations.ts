@@ -1,4 +1,4 @@
-import { db, getNextSequenceNumber } from './db.js';
+import { prisma, getNextSequenceNumber } from './db.js';
 import { logCrmActivity } from './crm.js';
 import { createOrder } from './orders.js';
 
@@ -15,27 +15,24 @@ export interface CreateQuotationParams {
   }>;
 }
 
-export function createQuotation(params: CreateQuotationParams) {
-  const quoteNumber = getNextSequenceNumber('QUOTE', 'VIN-Q');
+export async function createQuotation(params: CreateQuotationParams): Promise<any> {
+  const quoteNumber = await getNextSequenceNumber('QUOTE', 'VIN-Q');
   const now = new Date();
-  const nowIso = now.toISOString();
-  const validUntil = new Date(now.getTime() + (params.validDays || 14) * 24 * 60 * 60 * 1000).toISOString();
+  const validUntil = new Date(now.getTime() + (params.validDays || 14) * 24 * 60 * 60 * 1000);
 
   let subtotal = 0;
   let taxTotal = 0;
   const processedItems: any[] = [];
 
   for (const item of params.items) {
-    const v = db.prepare(`
-      SELECT v.*, p.name as product_name
-      FROM product_variants v
-      JOIN products p ON v.product_id = p.id
-      WHERE v.id = ?
-    `).get(item.variantId) as any;
+    const v = await prisma.productVariants.findUnique({
+      where: { id: item.variantId },
+      include: { product: true }
+    });
 
     if (!v) throw new Error(`Variant ID ${item.variantId} not found.`);
 
-    const unitPrice = v.selling_price;
+    const unitPrice = v.selling_price ? Number(v.selling_price) : 0;
     const lineSubtotal = unitPrice * item.qty;
     const discount = item.discount || 0;
     const lineTotal = lineSubtotal - discount;
@@ -46,7 +43,7 @@ export function createQuotation(params: CreateQuotationParams) {
 
     processedItems.push({
       variantId: v.id,
-      productNameSnapshot: v.product_name,
+      productNameSnapshot: v.product.name,
       variantLabelSnapshot: label,
       unitPrice,
       qty: item.qty,
@@ -57,48 +54,44 @@ export function createQuotation(params: CreateQuotationParams) {
 
   const grandTotal = Number((subtotal + taxTotal).toFixed(2));
 
-  return db.transaction(() => {
-    const res = db.prepare(`
-      INSERT INTO quotations (
-        quote_number, customer_id, enquiry_id, created_by, status,
-        subtotal, discount_total, tax_total, shipping_total, grand_total,
-        valid_until, notes, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, 'SENT', ?, 0, ?, 0, ?, ?, ?, ?, ?)
-    `).run(
-      quoteNumber,
-      params.customerId,
-      params.enquiryId || null,
-      params.createdBy,
-      subtotal,
-      taxTotal,
-      grandTotal,
-      validUntil,
-      params.notes || '',
-      nowIso,
-      nowIso
-    );
+  return await prisma.$transaction(async (tx) => {
+    const quotation = await tx.quotations.create({
+      data: {
+        quote_number: quoteNumber,
+        customer_id: params.customerId,
+        enquiry_id: params.enquiryId || null,
+        created_by: params.createdBy,
+        status: 'SENT',
+        subtotal: subtotal,
+        discount_total: 0,
+        tax_total: taxTotal,
+        shipping_total: 0,
+        grand_total: grandTotal,
+        valid_until: validUntil,
+        notes: params.notes || '',
+        created_at: now,
+        updated_at: now
+      }
+    });
 
-    const quoteId = res.lastInsertRowid as number;
+    const quoteId = quotation.id;
 
     for (const item of processedItems) {
-      db.prepare(`
-        INSERT INTO quotation_items (
-          quotation_id, variant_id, product_name_snapshot, variant_label_snapshot,
-          unit_price, qty, discount, line_total
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      `).run(
-        quoteId,
-        item.variantId,
-        item.productNameSnapshot,
-        item.variantLabelSnapshot,
-        item.unitPrice,
-        item.qty,
-        item.discount,
-        item.lineTotal
-      );
+      await tx.quotationItems.create({
+        data: {
+          quotation_id: quoteId,
+          variant_id: item.variantId,
+          product_name_snapshot: item.productNameSnapshot,
+          variant_label_snapshot: item.variantLabelSnapshot,
+          unit_price: item.unitPrice,
+          qty: item.qty,
+          discount: item.discount,
+          line_total: item.lineTotal
+        }
+      });
     }
 
-    logCrmActivity({
+    await logCrmActivity({
       entityType: 'customer',
       entityId: params.customerId,
       actorId: params.createdBy,
@@ -107,28 +100,39 @@ export function createQuotation(params: CreateQuotationParams) {
       meta: { quoteNumber, grandTotal }
     });
 
-    return db.prepare('SELECT * FROM quotations WHERE id = ?').get(quoteId);
-  })();
+    return await tx.quotations.findUnique({
+      where: { id: quoteId },
+      include: { QuotationItems: true }
+    });
+  });
 }
 
-export function convertQuotationToOrder(quotationId: number, actorId: number) {
-  const quote = db.prepare('SELECT * FROM quotations WHERE id = ?').get(quotationId) as any;
+export async function convertQuotationToOrder(quotationId: number, actorId: number): Promise<any> {
+  const quote = await prisma.quotations.findUnique({
+    where: { id: quotationId },
+    include: { QuotationItems: true }
+  });
   if (!quote) throw new Error('Quotation not found.');
 
-  const items = db.prepare('SELECT * FROM quotation_items WHERE quotation_id = ?').all(quotationId) as any[];
-  const customer = db.prepare('SELECT * FROM customers WHERE id = ?').get(quote.customer_id) as any;
-  const address = db.prepare('SELECT * FROM addresses WHERE customer_id = ? ORDER BY created_at DESC LIMIT 1').get(quote.customer_id) as any || {
+  const customer = await prisma.customers.findUnique({ where: { id: quote.customer_id } });
+  if (!customer) throw new Error('Customer not found.');
+
+  const address = await prisma.addresses.findFirst({
+    where: { customer_id: quote.customer_id },
+    orderBy: { created_at: 'desc' }
+  }) || {
     name: customer.name,
     phone: customer.phone,
     line1: 'Corporate Delivery Desk',
+    line2: '',
     city: 'Karnal',
     state: 'Haryana',
     pincode: '132001'
   };
 
-  const orderResult = createOrder({
+  const orderResult = await createOrder({
     customerId: quote.customer_id,
-    items: items.map(i => ({ variantId: i.variant_id, qty: i.qty })),
+    items: quote.QuotationItems.map(i => ({ variantId: i.variant_id, qty: i.qty })),
     shippingAddress: {
       name: address.name || customer.name,
       phone: address.phone || customer.phone,
@@ -145,11 +149,16 @@ export function convertQuotationToOrder(quotationId: number, actorId: number) {
     throw new Error(orderResult.error || 'Failed to convert quotation to order.');
   }
 
-  // Update quotation status to ACCEPTED
-  db.prepare(`UPDATE quotations SET status = 'ACCEPTED', updated_at = ? WHERE id = ?`)
-    .run(new Date().toISOString(), quotationId);
+  const now = new Date();
+  await prisma.quotations.update({
+    where: { id: quotationId },
+    data: {
+      status: 'ACCEPTED',
+      updated_at: now
+    }
+  });
 
-  logCrmActivity({
+  await logCrmActivity({
     entityType: 'customer',
     entityId: quote.customer_id,
     actorId,

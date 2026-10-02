@@ -1,4 +1,4 @@
-import { db } from './db.js';
+import { prisma } from './db.js';
 
 export type PipelineStatus = 'New' | 'Contacted' | 'Qualified' | 'Quotation Sent' | 'Negotiation' | 'Converted' | 'Lost';
 export type CustomerStatus = 'Lead' | 'New' | 'Active' | 'Repeat' | 'VIP' | 'Inactive';
@@ -8,21 +8,21 @@ export interface CustomerRecord {
   name: string;
   email: string | null;
   phone: string;
-  city: string;
-  state: string;
-  pincode: string;
-  country: string;
+  city: string | null;
+  state: string | null;
+  pincode: string | null;
+  country: string | null;
   status: CustomerStatus;
-  source: string;
-  first_order_at: string | null;
-  last_order_at: string | null;
-  total_orders: number;
-  total_spend: number;
-  consent_at: string | null;
+  source: string | null;
+  first_order_at: Date | null;
+  last_order_at: Date | null;
+  total_orders: number | null;
+  total_spend: any;
+  consent_at: Date | null;
   consent_purpose: string | null;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string | null;
+  created_at: Date;
+  updated_at: Date;
+  deleted_at: Date | null;
 }
 
 export interface EnquiryRecord {
@@ -33,14 +33,14 @@ export interface EnquiryRecord {
   name: string;
   phone: string;
   email: string | null;
-  message: string;
+  message: string | null;
   source: string;
   status: PipelineStatus;
   assigned_to: number | null;
-  value_estimate: number | null;
-  created_at: string;
-  updated_at: string;
-  closed_at: string | null;
+  value_estimate: any;
+  created_at: Date;
+  updated_at: Date;
+  closed_at: Date | null;
   lost_reason: string | null;
 }
 
@@ -88,116 +88,125 @@ export function computeCustomerStatus(customer: CustomerRecord): CustomerStatus 
 /**
  * Deduplicate customer on phone first, then email.
  */
-export function findOrCreateCustomer(params: {
+export async function findOrCreateCustomer(params: {
   name: string;
   phone: string;
   email?: string | null;
   source?: string;
-  consentAt?: string | null;
+  consentAt?: string | Date | null;
   consentPurpose?: string | null;
-}): { customer: CustomerRecord; isNew: boolean } {
+}): Promise<{ customer: CustomerRecord; isNew: boolean }> {
   const cleanPhone = params.phone.trim();
   const cleanEmail = params.email ? params.email.trim().toLowerCase() : null;
-  const now = new Date().toISOString();
+  const now = new Date();
 
-  let customer = db.prepare('SELECT * FROM customers WHERE phone = ? AND deleted_at IS NULL').get(cleanPhone) as CustomerRecord | undefined;
+  let customer = await prisma.customers.findFirst({
+    where: { phone: cleanPhone, deleted_at: null }
+  });
 
   if (!customer && cleanEmail) {
-    customer = db.prepare('SELECT * FROM customers WHERE email = ? AND deleted_at IS NULL').get(cleanEmail) as CustomerRecord | undefined;
+    customer = await prisma.customers.findFirst({
+      where: { email: cleanEmail, deleted_at: null }
+    });
   }
 
   if (customer) {
-    // Update existing customer info if provided
-    db.prepare(`
-      UPDATE customers SET
-        name = ?,
-        email = COALESCE(?, email),
-        updated_at = ?
-      WHERE id = ?
-    `).run(params.name.trim(), cleanEmail, now, customer.id);
+    const updated = await prisma.customers.update({
+      where: { id: customer.id },
+      data: {
+        name: params.name.trim(),
+        email: cleanEmail || customer.email,
+        updated_at: now
+      }
+    });
 
-    const updatedCustomer = db.prepare('SELECT * FROM customers WHERE id = ?').get(customer.id) as CustomerRecord;
-    return { customer: updatedCustomer, isNew: false };
+    return { customer: updated as unknown as CustomerRecord, isNew: false };
   }
 
-  // Create new Customer
-  const result = db.prepare(`
-    INSERT INTO customers (
-      name, email, phone, status, source, consent_at, consent_purpose, created_at, updated_at
-    ) VALUES (?, ?, ?, 'Lead', ?, ?, ?, ?, ?)
-  `).run(
-    params.name.trim(),
-    cleanEmail,
-    cleanPhone,
-    params.source || 'Website Enquiry',
-    params.consentAt || now,
-    params.consentPurpose || 'Product quotation and customer service under DPDP Act 2023',
-    now,
-    now
-  );
+  const consentDate = params.consentAt ? new Date(params.consentAt) : now;
 
-  const newCustomer = db.prepare('SELECT * FROM customers WHERE id = ?').get(result.lastInsertRowid) as CustomerRecord;
-  return { customer: newCustomer, isNew: true };
+  const newCustomer = await prisma.customers.create({
+    data: {
+      name: params.name.trim(),
+      email: cleanEmail,
+      phone: cleanPhone,
+      status: 'Lead',
+      source: params.source || 'Website Enquiry',
+      consent_at: consentDate,
+      consent_purpose: params.consentPurpose || 'Product quotation and customer service under DPDP Act 2023',
+      created_at: now,
+      updated_at: now
+    }
+  });
+
+  return { customer: newCustomer as unknown as CustomerRecord, isNew: true };
 }
 
 /**
  * Log CRM activity in crm_activities audit timeline
  */
-export function logCrmActivity(params: {
+export async function logCrmActivity(params: {
   entityType: 'customer' | 'enquiry';
   entityId: number;
   actorId?: number | null;
   type: string;
   summary: string;
   meta?: any;
-}) {
-  const now = new Date().toISOString();
-  db.prepare(`
-    INSERT INTO crm_activities (entity_type, entity_id, actor_id, type, summary, meta, created_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `).run(
-    params.entityType,
-    params.entityId,
-    params.actorId || null,
-    params.type,
-    params.summary,
-    params.meta ? JSON.stringify(params.meta) : null,
-    now
-  );
+}): Promise<void> {
+  const now = new Date();
+  try {
+    await prisma.crmActivities.create({
+      data: {
+        entity_type: params.entityType,
+        entity_id: params.entityId,
+        actor_id: params.actorId || null,
+        type: params.type,
+        summary: params.summary,
+        meta: params.meta ? JSON.stringify(params.meta) : null,
+        created_at: now
+      }
+    });
+  } catch (err) {
+    console.error('Failed to log CRM activity:', err);
+  }
 }
 
 /**
  * Transition Lead Pipeline Status
  */
-export function transitionEnquiryStatus(params: {
+export async function transitionEnquiryStatus(params: {
   enquiryId: number;
   newStatus: PipelineStatus;
   actorId?: number | null;
   lostReason?: string | null;
   note?: string | null;
-}): { success: boolean; enquiry: EnquiryRecord; error?: string } {
-  const enquiry = db.prepare('SELECT * FROM enquiries WHERE id = ?').get(params.enquiryId) as EnquiryRecord | undefined;
+}): Promise<{ success: boolean; enquiry: EnquiryRecord; error?: string }> {
+  const enquiry = await prisma.enquiries.findUnique({
+    where: { id: params.enquiryId }
+  });
+
   if (!enquiry) {
     return { success: false, enquiry: null as any, error: 'Enquiry not found.' };
   }
 
   if (params.newStatus === 'Lost' && (!params.lostReason || params.lostReason.trim() === '')) {
-    return { success: false, enquiry, error: 'Transition to Lost status requires a valid lost_reason.' };
+    return { success: false, enquiry: enquiry as unknown as EnquiryRecord, error: 'Transition to Lost status requires a valid lost_reason.' };
   }
 
-  const now = new Date().toISOString();
+  const now = new Date();
   const closedAt = (params.newStatus === 'Converted' || params.newStatus === 'Lost') ? now : null;
 
-  db.prepare(`
-    UPDATE enquiries SET
-      status = ?,
-      closed_at = ?,
-      lost_reason = ?,
-      updated_at = ?
-    WHERE id = ?
-  `).run(params.newStatus, closedAt, params.lostReason || null, now, params.enquiryId);
+  const updatedEnquiry = await prisma.enquiries.update({
+    where: { id: params.enquiryId },
+    data: {
+      status: params.newStatus,
+      closed_at: closedAt,
+      lost_reason: params.lostReason || null,
+      updated_at: now
+    }
+  });
 
-  logCrmActivity({
+  await logCrmActivity({
     entityType: 'enquiry',
     entityId: params.enquiryId,
     actorId: params.actorId,
@@ -206,6 +215,5 @@ export function transitionEnquiryStatus(params: {
     meta: { before: enquiry.status, after: params.newStatus, lostReason: params.lostReason, note: params.note }
   });
 
-  const updatedEnquiry = db.prepare('SELECT * FROM enquiries WHERE id = ?').get(params.enquiryId) as EnquiryRecord;
-  return { success: true, enquiry: updatedEnquiry };
+  return { success: true, enquiry: updatedEnquiry as unknown as EnquiryRecord };
 }

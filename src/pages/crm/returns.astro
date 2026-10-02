@@ -1,23 +1,32 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
-import { db } from '../../lib/db';
+import { prisma } from '../../lib/db';
 import { getSessionUser } from '../../lib/auth';
 
-const user = getSessionUser(Astro.request);
+const user = await getSessionUser(Astro.request);
 if (!user) {
   return Astro.redirect('/crm/login');
 }
 
-const returnsList = db.prepare(`
-  SELECT r.*, o.order_number, c.name as customer_name, c.phone as customer_phone, u.name as inspector_name
-  FROM returns r
-  JOIN orders o ON r.order_id = o.id
-  JOIN customers c ON r.customer_id = c.id
-  LEFT JOIN admin_users u ON r.inspected_by = u.id
-  ORDER BY r.created_at DESC
-`).all() as any[];
+const returnsListRaw = await prisma.returns.findMany({
+  orderBy: { created_at: 'desc' },
+  include: {
+    orders: { select: { order_number: true } },
+    customers: { select: { name: true, phone: true } },
+    admin_users: { select: { name: true } }
+  }
+});
 
-const rtoCount = returnsList.filter(r => r.is_rto === 1).length;
+const returnsList = returnsListRaw.map(r => ({
+  ...r,
+  order_number: r.orders?.order_number || '',
+  customer_name: r.customers?.name || '',
+  customer_phone: r.customers?.phone || '',
+  inspector_name: r.admin_users?.name || null,
+  refund_amount: Number(r.refund_amount ?? 0)
+}));
+
+const rtoCount = returnsList.filter(r => r.is_rto).length;
 const pendingInspectionCount = returnsList.filter(r => r.status === 'REQUESTED' || r.status === 'RECEIVED').length;
 ---
 

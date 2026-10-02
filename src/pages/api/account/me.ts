@@ -1,10 +1,10 @@
 import type { APIRoute } from 'astro';
-import { db } from '../../../lib/db.js';
+import { prisma } from '../../../lib/db.js';
 import { getCustomerFromSession } from '../../../lib/customerAuth.js';
 
 export const GET: APIRoute = async ({ request }) => {
   try {
-    const customer = getCustomerFromSession(request);
+    const customer = await getCustomerFromSession(request);
     if (!customer) {
       return new Response(JSON.stringify({ authenticated: false, customer: null }), {
         status: 401,
@@ -13,12 +13,23 @@ export const GET: APIRoute = async ({ request }) => {
     }
 
     // Fetch saved shipping addresses for this customer
-    const addresses = db.prepare(`
-      SELECT id, type, name, phone, line1, line2, city, state, pincode, country, is_default
-      FROM addresses 
-      WHERE customer_id = ? 
-      ORDER BY id DESC
-    `).all(customer.id);
+    const addresses = await prisma.addresses.findMany({
+      where: { customer_id: customer.id },
+      select: {
+        id: true,
+        type: true,
+        name: true,
+        phone: true,
+        line1: true,
+        line2: true,
+        city: true,
+        state: true,
+        pincode: true,
+        country: true,
+        is_default: true
+      },
+      orderBy: { id: 'desc' }
+    });
 
     return new Response(JSON.stringify({
       authenticated: true,
