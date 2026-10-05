@@ -1,5 +1,5 @@
 ---
-import Base from '../../../layouts/Base.astro';
+import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { getSessionUser } from '../../../lib/auth';
 import { prisma } from '../../../lib/db';
 import { evaluatePurchasability, COMMERCE_MODE } from '../../../lib/purchasability';
@@ -46,30 +46,14 @@ const purchasability = evaluatePurchasability(product, variants as any[]);
 const missingFields = [...purchasability.missingProductFields, ...purchasability.missingVariantFields];
 ---
 
-<Base title={`Edit ${product.name} — VINSHO Admin`}>
-  <div class="admin-dashboard-wrap">
-    <aside class="admin-sidebar">
-      <div class="sidebar-brand">
-        <strong>VINSHO ADMIN</strong>
-        <small>Backoffice System v1.0</small>
+<AdminLayout title={`Edit ${product.name}`} activeNav="products">
+  <div class="product-edit-page">
+    <header class="admin-page-header">
+      <div>
+        <a href="/crm/products" class="back-link">&larr; Return to products list</a>
+        <h1>Editing Product: {product.name}</h1>
+        <p class="header-sub">Update product attributes, Legal Metrology compliance declarations, and variant pricing.</p>
       </div>
-      <nav class="admin-nav">
-        <a href="/crm/products" class="nav-item active">&larr; Back to Catalogue</a>
-        <a href="/crm/dashboard" class="nav-item">Leads &amp; CRM</a>
-        <a href="/crm/settings" class="nav-item">Settings</a>
-      </nav>
-      <div class="sidebar-user">
-        <span>User: <b>{user.name}</b></span>
-      </div>
-    </aside>
-
-    <main class="admin-content-area">
-      <header class="admin-page-header">
-        <div>
-          <a href="/crm/products" class="back-link">&larr; Return to products list</a>
-          <h1>Editing Product: {product.name}</h1>
-          <p class="header-sub">Update product attributes, Legal Metrology compliance declarations, and variant pricing.</p>
-        </div>
         <div class="header-right-meta">
           <button id="btn-save-product" class="btn-save">SAVE ALL CHANGES</button>
         </div>
@@ -311,48 +295,50 @@ const missingFields = [...purchasability.missingProductFields, ...purchasability
                 </button>
               </div>
 
-              <table class="admin-table combo-components-table" id={`combo-comp-table-${v.id}`} style="background: #fff; border-radius: 6px; overflow: hidden; margin-bottom: 1rem;">
-                <thead>
-                  <tr style="background: #f1f5f9; font-size: 0.781rem;">
-                    <th>Component Product / Variant</th>
-                    <th>Required Qty per Combo</th>
-                    <th>Available Physical Stock</th>
-                    <th>Max Combos Possible</th>
-                    <th style="text-align: right;">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {v.comboAvailability.components.length > 0 ? (
-                    v.comboAvailability.components.map((comp: any) => (
-                      <tr class="combo-comp-row">
-                        <td>
-                          <select class="comp-var-select admin-select" style="font-size: 0.813rem;">
-                            {allSelectableVariants.map((sv: any) => (
-                              <option value={sv.id} selected={sv.id === comp.componentVariantId}>
-                                {sv.product_name} ({sv.sku || `Var #${sv.id}`})
-                              </option>
-                            ))}
-                          </select>
-                        </td>
-                        <td>
-                          <input type="number" min="1" class="comp-qty-input admin-input-sm" value={comp.requiredQty} style="width: 80px;" />
-                        </td>
-                        <td>{comp.stock} units</td>
-                        <td><strong style="color: #166534;">{comp.maxCombosPossible}</strong></td>
-                        <td style="text-align: right;">
-                          <button type="button" class="btn-del-row" onclick="this.closest('tr').remove()">&times;</button>
+              <div class="table-scroll-container">
+                <table class="admin-table combo-components-table" id={`combo-comp-table-${v.id}`} style="background: #fff; border-radius: 6px; overflow: hidden; margin-bottom: 1rem; min-width: 600px;">
+                  <thead>
+                    <tr style="background: #f1f5f9; font-size: 0.781rem;">
+                      <th>Component Product / Variant</th>
+                      <th>Required Qty per Combo</th>
+                      <th>Available Physical Stock</th>
+                      <th>Max Combos Possible</th>
+                      <th style="text-align: right;">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {v.comboAvailability.components.length > 0 ? (
+                      v.comboAvailability.components.map((comp: any) => (
+                        <tr class="combo-comp-row">
+                          <td>
+                            <select class="comp-var-select admin-select" style="font-size: 0.813rem;">
+                              {allSelectableVariants.map((sv: any) => (
+                                <option value={sv.id} selected={sv.id === comp.componentVariantId}>
+                                  {sv.product_name} ({sv.sku || `Var #${sv.id}`})
+                                </option>
+                              ))}
+                            </select>
+                          </td>
+                          <td>
+                            <input type="number" min="1" class="comp-qty-input admin-input-sm" value={comp.requiredQty} style="width: 80px;" />
+                          </td>
+                          <td>{comp.stock} units</td>
+                          <td><strong style="color: #166534;">{comp.maxCombosPossible}</strong></td>
+                          <td style="text-align: right;">
+                            <button type="button" class="btn-del-row" onclick="this.closest('tr').remove()">&times;</button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr class="empty-comp-row">
+                        <td colspan="5" style="text-align: center; color: #64748b; padding: 1rem; font-size: 0.813rem;">
+                          No components mapped for this variant. It currently sells as a standalone product.
                         </td>
                       </tr>
-                    ))
-                  ) : (
-                    <tr class="empty-comp-row">
-                      <td colspan="5" style="text-align: center; color: #64748b; padding: 1rem; font-size: 0.813rem;">
-                        No components mapped for this variant. It currently sells as a standalone product.
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                    )}
+                  </tbody>
+                </table>
+              </div>
 
               <button type="button" class="btn-add-comp-row" data-target-table={`combo-comp-table-${v.id}`} style="background: #0f172a; color: #fff; border: none; padding: 0.35rem 0.75rem; border-radius: 4px; font-size: 0.781rem; font-weight: 600; cursor: pointer;">
                 + Add Component to Bundle
@@ -361,9 +347,8 @@ const missingFields = [...purchasability.missingProductFields, ...purchasability
           ))}
         </div>
       </form>
-    </main>
-  </div>
-</Base>
+    </div>
+</AdminLayout>
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
@@ -527,19 +512,14 @@ const missingFields = [...purchasability.missingProductFields, ...purchasability
 </script>
 
 <style>
-  .admin-dashboard-wrap { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #f4f6f8; color: #1a1a1a; }
-  .admin-sidebar { background: #1e293b; color: #f8fafc; padding: 1.5rem; }
-  .sidebar-brand strong { display: block; font-size: 1.15rem; color: #fff; }
-  .admin-nav { margin-top: 2rem; display: flex; flex-direction: column; gap: 0.4rem; }
-  .nav-item { color: #cbd5e1; padding: 0.6rem 0.85rem; border-radius: 4px; text-decoration: none; font-size: 0.88rem; }
-  .nav-item:hover, .nav-item.active { background: #334155; color: #fff; }
-
-  .admin-content-area { padding: 2rem; }
-  .back-link { font-size: 0.813rem; color: #64748b; text-decoration: none; margin-bottom: 0.5rem; display: inline-block; }
-  .admin-page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
+  .product-edit-page { display: flex; flex-direction: column; gap: 1.25rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #1a1a1a; }
+  .back-link { font-size: 0.813rem; color: #64748b; text-decoration: none; margin-bottom: 0.5rem; display: inline-block; font-weight: 500; }
+  .back-link:hover { color: #8A174B; }
+  .admin-page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; gap: 1rem; }
   .admin-page-header h1 { font-size: 1.6rem; font-weight: 700; margin: 0; color: #0f172a; }
+  .header-sub { font-size: 0.88rem; color: #64748b; margin: 0.25rem 0 0; }
 
-  .btn-save { background: #16a34a; color: #fff; border: none; padding: 0.65rem 1.4rem; border-radius: 4px; font-weight: 700; font-size: 0.88rem; cursor: pointer; }
+  .btn-save { background: #16a34a; color: #fff; border: none; padding: 0.65rem 1.4rem; border-radius: 4px; font-weight: 700; font-size: 0.88rem; cursor: pointer; white-space: nowrap; transition: background 0.2s; }
   .btn-save:hover { background: #15803d; }
 
   /* Audit Card */
@@ -547,7 +527,7 @@ const missingFields = [...purchasability.missingProductFields, ...purchasability
   .purchasability-audit-card.pass { background: #dcfce7; border-color: #86efac; color: #166534; }
   .purchasability-audit-card.fail { background: #fef3c7; border-color: #fde68a; color: #92400e; }
 
-  .audit-card-header { display: flex; justify-content: space-between; align-items: center; }
+  .audit-card-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
   .audit-card-body { margin-top: 0.75rem; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 0.75rem; }
   .missing-fields-list { display: flex; flex-wrap: wrap; gap: 0.4rem; list-style: none; padding: 0; margin: 0.5rem 0 0 0; }
   .missing-fields-list code { background: #fee2e2; color: #991b1b; padding: 0.2rem 0.5rem; border-radius: 3px; font-size: 0.781rem; }
@@ -562,24 +542,50 @@ const missingFields = [...purchasability.missingProductFields, ...purchasability
 
   .field { margin-bottom: 1rem; }
   .field label { display: block; font-size: 0.813rem; font-weight: 600; color: #334155; margin-bottom: 0.3rem; }
-  .admin-input, .admin-select, .admin-textarea { width: 100%; padding: 0.5rem 0.65rem; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.85rem; }
+  .admin-input, .admin-select, .admin-textarea { width: 100%; padding: 0.5rem 0.65rem; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.85rem; box-sizing: border-box; }
   .field-sub { font-size: 0.72rem; color: #64748b; }
 
   .field-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
   .field-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
-  .field-checkbox { display: flex; gap: 1.5rem; align-items: center; margin-top: 1.5rem; }
+  .field-checkbox { display: flex; gap: 1.5rem; align-items: center; margin-top: 1.5rem; flex-wrap: wrap; }
 
-  .table-responsive { overflow-x: auto; }
-  .variant-edit-table { width: 100%; border-collapse: collapse; font-size: 0.781rem; }
-  .variant-edit-table th { background: #f8fafc; padding: 0.5rem; text-align: left; border-bottom: 1px solid #cbd5e1; color: #475569; }
+  .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; width: 100%; }
+  .variant-edit-table { width: 100%; border-collapse: collapse; font-size: 0.781rem; min-width: 880px; }
+  .variant-edit-table th { background: #f8fafc; padding: 0.5rem; text-align: left; border-bottom: 1px solid #cbd5e1; color: #475569; white-space: nowrap; }
   .variant-edit-table td { padding: 0.4rem; border-bottom: 1px solid #f1f5f9; }
 
-  .admin-input-sm { width: 100%; padding: 0.3rem 0.4rem; font-size: 0.781rem; border: 1px solid #cbd5e1; border-radius: 3px; }
+  .admin-input-sm { width: 100%; padding: 0.3rem 0.4rem; font-size: 0.781rem; border: 1px solid #cbd5e1; border-radius: 3px; box-sizing: border-box; }
   .dim-inputs { display: flex; gap: 2px; }
   .admin-input-xs { width: 32px; padding: 0.3rem 0.2rem; font-size: 0.72rem; border: 1px solid #cbd5e1; border-radius: 2px; text-align: center; }
   .btn-del-row { background: #fee2e2; color: #dc2626; border: none; border-radius: 3px; padding: 0.2rem 0.5rem; cursor: pointer; font-weight: 700; }
 
-  @media (max-width: 1000px) {
+  @media (max-width: 1023px) {
     .edit-form-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 767px) {
+    .admin-page-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.85rem;
+    }
+    .admin-page-header h1 {
+      font-size: 1.5rem;
+    }
+    .btn-save {
+      width: 100%;
+      min-height: 42px;
+      text-align: center;
+    }
+    .field-row-2, .field-row-3 {
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+    }
+    .form-card {
+      padding: 1rem;
+    }
+    .variant-edit-table {
+      min-width: 880px;
+    }
   }
 </style>

@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { prisma } from '../../../../lib/db.js';
 import { getSessionUser } from '../../../../lib/auth.js';
+import { sanitizeApiError } from '../../../../lib/apiErrors.js';
 
 export const GET: APIRoute = async ({ request }) => {
   const user = await getSessionUser(request);
@@ -61,6 +62,7 @@ export const GET: APIRoute = async ({ request }) => {
 
   } catch (err: any) {
     console.error('Admin Orders Fetch Error:', err);
-    return new Response(JSON.stringify({ error: err.message || 'Failed to fetch orders.' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    const safeError = sanitizeApiError(err, 'Failed to fetch orders.');
+    return new Response(JSON.stringify({ error: safeError }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
 };

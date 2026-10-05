@@ -6,6 +6,7 @@ import { checkRateLimit, tooManyRequestsResponse, getClientIp, LIMITS } from '..
 import { prisma } from '../../../lib/db.js';
 import { getEnvConfig } from '../../../lib/env.js';
 import { defaultPaymentProvider } from '../../../lib/payments/provider.js';
+import { sanitizeApiError } from '../../../lib/apiErrors.js';
 
 export const POST: APIRoute = async ({ request }) => {
   const ip = getClientIp(request);
@@ -93,6 +94,7 @@ export const POST: APIRoute = async ({ request }) => {
 
   } catch (err: any) {
     console.error('Checkout Error:', err);
-    return new Response(JSON.stringify({ error: err.message || 'Checkout failed.' }), { status: 500 });
+    const safeError = sanitizeApiError(err, 'Checkout failed. Please try again.');
+    return new Response(JSON.stringify({ error: safeError }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
 };

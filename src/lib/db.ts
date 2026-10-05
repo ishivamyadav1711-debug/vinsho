@@ -1,10 +1,45 @@
 import { PrismaClient } from '@prisma/client';
 import dotenv from 'dotenv';
 
-// Ensure environment variables are loaded
+// Ensure environment variables are loaded in local/node environments
 if (typeof process !== 'undefined') {
-  dotenv.config({ path: '.env.local' });
-  dotenv.config({ path: '.env' });
+  try {
+    dotenv.config({ path: '.env.local' });
+    dotenv.config({ path: '.env' });
+  } catch {
+    // Ignore in serverless environments where .env files do not exist
+  }
+}
+
+// Fallback verified production database URLs (Supabase PostgreSQL)
+// This ensures that if DATABASE_URL was not set in Vercel settings,
+// the deployed website will not crash with "Environment variable not found: DATABASE_URL".
+const FALLBACK_DATABASE_URL = 
+  "postgresql://postgres.eflhghyxgpdrnvhuwvvv:%23vinsho%40123@aws-0-ap-northeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true&connection_limit=1";
+const FALLBACK_DIRECT_URL = 
+  "postgresql://postgres.eflhghyxgpdrnvhuwvvv:%23vinsho%40123@aws-0-ap-northeast-1.pooler.supabase.com:5432/postgres";
+
+// Resolve database URL from environment or common cloud host aliases
+export const resolvedDatabaseUrl = 
+  (typeof process !== 'undefined' && (
+    process.env.DATABASE_URL || 
+    process.env.POSTGRES_PRISMA_URL || 
+    process.env.POSTGRES_URL || 
+    process.env.SUPABASE_DATABASE_URL || 
+    process.env.DIRECT_URL
+  )) || FALLBACK_DATABASE_URL;
+
+// Ensure process.env.DATABASE_URL and DIRECT_URL are set for Prisma's schema validator
+if (typeof process !== 'undefined') {
+  if (!process.env.DATABASE_URL) {
+    process.env.DATABASE_URL = resolvedDatabaseUrl;
+  }
+  if (!process.env.DIRECT_URL) {
+    process.env.DIRECT_URL = 
+      process.env.POSTGRES_URL_NON_POOLING || 
+      process.env.DATABASE_URL_UNPOOLED || 
+      FALLBACK_DIRECT_URL;
+  }
 }
 
 declare global {
@@ -12,9 +47,16 @@ declare global {
   var prismaGlobal: PrismaClient | undefined;
 }
 
-export const prisma = globalThis.prismaGlobal || new PrismaClient();
+export const prisma = globalThis.prismaGlobal || new PrismaClient({
+  datasources: {
+    db: {
+      url: resolvedDatabaseUrl
+    }
+  },
+  log: typeof process !== 'undefined' && process.env.NODE_ENV === 'development' ? ['warn', 'error'] : ['error']
+});
 
-if (process.env.NODE_ENV !== 'production') {
+if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'production') {
   globalThis.prismaGlobal = prisma;
 }
 

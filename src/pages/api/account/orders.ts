@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { prisma } from '../../../lib/db.js';
 import { getCustomerFromSession } from '../../../lib/customerAuth.js';
+import { sanitizeApiError } from '../../../lib/apiErrors.js';
 
 export const GET: APIRoute = async ({ request }) => {
   try {
@@ -87,7 +88,8 @@ export const GET: APIRoute = async ({ request }) => {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message || 'Failed to fetch order history.' }), {
+    const safeError = sanitizeApiError(err, 'Failed to fetch order history.');
+    return new Response(JSON.stringify({ error: safeError }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });

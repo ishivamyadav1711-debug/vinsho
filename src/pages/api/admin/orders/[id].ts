@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { prisma } from '../../../../lib/db.js';
 import { getSessionUser } from '../../../../lib/auth.js';
 import { updateOrderStatus } from '../../../../lib/orders.js';
+import { sanitizeApiError } from '../../../../lib/apiErrors.js';
 
 export const GET: APIRoute = async ({ request, params }) => {
   const user = await getSessionUser(request);
@@ -34,7 +35,8 @@ export const GET: APIRoute = async ({ request, params }) => {
     return new Response(JSON.stringify({ order }), { status: 200, headers: { 'Content-Type': 'application/json' } });
 
   } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    const safeError = sanitizeApiError(err, 'Failed to fetch order.');
+    return new Response(JSON.stringify({ error: safeError }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
 };
 
@@ -71,6 +73,7 @@ export const PATCH: APIRoute = async ({ request, params }) => {
     return new Response(JSON.stringify({ success: true, order: result.order }), { status: 200, headers: { 'Content-Type': 'application/json' } });
 
   } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    const safeError = sanitizeApiError(err, 'Order operation failed.');
+    return new Response(JSON.stringify({ error: safeError }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
 };

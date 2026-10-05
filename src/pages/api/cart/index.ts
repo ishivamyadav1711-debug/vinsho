@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { addItemToCart, getCartItems } from '../../../lib/cart.js';
+import { sanitizeApiError } from '../../../lib/apiErrors.js';
 
 export const GET: APIRoute = async ({ request, url }) => {
   const sessionToken = url.searchParams.get('sessionToken') || request.headers.get('x-session-token') || 'guest-session';
@@ -59,6 +60,7 @@ export const POST: APIRoute = async ({ request }) => {
     }), { status: 200, headers: { 'Content-Type': 'application/json' } });
 
   } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message || 'Failed to add item to cart.' }), { status: 500 });
+    const safeError = sanitizeApiError(err, 'Failed to add item to cart.');
+    return new Response(JSON.stringify({ error: safeError }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
 };

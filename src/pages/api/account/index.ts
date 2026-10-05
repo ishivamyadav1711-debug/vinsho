@@ -10,6 +10,7 @@ import {
   generatePasswordResetToken 
 } from '../../../lib/customerAuth.js';
 import { checkRateLimit, tooManyRequestsResponse, getClientIp, LIMITS } from '../../../lib/rateLimiter.js';
+import { sanitizeApiError } from '../../../lib/apiErrors.js';
 
 export const POST: APIRoute = async ({ request }) => {
   const ip = getClientIp(request);
@@ -258,6 +259,7 @@ export const POST: APIRoute = async ({ request }) => {
     return new Response(JSON.stringify({ error: 'Invalid action specified.' }), { status: 400 });
 
   } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message || 'Account operation failed.' }), { status: 500 });
+    const safeError = sanitizeApiError(err, 'Account operation failed. Please try again.');
+    return new Response(JSON.stringify({ error: safeError }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
 };

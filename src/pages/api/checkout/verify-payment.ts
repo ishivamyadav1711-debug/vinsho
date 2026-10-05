@@ -3,6 +3,7 @@ import { defaultPaymentProvider } from '../../../lib/payments/provider.js';
 import { checkRateLimit, tooManyRequestsResponse, getClientIp, LIMITS } from '../../../lib/rateLimiter.js';
 import { prisma } from '../../../lib/db.js';
 import { getEnvConfig } from '../../../lib/env.js';
+import { sanitizeApiError } from '../../../lib/apiErrors.js';
 
 export const POST: APIRoute = async ({ request }) => {
   const ip = getClientIp(request);
@@ -143,8 +144,9 @@ export const POST: APIRoute = async ({ request }) => {
 
   } catch (err: any) {
     console.error('Payment Verification Error:', err);
+    const safeError = sanitizeApiError(err, 'Payment verification failed. Please try again or contact support.');
     return new Response(JSON.stringify({
-      error: err.message || 'Payment verification failed.'
+      error: safeError
     }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
 };

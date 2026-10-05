@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { validateAndCalculateCoupon } from '../../../lib/coupons.js';
 import { checkRateLimit, tooManyRequestsResponse, getClientIp, LIMITS } from '../../../lib/rateLimiter.js';
+import { sanitizeApiError } from '../../../lib/apiErrors.js';
 
 export const POST: APIRoute = async ({ request }) => {
   const ip = getClientIp(request);
@@ -28,6 +29,7 @@ export const POST: APIRoute = async ({ request }) => {
     }), { status: 200, headers: { 'Content-Type': 'application/json' } });
 
   } catch (err: any) {
-    return new Response(JSON.stringify({ success: false, error: err.message || 'Failed to process coupon.' }), { status: 500 });
+    const safeError = sanitizeApiError(err, 'Failed to process coupon.');
+    return new Response(JSON.stringify({ success: false, error: safeError }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
 };
