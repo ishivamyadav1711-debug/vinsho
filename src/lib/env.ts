@@ -99,8 +99,15 @@ export function getEnvConfig(): EnvConfig {
   // ── Production guard ────────────────────────────────────────────────────
   if (isProduction) {
     const missing: string[] = [];
+    if (!process.env.DATABASE_URL) missing.push('DATABASE_URL');
+    if (!adminEmail) missing.push('ADMIN_EMAIL');
     if (!adminPassword) missing.push('ADMIN_PASSWORD');
     if (!razorpayWebhookSecret) missing.push('RAZORPAY_WEBHOOK_SECRET');
+
+    if (process.env.COMMERCE_MODE === 'live') {
+      if (!razorpayKeyId && !process.env.PUBLIC_RAZORPAY_KEY_ID) missing.push('RAZORPAY_KEY_ID');
+      if (!razorpayKeySecret) missing.push('RAZORPAY_KEY_SECRET');
+    }
 
     if (missing.length > 0) {
       const msg =
@@ -116,7 +123,7 @@ export function getEnvConfig(): EnvConfig {
   // ── Cache and return ────────────────────────────────────────────────────
   _cachedConfig = Object.freeze({
     isProduction,
-    adminEmail: adminEmail ?? _DEV_ADMIN_EMAIL,
+    adminEmail: (adminEmail || _DEV_ADMIN_EMAIL)!,
     adminPassword: adminPassword!,
     razorpayWebhookSecret: razorpayWebhookSecret!,
     razorpayKeyId,
