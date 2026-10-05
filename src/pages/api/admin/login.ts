@@ -76,7 +76,7 @@ export const POST: APIRoute = async ({ request }) => {
     });
   } catch (err: any) {
     console.error('Login Error:', err);
-    return new Response(JSON.stringify({ error: 'Server authentication error.' }), {
+    return new Response(JSON.stringify({ error: 'Server authentication error: ' + (err.message || String(err)) }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
     });

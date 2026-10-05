@@ -50,11 +50,11 @@ function layout(title: string, bodyHtml: string): string {
         <tr>
           <td style="background:#f5f5f5;padding:16px 32px;border-top:1px solid #e0e0e0;">
             <p style="margin:0;font-size:12px;color:#888;text-align:center;">
-              &copy; ${new Date().getFullYear()} VINSHO Home Decor &bull; Karnal, Haryana &bull;
-              <a href="https://vinsho.com" style="color:#888;">vinsho.com</a>
+              &copy; ${new Date().getFullYear()} VINSHO Home Décor &bull; Greater Noida, Uttar Pradesh &bull;
+              <a href="https://www.vinsho.in" style="color:#888;">vinsho.in</a>
             </p>
             <p style="margin:8px 0 0;font-size:11px;color:#aaa;text-align:center;">
-              You received this email because you have an account or made a purchase at vinsho.com.
+              You received this email because you have an account or made a purchase at vinsho.in.
               Please do not reply to this email.
             </p>
           </td>

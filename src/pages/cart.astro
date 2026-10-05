@@ -5,8 +5,10 @@ import Footer from '../components/Footer.astro';
 import Modal from '../components/Modal.astro';
 import CustomCursor from '../components/motion/CustomCursor.astro';
 import { getProductsByCollection } from '../utils/taxonomy';
+import { getCustomerFromSession } from '../lib/customerAuth';
 
 const upsellProducts = (await getProductsByCollection('gifting-collection')).slice(0, 4);
+const isLoggedIn = !!(await getCustomerFromSession(Astro.request));
 ---
 
 <Base 
@@ -66,36 +68,6 @@ const upsellProducts = (await getProductsByCollection('gifting-collection')).sli
             <a href="/products" class="v-continue-link">&larr; Continue Shopping</a>
           </div>
 
-          <!-- ADD TO YOUR ORDER (UPSELL SECTION) -->
-          <section class="v-upsell-section" id="v-upsell-section">
-            <h2 class="v-upsell-heading">Add to your order</h2>
-            <p class="v-upsell-sub">Handcrafted items from our Gifting Collection eligible for instant online checkout</p>
-            
-            <div class="v-upsell-grid">
-              {upsellProducts.map((p) => (
-                <div class="v-upsell-card">
-                  <div class="v-upsell-img-wrap">
-                    <img src={p.image} alt={p.name} loading="lazy" />
-                  </div>
-                  <div class="v-upsell-info">
-                    <h3 class="v-upsell-title">{p.name}</h3>
-                    <span class="v-upsell-price">₹{(p.price || 499).toLocaleString('en-IN')}</span>
-                    <button 
-                      type="button" 
-                      class="v-upsell-add-btn"
-                      data-upsell-slug={p.slug}
-                      data-upsell-name={p.name}
-                      data-upsell-price={p.price || 499}
-                      data-upsell-image={p.image}
-                    >
-                      + Add
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
         </div>
 
         <!-- RIGHT COLUMN: FIXED STICKY ORDER SUMMARY -->
@@ -112,7 +84,7 @@ const upsellProducts = (await getProductsByCollection('gifting-collection')).sli
 
               <div class="v-summary-row">
                 <span class="lbl">Shipping</span>
-                <span class="val free-tag">FREE</span>
+                <span class="val" style="font-size: 0.813rem; color: #8A7D77;">Calculated at Checkout</span>
               </div>
 
               <div class="v-summary-row">
@@ -124,23 +96,16 @@ const upsellProducts = (await getProductsByCollection('gifting-collection')).sli
             <div class="v-summary-divider"></div>
 
             <div class="v-summary-total-row">
-              <span class="total-lbl">TOTAL</span>
+              <span class="total-lbl">SUBTOTAL</span>
               <span class="total-val" id="v-total-val">₹0</span>
             </div>
 
-            <button type="button" id="v-checkout-btn" class="v-checkout-btn" style="width: 100%; border: none; cursor: pointer;">
-              PROCEED TO CHECKOUT &rarr;
+            <button type="button" id="v-checkout-btn" class="v-checkout-btn" style="width: 100%; border: none; cursor: pointer;" data-logged-in={isLoggedIn.toString()}>
+              Proceed to Checkout &rarr;
             </button>
-            <p class="v-checkout-support-text" style="font-size: 0.813rem; color: #6b7280; text-align: center; margin-top: 0.5rem; margin-bottom: 0;">Secure checkout &amp; fast delivery across India.</p>
 
             <div class="v-summary-trust-perks">
-              <div class="perk-item">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                </svg>
-                <span>Encrypted &amp; Secure Checkout</span>
-              </div>
+
 
               <div class="perk-item">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -163,6 +128,36 @@ const upsellProducts = (await getProductsByCollection('gifting-collection')).sli
           </div>
 
         </aside>
+
+        <!-- ADD TO YOUR ORDER (UPSELL SECTION) -->
+        <section class="v-upsell-section" id="v-upsell-section">
+          <h2 class="v-upsell-heading">Add to your order</h2>
+          <p class="v-upsell-sub">Handcrafted items from our Gifting Collection eligible for instant online checkout</p>
+          
+          <div class="v-upsell-grid">
+            {upsellProducts.map((p) => (
+              <div class="v-upsell-card">
+                <div class="v-upsell-img-wrap">
+                  <img src={p.image} alt={p.name} loading="lazy" />
+                </div>
+                <div class="v-upsell-info">
+                  <h3 class="v-upsell-title">{p.name}</h3>
+                  <span class="v-upsell-price">₹{(p.price || 499).toLocaleString('en-IN')}</span>
+                  <button 
+                    type="button" 
+                    class="v-upsell-add-btn"
+                    data-upsell-slug={p.slug}
+                    data-upsell-name={p.name}
+                    data-upsell-price={p.price || 499}
+                    data-upsell-image={p.image}
+                  >
+                    + Add
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
 
       </div>
 
@@ -311,11 +306,16 @@ const upsellProducts = (await getProductsByCollection('gifting-collection')).sli
     });
 
     const checkoutBtn = document.getElementById('v-checkout-btn');
-    checkoutBtn?.addEventListener('click', () => {
+    checkoutBtn?.addEventListener('click', (e) => {
       const state = getLocalCartState();
       if (!state.items || state.items.length === 0) return;
-
-      window.location.href = '/checkout/address';
+      
+      const isLoggedIn = (e.currentTarget as HTMLElement).dataset.loggedIn === 'true';
+      if (!isLoggedIn) {
+        window.location.href = '/login?redirect=' + encodeURIComponent('/checkout');
+      } else {
+        window.location.href = '/checkout';
+      }
     });
 
     window.addEventListener('vinsho:cart-updated', renderCart);
@@ -397,7 +397,11 @@ const upsellProducts = (await getProductsByCollection('gifting-collection')).sli
 
   @media (max-width: 992px) {
     .v-cart-layout-grid {
-      grid-template-columns: 1fr;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      align-items: stretch;
+      width: 100%;
     }
   }
 
@@ -409,6 +413,14 @@ const upsellProducts = (await getProductsByCollection('gifting-collection')).sli
     flex-direction: column;
     gap: 1.5rem;
     min-width: 0;
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+  }
+
+  @media (max-width: 992px) {
+    .v-cart-left-column {
+      order: 1;
+    }
   }
 
   /* DESKTOP SCROLLABLE CONTAINER FOR PRODUCTS */
@@ -612,11 +624,19 @@ const upsellProducts = (await getProductsByCollection('gifting-collection')).sli
 
   /* UPSELL "ADD TO YOUR ORDER" SECTION */
   .v-upsell-section {
-    margin-top: 1.5rem;
+    grid-column: 1 / 2;
+    grid-row: 2 / 3;
     background: #ffffff;
     border: 1px solid rgba(138, 23, 75, 0.12);
     border-radius: 12px;
     padding: 1.5rem;
+  }
+
+  @media (max-width: 992px) {
+    .v-upsell-section {
+      order: 3;
+      margin-top: 1rem;
+    }
   }
 
   .v-upsell-heading {
@@ -744,6 +764,14 @@ const upsellProducts = (await getProductsByCollection('gifting-collection')).sli
   ---------------------------------------------------- */
   .v-cart-right-column {
     min-width: 0;
+    grid-column: 2 / 3;
+    grid-row: 1 / 3;
+  }
+
+  @media (max-width: 992px) {
+    .v-cart-right-column {
+      order: 2;
+    }
   }
 
   .v-summary-sticky-card {

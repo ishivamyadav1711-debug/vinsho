@@ -6,7 +6,11 @@ import { getCustomerFromSession } from '../lib/customerAuth';
 
 // If already logged in, redirect to /account or redirect param
 const customer = await getCustomerFromSession(Astro.request);
-const redirectUrl = Astro.url.searchParams.get('redirect') || '/account';
+let redirectUrl = Astro.url.searchParams.get('redirect') || '/account';
+
+if (!redirectUrl.startsWith('/')) {
+  redirectUrl = '/account';
+}
 
 if (customer) {
   return Astro.redirect(redirectUrl);
@@ -150,7 +154,8 @@ if (customer) {
           }
           // Redirect to checkout or intended target while keeping cart intact
           setTimeout(() => {
-            window.location.href = redirectTarget;
+            const safeRedirect = redirectTarget.startsWith('/') ? redirectTarget : '/account';
+            window.location.href = safeRedirect;
           }, 400);
         } else {
           if (alertBox) {

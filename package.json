@@ -30,6 +30,7 @@
     "@prisma/orm-postgres": "^8.0.0-rc.14",
     "@supabase/server": "^1.9.0",
     "@supabase/supabase-js": "^2.117.2",
+    "@studio-freight/lenis": "^1.0.42",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "astro": "^7.2.0",
@@ -39,8 +40,10 @@
     "lenis": "^1.3.26",
     "nodemailer": "^9.0.6",
     "postgres": "^3.4.9",
-    "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "pdfkit": "^0.20.2",
+    "razorpay": "^2.9.8",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
@@ -50,6 +53,7 @@
     "@types/nodemailer": "^8.0.1",
     "better-sqlite3": "^13.0.3",
     "prisma": "^5.22.0",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "@types/pdfkit": "^0.17.6"
   }
 }

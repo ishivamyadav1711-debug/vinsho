@@ -1,3 +1,10 @@
 ---
+import { getCustomerFromSession } from '../../lib/customerAuth';
+
+const customer = await getCustomerFromSession(Astro.request);
+if (!customer) {
+  return Astro.redirect('/login?redirect=' + encodeURIComponent('/checkout/address'));
+}
+
 return Astro.redirect('/checkout/address');
 ---

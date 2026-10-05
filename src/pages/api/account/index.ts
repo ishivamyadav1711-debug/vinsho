@@ -213,8 +213,7 @@ export const POST: APIRoute = async ({ request }) => {
 
       return new Response(JSON.stringify({
         success: true,
-        message: 'Password reset link generated.',
-        resetToken // For dev demo / link generation
+        message: 'If an account exists for this email, password reset instructions have been generated.'
       }), { status: 200 });
     }
 

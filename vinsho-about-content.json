@@ -55,7 +55,7 @@
       },
       {
         "q": "What is your return & refund policy?",
-        "a": "We offer free returns within 30 days of receipt for eligible products. If something is wrong with your order (damage, defect, etc.), contact us and we'll guide you through the return and refund process. See our detailed Return & Refund Policy for full conditions."
+        "a": "We offer a 30-day return window for eligible standard products. Customized items, gift cards, and clearance sales are non-returnable. Contact us at vinvks@gmail.com to initiate a return. See our detailed Return & Refund Policy for full conditions."
       }
     ]
   },
@@ -92,7 +92,7 @@
     "linkFlag": "Live site points at /product/ which 404s. Should target the catalogue."
   },
   "topbar": {
-    "message": "Express delivery and free returns within 30 days",
+    "message": "Pan-India delivery & 30-day return policy",
     "email": "vinvks@gmail.com"
   },
   "contact": {

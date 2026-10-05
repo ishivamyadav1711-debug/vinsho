@@ -4,6 +4,31 @@ import Nav from '../../components/Nav.astro';
 import Footer from '../../components/Footer.astro';
 import Modal from '../../components/Modal.astro';
 import CustomCursor from '../../components/motion/CustomCursor.astro';
+import { getCustomerFromSession } from '../../lib/customerAuth';
+import { prisma } from '../../lib/db';
+
+const customer = await getCustomerFromSession(Astro.request);
+if (!customer) {
+  return Astro.redirect('/login?redirect=' + encodeURIComponent(Astro.url.pathname + Astro.url.search));
+}
+
+const orderNumber = Astro.url.searchParams.get('orderNumber');
+if (!orderNumber) {
+  return Astro.redirect('/account');
+}
+
+const order = await prisma.orders.findFirst({
+  where: { order_number: orderNumber, customer_id: customer.id }
+});
+if (!order) {
+  return Astro.redirect('/account');
+}
+
+const items = await prisma.orderItems.findMany({ where: { order_id: Number(order.id) } });
+const address = await prisma.addresses.findUnique({ where: { id: order.shipping_address_id! } });
+if (!address) {
+  return Astro.redirect('/account');
+}
 ---
 
 <Base 
@@ -24,13 +49,14 @@ import CustomCursor from '../../components/motion/CustomCursor.astro';
         </div>
 
         <span class="v-confirm-eyebrow">THANK YOU FOR YOUR ORDER</span>
-        <h1 class="v-confirm-title">ORDER CONFIRMED</h1>
+        <h1 class="v-confirm-title">🎉 Order Completed Successfully!</h1>
         <p class="v-confirm-sub">
-          Order Reference: <strong id="v-order-num-txt">#VIN-2026-000001</strong>
+          Order Reference: <strong>#{order.order_number}</strong><br/>
+          Order Date: <strong>{new Date(order.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</strong>
         </p>
 
         <p class="v-confirm-desc">
-          We have received your order and sent a confirmation to your registered contact address. Our studio team is preparing your handcrafted items for dispatch.
+          Hi {customer.name}, we have received your order and sent a confirmation email to your registered contact address. Our studio team is preparing your handcrafted items for dispatch.
         </p>
 
         <div class="v-confirm-divider"></div>
@@ -38,22 +64,33 @@ import CustomCursor from '../../components/motion/CustomCursor.astro';
         <div class="v-confirm-details-grid">
           <div class="v-confirm-box">
             <h3 class="v-box-title">DELIVERY ADDRESS</h3>
-            <div id="v-confirm-addr" class="v-box-body"></div>
+            <div class="v-box-body">
+              <strong>{address.name}</strong> &middot; {address.phone}<br/>
+              {address.line1}<br/>
+              {address.city}, {address.state} — <strong>{address.pincode}</strong>
+            </div>
           </div>
 
           <div class="v-confirm-box">
             <h3 class="v-box-title">ORDER SUMMARY</h3>
-            <div id="v-confirm-items" class="v-confirm-items-list"></div>
+            <div class="v-confirm-items-list">
+              {items.map((item: any) => (
+                <div class="v-confirm-item-row">
+                  <span class="v-c-name">{item.product_name_snapshot} &times; {item.qty}</span>
+                  <span class="v-c-price">₹{(Number(item.unit_price_snapshot) * item.qty).toLocaleString('en-IN')}</span>
+                </div>
+              ))}
+            </div>
             <div class="v-confirm-total-row">
               <span>Total Paid:</span>
-              <strong id="v-confirm-total">₹0</strong>
+              <strong>₹{Number(order.grand_total).toLocaleString('en-IN')}</strong>
             </div>
           </div>
         </div>
 
         <div class="v-confirm-actions">
+          <a href={`/account/orders/${order.order_number}`} class="v-btn secondary">VIEW ORDER</a>
           <a href="/products" class="v-btn primary">CONTINUE SHOPPING</a>
-          <a href="/" class="v-btn secondary">RETURN TO HOME</a>
         </div>
       </div>
 
@@ -65,49 +102,9 @@ import CustomCursor from '../../components/motion/CustomCursor.astro';
 </Base>
 
 <script>
+  // Optional cleanup of sessionStorage if needed
   document.addEventListener('DOMContentLoaded', () => {
-    const orderNumTxt = document.getElementById('v-order-num-txt');
-    const addrBox = document.getElementById('v-confirm-addr');
-    const itemsBox = document.getElementById('v-confirm-items');
-    const totalTxt = document.getElementById('v-confirm-total');
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const urlOrderNum = urlParams.get('orderNumber');
-
-    let placedData: any = null;
-    try {
-      const raw = sessionStorage.getItem('vinsho_last_placed_order');
-      if (raw) placedData = JSON.parse(raw);
-    } catch {
-      placedData = null;
-    }
-
-    const orderNum = urlOrderNum || (placedData ? placedData.orderNumber : 'VIN-2026-000001');
-    if (orderNumTxt) orderNumTxt.textContent = orderNum;
-
-    if (placedData) {
-      if (addrBox && placedData.address) {
-        const a = placedData.address;
-        addrBox.innerHTML = `
-          <strong>${a.name}</strong> &middot; ${a.phone}<br/>
-          ${a.line1}<br/>
-          ${a.city}, ${a.state} — <strong>${a.pincode}</strong>
-        `;
-      }
-
-      if (itemsBox && placedData.items) {
-        itemsBox.innerHTML = placedData.items.map((item: any) => `
-          <div class="v-confirm-item-row">
-            <span class="v-c-name">${item.name} &times; ${item.quantity}</span>
-            <span class="v-c-price">₹${(item.price * item.quantity).toLocaleString('en-IN')}</span>
-          </div>
-        `).join('');
-      }
-
-      if (totalTxt && placedData.grandTotal) {
-        totalTxt.textContent = `₹${placedData.grandTotal.toLocaleString('en-IN')}`;
-      }
-    }
+    sessionStorage.removeItem('vinsho_last_placed_order');
   });
 </script>
 

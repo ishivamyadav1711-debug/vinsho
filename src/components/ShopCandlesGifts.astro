@@ -1,0 +1,169 @@
+---
+import { getProductsByCollection } from '../utils/taxonomy';
+import ProductCard from './ProductCard.astro';
+
+// Fetch real purchasable products from the project taxonomy/database
+const allGiftingProducts = await getProductsByCollection('gifting-collection');
+const giftingProducts = allGiftingProducts
+  .filter((p: any) => p.isPurchasable && p.price)
+  .slice(0, 8);
+---
+
+<section class="shop-cg-section" id="shop-candles-gifts" aria-labelledby="shop-cg-heading">
+  <div class="wrap">
+    
+    <div class="shop-cg-head">
+      <div class="head-left">
+        <span class="eyebrow-tag">ONLINE STORE</span>
+        <h2 id="shop-cg-heading" class="section-title">Shop Candles &amp; Gifts</h2>
+        <p class="section-sub">Handcrafted candles and curated gift items ready for instant online ordering.</p>
+      </div>
+      <div class="head-right">
+        <a href="/collections/gifting-collection" class="view-all-link">
+          <span>View All Gifts</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- Product Grid: Fully responsive for Desktop, Tablet, and Mobile (375px/567px) -->
+    <div class="shop-cg-grid">
+      {giftingProducts.map((product: any) => (
+        <div class="grid-card-wrap">
+          <ProductCard product={product} />
+        </div>
+      ))}
+    </div>
+
+  </div>
+</section>
+
+<style>
+  .shop-cg-section {
+    background-color: var(--paper, #FAF6F0);
+    padding-block: clamp(2.5rem, 5vw, 4.5rem);
+    border-bottom: 1px solid var(--line, #e2dcd0);
+  }
+
+  .shop-cg-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1.5rem;
+    margin-bottom: clamp(1.5rem, 3.5vw, 2.5rem);
+  }
+
+  .eyebrow-tag {
+    display: inline-block;
+    font-size: 0.688rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--pink, #c14d7a);
+    margin-bottom: 0.35rem;
+  }
+
+  .section-title {
+    font-family: var(--display, 'Playfair Display', serif);
+    font-size: clamp(1.75rem, 3.5vw, 2.6rem);
+    font-weight: 600;
+    color: var(--maroon-2, #6B0E38);
+    margin: 0 0 0.4rem 0;
+    line-height: 1.1;
+  }
+
+  .section-sub {
+    font-size: clamp(0.85rem, 1.8vw, 0.98rem);
+    color: var(--ink-soft, #6b7280);
+    margin: 0;
+    max-width: 32rem;
+  }
+
+  .view-all-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--maroon, #8A174B);
+    text-decoration: none;
+    white-space: nowrap;
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    background: var(--paper-2, #f5f2eb);
+    border: 1px solid var(--line, #e2dcd0);
+    transition: all 0.25s ease;
+  }
+
+  .view-all-link:hover {
+    background: var(--maroon, #8A174B);
+    color: #ffffff;
+    border-color: var(--maroon, #8A174B);
+  }
+
+  .view-all-link svg {
+    transition: transform 0.2s ease;
+  }
+
+  .view-all-link:hover svg {
+    transform: translateX(3px);
+  }
+
+  /* Carousel Layout for Desktop, Tablet, and Mobile */
+  .shop-cg-grid {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    gap: clamp(1rem, 2.5vw, 1.75rem);
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 0.75rem;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .shop-cg-grid::-webkit-scrollbar {
+    display: none;
+  }
+
+  .shop-cg-grid > * {
+    /* Show approx 4 cards on desktop, peeking at 5th */
+    flex: 0 0 22.5%;
+    scroll-snap-align: start;
+  }
+
+  @media (max-width: 1024px) {
+    .shop-cg-grid > * {
+      /* Show approx 3 cards on tablet, peeking at 4th */
+      flex: 0 0 30%;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .shop-cg-head {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+    .shop-cg-grid {
+      gap: 0.85rem;
+    }
+    .shop-cg-grid > * {
+      /* Show approx 2 cards on mobile */
+      flex: 0 0 calc(46% - 0.425rem);
+    }
+  }
+
+  /* Mobile viewport fine-tuning (375px & 567px) */
+  @media (max-width: 480px) {
+    .shop-cg-grid {
+      gap: 0.65rem;
+    }
+    .shop-cg-grid > * {
+      flex: 0 0 calc(46% - 0.325rem);
+    }
+  }
+</style>

@@ -2,7 +2,7 @@
 import type { Variant } from '../lib/commerce';
 
 export interface Props {
-  variants: Variant[];
+  variants: (Variant & { id?: number })[];
   defaultPrice: number | null;
   defaultMrp: number | null;
   class?: string;
@@ -26,6 +26,7 @@ const hasVariants = variants && variants.length > 0;
           return (
             <option 
               value={v.sku} 
+              data-id={v.id || ''}
               data-price={v.sellingPrice || ''}
               data-mrp={v.mrp || ''}
               data-stock={v.stock || 0}

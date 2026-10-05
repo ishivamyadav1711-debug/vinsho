@@ -6,10 +6,9 @@ import Modal from '../../components/Modal.astro';
 import CustomCursor from '../../components/motion/CustomCursor.astro';
 import { getCustomerFromSession } from '../../lib/customerAuth';
 
-// Server-side Authentication Gate for Purchase (§2)
 const customer = await getCustomerFromSession(Astro.request);
 if (!customer) {
-  return Astro.redirect('/login?redirect=/checkout/address');
+  return Astro.redirect('/login?redirect=' + encodeURIComponent(Astro.url.pathname));
 }
 ---
 
@@ -28,17 +27,17 @@ if (!customer) {
         <div class="v-form-grid">
           <div class="v-field-group">
             <label for="v-name">Full Name *</label>
-            <input type="text" id="v-name" name="name" required placeholder="Ananya Sharma" value={customer.name || ''} class="v-input" />
+            <input type="text" id="v-name" name="name" required placeholder="Ananya Sharma" value={customer?.name || ''} class="v-input" />
           </div>
 
           <div class="v-field-group">
             <label for="v-phone">Mobile Phone (10 Digits) *</label>
-            <input type="tel" id="v-phone" name="phone" required pattern="\d{10}" maxlength="10" placeholder="9876543210" value={customer.phone || ''} class="v-input" />
+            <input type="tel" id="v-phone" name="phone" required pattern="\d{10}" maxlength="10" placeholder="9876543210" value={customer?.phone || ''} class="v-input" />
           </div>
 
           <div class="v-field-group">
             <label for="v-email">Email Address *</label>
-            <input type="email" id="v-email" name="email" required placeholder="ananya@example.com" value={customer.email || ''} class="v-input" />
+            <input type="email" id="v-email" name="email" required placeholder="ananya@example.com" value={customer?.email || ''} class="v-input" />
           </div>
 
           <div class="v-field-group full">
