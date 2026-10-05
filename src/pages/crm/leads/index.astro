@@ -71,55 +71,59 @@ const collections = taxonomyData.collections;
           <input type="search" name="q" value={q} placeholder="Search name, email, phone, company, product..." class="search-field" />
         </div>
 
-        <select name="status" class="filter-select">
-          <option value="">All Statuses</option>
-          <option value="NEW" selected={statusFilter === 'NEW'}>New</option>
-          <option value="CONTACTED" selected={statusFilter === 'CONTACTED'}>Contacted</option>
-          <option value="QUALIFIED" selected={statusFilter === 'QUALIFIED'}>Qualified</option>
-          <option value="FOLLOW-UP" selected={statusFilter === 'FOLLOW-UP'}>Follow-up</option>
-          <option value="PROPOSAL" selected={statusFilter === 'PROPOSAL'}>Proposal</option>
-          <option value="NEGOTIATION" selected={statusFilter === 'NEGOTIATION'}>Negotiation</option>
-          <option value="CONVERTED" selected={statusFilter === 'CONVERTED'}>Converted</option>
-          <option value="LOST" selected={statusFilter === 'LOST'}>Lost</option>
-        </select>
+        <div class="filters-group">
+          <select name="status" class="filter-select">
+            <option value="">All Statuses</option>
+            <option value="NEW" selected={statusFilter === 'NEW'}>New</option>
+            <option value="CONTACTED" selected={statusFilter === 'CONTACTED'}>Contacted</option>
+            <option value="QUALIFIED" selected={statusFilter === 'QUALIFIED'}>Qualified</option>
+            <option value="FOLLOW-UP" selected={statusFilter === 'FOLLOW-UP'}>Follow-up</option>
+            <option value="PROPOSAL" selected={statusFilter === 'PROPOSAL'}>Proposal</option>
+            <option value="NEGOTIATION" selected={statusFilter === 'NEGOTIATION'}>Negotiation</option>
+            <option value="CONVERTED" selected={statusFilter === 'CONVERTED'}>Converted</option>
+            <option value="LOST" selected={statusFilter === 'LOST'}>Lost</option>
+          </select>
 
-        <select name="source" class="filter-select">
-          <option value="">All Sources</option>
-          <option value="Website" selected={sourceFilter === 'Website'}>Website</option>
-          <option value="Contact Form" selected={sourceFilter === 'Contact Form'}>Contact Form</option>
-          <option value="Product Page" selected={sourceFilter === 'Product Page'}>Product Page</option>
-          <option value="Collection Page" selected={sourceFilter === 'Collection Page'}>Collection Page</option>
-          <option value="Instagram" selected={sourceFilter === 'Instagram'}>Instagram</option>
-          <option value="Referral" selected={sourceFilter === 'Referral'}>Referral</option>
-          <option value="Manual Entry" selected={sourceFilter === 'Manual Entry'}>Manual Entry</option>
-        </select>
+          <select name="source" class="filter-select">
+            <option value="">All Sources</option>
+            <option value="Website" selected={sourceFilter === 'Website'}>Website</option>
+            <option value="Contact Form" selected={sourceFilter === 'Contact Form'}>Contact Form</option>
+            <option value="Product Page" selected={sourceFilter === 'Product Page'}>Product Page</option>
+            <option value="Collection Page" selected={sourceFilter === 'Collection Page'}>Collection Page</option>
+            <option value="Instagram" selected={sourceFilter === 'Instagram'}>Instagram</option>
+            <option value="Referral" selected={sourceFilter === 'Referral'}>Referral</option>
+            <option value="Manual Entry" selected={sourceFilter === 'Manual Entry'}>Manual Entry</option>
+          </select>
 
-        <select name="collectionKey" class="filter-select">
-          <option value="">All Collections</option>
-          {collections.map(c => (
-            <option value={c.key} selected={colFilter === c.key}>{c.name}</option>
-          ))}
-        </select>
+          <select name="collectionKey" class="filter-select">
+            <option value="">All Collections</option>
+            {collections.map(c => (
+              <option value={c.key} selected={colFilter === c.key}>{c.name}</option>
+            ))}
+          </select>
 
-        <select name="assignedTo" class="filter-select">
-          <option value="">All Team Members</option>
-          {users.map((u: any) => (
-            <option value={u.name} selected={assignedFilter === u.name}>{u.name}</option>
-          ))}
-        </select>
+          <select name="assignedTo" class="filter-select">
+            <option value="">All Team Members</option>
+            {users.map((u: any) => (
+              <option value={u.name} selected={assignedFilter === u.name}>{u.name}</option>
+            ))}
+          </select>
 
-        <select name="sort" class="filter-select">
-          <option value="newest" selected={sortFilter === 'newest'}>Newest First</option>
-          <option value="oldest" selected={sortFilter === 'oldest'}>Oldest First</option>
-          <option value="name" selected={sortFilter === 'name'}>Name A-Z</option>
-          <option value="last_contact" selected={sortFilter === 'last_contact'}>Recent Contact</option>
-          <option value="next_follow_up" selected={sortFilter === 'next_follow_up'}>Next Follow-up</option>
-        </select>
+          <select name="sort" class="filter-select">
+            <option value="newest" selected={sortFilter === 'newest'}>Newest First</option>
+            <option value="oldest" selected={sortFilter === 'oldest'}>Oldest First</option>
+            <option value="name" selected={sortFilter === 'name'}>Name A-Z</option>
+            <option value="last_contact" selected={sortFilter === 'last_contact'}>Recent Contact</option>
+            <option value="next_follow_up" selected={sortFilter === 'next_follow_up'}>Next Follow-up</option>
+          </select>
+        </div>
 
-        <button type="submit" class="apply-btn">Apply</button>
-        {(q || statusFilter || sourceFilter || colFilter || assignedFilter) && (
-          <a href="/crm/leads" class="reset-link">Reset</a>
-        )}
+        <div class="filter-actions">
+          <button type="submit" class="apply-btn">Apply</button>
+          {(q || statusFilter || sourceFilter || colFilter || assignedFilter) && (
+            <a href="/crm/leads" class="reset-link">Reset</a>
+          )}
+        </div>
       </form>
     </div>
 
@@ -391,6 +395,19 @@ const collections = taxonomyData.collections;
     align-items: center;
   }
 
+  .filters-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .filter-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
   .search-input-frame {
     display: flex;
     align-items: center;
@@ -606,4 +623,107 @@ const collections = taxonomyData.collections;
 
   .cancel-btn { background: none; border: 1px solid var(--line); padding: 0.55rem 1.25rem; border-radius: 999px; cursor: pointer; }
   .submit-btn { background: var(--maroon); color: #ffffff; border: none; padding: 0.55rem 1.25rem; border-radius: 999px; font-weight: 600; cursor: pointer; }
+
+  /* Tablet (768px - 1023px) */
+  @media (max-width: 1023px) {
+    .search-input-frame {
+      flex: 1 1 100%;
+      min-width: 0;
+    }
+    .filters-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      width: 100%;
+    }
+    .filter-select {
+      flex: 1 1 160px;
+      min-width: 130px;
+    }
+  }
+
+  /* Mobile (320px - 767px) */
+  @media (max-width: 767px) {
+    .leads-head-row {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.85rem;
+    }
+    .leads-page-title {
+      font-size: 1.6rem;
+    }
+    .primary-btn {
+      width: 100%;
+      text-align: center;
+      justify-content: center;
+      min-height: 42px;
+      padding: 0.65rem 1rem;
+    }
+    .controls-card {
+      padding: 0.85rem;
+    }
+    .filter-form {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.6rem;
+    }
+    .search-input-frame {
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+      min-height: 40px;
+    }
+    .filters-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      width: 100%;
+    }
+    .filters-group .filter-select:last-child:nth-child(odd) {
+      grid-column: span 2;
+    }
+    .filter-select {
+      width: 100%;
+      min-height: 40px;
+      font-size: 0.813rem;
+      padding: 0.45rem 0.5rem;
+      box-sizing: border-box;
+    }
+    .filter-actions {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      width: 100%;
+    }
+    .apply-btn {
+      flex: 1;
+      min-height: 40px;
+      font-size: 0.844rem;
+      text-align: center;
+    }
+    .reset-link {
+      padding: 0.45rem 0.65rem;
+    }
+    .table-card {
+      padding: 0.65rem;
+    }
+    .leads-master-table {
+      min-width: 950px;
+    }
+    .form-grid {
+      grid-template-columns: 1fr;
+    }
+    .f-group.full-width {
+      grid-column: span 1;
+    }
+    .modal-foot {
+      flex-direction: column-reverse;
+      gap: 0.5rem;
+    }
+    .modal-foot button {
+      width: 100%;
+      text-align: center;
+      min-height: 40px;
+    }
+  }
 </style>

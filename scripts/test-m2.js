@@ -5,8 +5,8 @@ import Database from 'better-sqlite3';
 
 console.log('--- Running VINSHO Milestone 2 Automated Test Suite ---');
 
-const dbPath = path.join(process.cwd(), 'data', 'vinsho.db');
-const db = new Database(dbPath);
+// Isolated in-memory database to prevent test pollution
+const db = new Database(':memory:');
 
 // Ensure tables exist
 db.exec(`

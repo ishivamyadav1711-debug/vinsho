@@ -365,7 +365,33 @@ const users = isSuperAdmin
   .role-sales { background: #dcfce7; color: #166534; }
   .role-staff { background: #e0f2fe; color: #075985; }
 
-  @media (max-width: 900px) {
+  /* Tablet & Mobile */
+  @media (max-width: 1023px) {
     .settings-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 767px) {
+    .s-title {
+      font-size: 1.6rem;
+    }
+    .s-card {
+      padding: 1.15rem;
+    }
+    .form-btn-row {
+      flex-direction: column-reverse;
+      gap: 0.5rem;
+    }
+    .submit-btn,
+    .cancel-btn {
+      width: 100%;
+      text-align: center;
+      min-height: 40px;
+    }
+    .user-item-card {
+      flex-wrap: wrap;
+    }
+    .role-pill {
+      margin-left: auto;
+    }
   }
 </style>

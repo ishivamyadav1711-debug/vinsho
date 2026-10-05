@@ -20,6 +20,20 @@ if (!user) {
     <!-- Top Header -->
     <header class="admin-topbar">
       <div class="topbar-left">
+        <button 
+          type="button" 
+          class="admin-menu-toggle" 
+          id="admin-menu-toggle" 
+          aria-label="Open Navigation Menu" 
+          aria-expanded="false" 
+          aria-controls="admin-sidebar"
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
         <a href="/crm/dashboard" class="admin-logo" aria-label="VINSHO CRM">
           <img src="/vinsho-logo-transparent.png" alt="VINSHO" class="admin-logo-img" />
           <span class="logo-sub">CRM</span>
@@ -30,18 +44,42 @@ if (!user) {
           <span class="user-role-tag">{user.role}</span>
           <span class="user-name">{user.name}</span>
         </div>
-        <button class="admin-logout-btn" id="admin-logout-trigger">
+        <button class="admin-logout-btn" id="admin-logout-trigger" aria-label="Logout from CRM">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>
           </svg>
-          Logout
+          <span class="logout-text">Logout</span>
         </button>
       </div>
     </header>
 
+    <!-- Backdrop for Drawer Navigation on Mobile / Tablet -->
+    <div id="admin-sidebar-backdrop" class="admin-sidebar-backdrop" aria-hidden="true"></div>
+
     <div class="admin-body">
-      <!-- Sidebar Navigation -->
-      <aside class="admin-sidebar" aria-label="Admin Navigation">
+      <!-- Sidebar Navigation / Drawer -->
+      <aside class="admin-sidebar" id="admin-sidebar" aria-label="Admin Navigation">
+        <div class="drawer-header">
+          <div class="drawer-brand">
+            <img src="/vinsho-logo-transparent.png" alt="VINSHO" class="drawer-logo-img" />
+            <span class="logo-sub">CRM</span>
+          </div>
+          <button type="button" class="drawer-close-btn" id="admin-drawer-close" aria-label="Close navigation menu">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+
+        <div class="drawer-user-info">
+          <div class="drawer-avatar">{(user.name || 'U').charAt(0).toUpperCase()}</div>
+          <div class="drawer-user-meta">
+            <span class="drawer-user-name">{user.name}</span>
+            <span class="drawer-user-role">{user.role}</span>
+          </div>
+        </div>
+
         <nav class="admin-nav-list">
           <a href="/crm/dashboard" class={`nav-item ${activeNav === 'dashboard' ? 'active' : ''}`}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -84,6 +122,13 @@ if (!user) {
             </svg>
             Products
           </a>
+          <a href="/crm/returns" class={`nav-item ${activeNav === 'returns' ? 'active' : ''}`}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+              <path d="M3 3v5h5"/>
+            </svg>
+            Returns &amp; RTO
+          </a>
           <a href="/crm/analytics" class={`nav-item ${activeNav === 'analytics' ? 'active' : ''}`}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
               <line x1="18" y1="20" x2="18" y2="10"/>
@@ -104,7 +149,7 @@ if (!user) {
         </nav>
 
         <div class="sidebar-foot">
-          <a href="/" target="_blank" class="view-site-link">
+          <a href="/" target="_blank" rel="noopener noreferrer" class="view-site-link">
             Visit Public Site &rarr;
           </a>
         </div>
@@ -119,6 +164,7 @@ if (!user) {
 </Base>
 
 <script>
+  // Logout handling
   document.getElementById('admin-logout-trigger')?.addEventListener('click', async () => {
     try {
       await fetch('/api/admin/logout', { method: 'POST' });
@@ -126,6 +172,52 @@ if (!user) {
     } catch (err) {
       window.location.href = '/crm/login';
     }
+  });
+
+  // Off-canvas mobile/tablet drawer navigation
+  const menuToggle = document.getElementById('admin-menu-toggle');
+  const drawerClose = document.getElementById('admin-drawer-close');
+  const sidebar = document.getElementById('admin-sidebar');
+  const backdrop = document.getElementById('admin-sidebar-backdrop');
+
+  function openDrawer() {
+    sidebar?.classList.add('drawer-open');
+    backdrop?.classList.add('active');
+    menuToggle?.setAttribute('aria-expanded', 'true');
+    document.body.classList.add('drawer-lock-scroll');
+  }
+
+  function closeDrawer() {
+    sidebar?.classList.remove('drawer-open');
+    backdrop?.classList.remove('active');
+    menuToggle?.setAttribute('aria-expanded', 'false');
+    document.body.classList.remove('drawer-lock-scroll');
+  }
+
+  menuToggle?.addEventListener('click', () => {
+    if (sidebar?.classList.contains('drawer-open')) {
+      closeDrawer();
+    } else {
+      openDrawer();
+    }
+  });
+
+  drawerClose?.addEventListener('click', closeDrawer);
+  backdrop?.addEventListener('click', closeDrawer);
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && sidebar?.classList.contains('drawer-open')) {
+      closeDrawer();
+    }
+  });
+
+  // Auto-close on link click (for smooth in-page or dynamic navigation)
+  sidebar?.querySelectorAll('.nav-item').forEach((item) => {
+    item.addEventListener('click', () => {
+      if (window.innerWidth < 1024) {
+        closeDrawer();
+      }
+    });
   });
 </script>
 
@@ -137,6 +229,8 @@ if (!user) {
     flex-direction: column;
     color: var(--ink, #1C1917);
     font-family: var(--sans);
+    position: relative;
+    overflow-x: hidden;
   }
 
   .admin-topbar {
@@ -150,6 +244,32 @@ if (!user) {
     position: sticky;
     top: 0;
     z-index: 100;
+  }
+
+  .topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  /* Hamburger toggle for mobile/tablet */
+  .admin-menu-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 6px;
+    background: #ffffff;
+    border: 1px solid var(--line, #e2d8d5);
+    color: var(--maroon, #8A174B);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+  }
+
+  .admin-menu-toggle:hover {
+    background: var(--paper-3, #f1e7e4);
   }
 
   .admin-logo {
@@ -217,6 +337,7 @@ if (!user) {
     border-radius: 999px;
     cursor: pointer;
     transition: all 0.2s ease;
+    white-space: nowrap;
   }
 
   .admin-logout-btn:hover {
@@ -228,10 +349,13 @@ if (!user) {
   .admin-body {
     display: flex;
     flex: 1;
+    min-width: 0;
   }
 
+  /* Desktop persistent sidebar (>= 1024px) */
   .admin-sidebar {
     width: 240px;
+    flex-shrink: 0;
     background: var(--paper-2);
     border-right: 1px solid var(--line);
     display: flex;
@@ -241,6 +365,18 @@ if (!user) {
     position: sticky;
     top: 60px;
     height: calc(100vh - 60px);
+  }
+
+  .drawer-header {
+    display: none;
+  }
+
+  .drawer-user-info {
+    display: none;
+  }
+
+  .admin-sidebar-backdrop {
+    display: none;
   }
 
   .admin-nav-list {
@@ -276,6 +412,7 @@ if (!user) {
   .sidebar-foot {
     border-top: 1px solid var(--line);
     padding-top: 1rem;
+    margin-top: auto;
   }
 
   .view-site-link {
@@ -283,25 +420,300 @@ if (!user) {
     color: var(--maroon);
     text-decoration: none;
     font-weight: 500;
+    display: inline-block;
   }
 
   .admin-main {
     flex: 1;
     padding: 2rem 2.5rem;
-    overflow-y: auto;
+    min-width: 0;
+    box-sizing: border-box;
   }
 
-  @media (max-width: 900px) {
-    .admin-body {
-      flex-direction: column;
+  /* Tablet and Mobile Shell (< 1024px) */
+  @media (max-width: 1023px) {
+    .admin-menu-toggle {
+      display: inline-flex;
     }
+
+    .admin-sidebar-backdrop {
+      display: block;
+      position: fixed;
+      inset: 0;
+      background: rgba(28, 25, 23, 0.48);
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+      z-index: 998;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .admin-sidebar-backdrop.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
     .admin-sidebar {
-      width: 100%;
-      height: auto;
-      position: static;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 290px;
+      max-width: 84vw;
+      height: 100vh;
+      background: var(--paper-2);
+      z-index: 999;
+      transform: translateX(-100%);
+      transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+      padding: 1.25rem 1rem;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      border-right: 1px solid var(--line);
     }
+
+    .admin-sidebar.drawer-open {
+      transform: translateX(0);
+    }
+
+    .drawer-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 0.85rem;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 0.85rem;
+    }
+
+    .drawer-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+
+    .drawer-logo-img {
+      height: 28px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    .drawer-close-btn {
+      background: var(--paper-3, #f1e7e4);
+      border: none;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: grid;
+      place-items: center;
+      color: var(--ink);
+      cursor: pointer;
+      padding: 0;
+      transition: background 0.2s;
+    }
+
+    .drawer-close-btn:hover {
+      background: #e2d8d5;
+      color: var(--maroon);
+    }
+
+    .drawer-user-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 0.85rem;
+      background: var(--paper-3, #f1e7e4);
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+
+    .drawer-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--maroon);
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 0.95rem;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+
+    .drawer-user-meta {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    .drawer-user-name {
+      font-size: 0.844rem;
+      font-weight: 700;
+      color: var(--maroon-2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .drawer-user-role {
+      font-size: 0.688rem;
+      font-weight: 600;
+      color: var(--ink-soft);
+      letter-spacing: 0.05em;
+    }
+
     .admin-main {
-      padding: 1.5rem 1rem;
+      padding: 1.5rem 1.25rem;
+      width: 100%;
+      max-width: 100vw;
+    }
+  }
+
+  /* Mobile Shell (< 768px) */
+  @media (max-width: 767px) {
+    .admin-topbar {
+      height: 56px;
+      padding-inline: 0.85rem;
+    }
+
+    .admin-logo-img {
+      height: 28px;
+    }
+
+    .topbar-right {
+      gap: 0.6rem;
+    }
+
+    .user-role-tag {
+      display: none;
+    }
+
+    .user-name {
+      font-size: 0.75rem;
+      max-width: 90px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .admin-logout-btn {
+      padding: 0.3rem 0.6rem;
+      font-size: 0.72rem;
+    }
+
+    .logout-text {
+      display: none;
+    }
+
+    .admin-main {
+      padding: 1rem 0.75rem;
+    }
+  }
+</style>
+
+<!-- Global CRM Responsive Utilities -->
+<style is:global>
+  /* Prevent horizontal viewport spill */
+  html, body {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  body.drawer-lock-scroll {
+    overflow: hidden !important;
+  }
+
+  /* Ensure all tables are safely scrollable horizontally on mobile/tablet */
+  .table-scroll-container,
+  .table-container,
+  .table-responsive {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    position: relative;
+    border-radius: 8px;
+  }
+
+  .table-card:has(table) {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    max-width: 100% !important;
+  }
+
+  /* Table styling enhancements for touch screens */
+  .leads-master-table,
+  .cust-master-table,
+  .orders-table,
+  .products-table,
+  .admin-table,
+  .crm-table,
+  .audit-table,
+  .data-table,
+  .items-table,
+  .variant-edit-table {
+    min-width: 680px;
+  }
+
+  /* Mobile Modals */
+  @media (max-width: 767px) {
+    .modal-backdrop,
+    .modal-overlay {
+      padding: 0.75rem !important;
+      align-items: flex-end !important;
+    }
+
+    .modal-card,
+    .modal-container {
+      width: 100% !important;
+      max-width: 100% !important;
+      max-height: 88vh !important;
+      overflow-y: auto !important;
+      -webkit-overflow-scrolling: touch !important;
+      padding: 1.25rem 1rem !important;
+      border-bottom-left-radius: 0 !important;
+      border-bottom-right-radius: 0 !important;
+    }
+
+    .form-grid {
+      grid-template-columns: 1fr !important;
+    }
+
+    .f-group.full-width {
+      grid-column: span 1 !important;
+    }
+
+    .field-row-2,
+    .field-row-3 {
+      grid-template-columns: 1fr !important;
+    }
+
+    .modal-foot {
+      flex-direction: column-reverse;
+      gap: 0.5rem !important;
+    }
+
+    .modal-foot button,
+    .modal-foot .cancel-btn,
+    .modal-foot .submit-btn {
+      width: 100%;
+      text-align: center;
+      justify-content: center;
+    }
+  }
+
+  /* Touch-friendly inputs and buttons */
+  @media (max-width: 767px) {
+    input[type="text"],
+    input[type="search"],
+    input[type="email"],
+    input[type="password"],
+    input[type="tel"],
+    select,
+    button,
+    .btn,
+    .primary-btn {
+      min-height: 38px;
     }
   }
 </style>

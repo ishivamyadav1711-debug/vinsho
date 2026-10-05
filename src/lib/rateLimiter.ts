@@ -2,8 +2,8 @@
  * VINSHO — In-Process IP Rate Limiter
  *
  * Architecture: Uses a plain in-process Map keyed by `${endpoint}:${ip}`.
- * This avoids adding a SQLite read + write to every public API request
- * (the existing enquiry and admin-login rate limiters already use SQLite
+ * This avoids adding a database read + write to every public API request
+ * (the enquiry and admin-login rate limiters use PostgreSQL via Prisma
  * because they need cross-restart persistence; those are left unchanged).
  *
  * Trade-off: the Map resets on process restart, which is acceptable for
@@ -75,7 +75,7 @@ export const LIMITS = {
 
   /**
    * Customer login: 10 per IP per 15 minutes (complementing the admin
-   * login's existing SQLite-based limit). Slightly looser than admin login
+   * login's existing PostgreSQL-based limit). Slightly looser than admin login
    * because customers may legitimately mistype passwords.
    */
   CUSTOMER_LOGIN: { maxRequests: 10, windowMs: 15 * 60 * 1000 } satisfies RateLimit,

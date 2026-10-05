@@ -2,11 +2,20 @@
 import ProductCard from './ProductCard.astro';
 import TextReveal from './motion/TextReveal.astro';
 import FilterPanel from './FilterPanel.astro';
-import { getCollections, getActiveProducts, getCollectionProductCount, getSubcategoryProductCount } from '../utils/taxonomy';
+import { getCollections, getActiveProducts } from '../utils/taxonomy';
 
 const collections = await getCollections();
 const activeProducts = await getActiveProducts();
 const totalCount = activeProducts.length;
+
+// Precompute counts in a single O(N) pass to eliminate template latency
+const colCounts: Record<string, number> = {};
+const subCounts: Record<string, number> = {};
+for (const p of activeProducts) {
+  colCounts[p.collectionKey] = (colCounts[p.collectionKey] || 0) + 1;
+  const subKey = `${p.collectionKey}:::${p.subcategoryKey}`;
+  subCounts[subKey] = (subCounts[subKey] || 0) + 1;
+}
 ---
 
 <section class="wrap catalogue-2tier-section" id="catalogue">
@@ -101,7 +110,7 @@ const totalCount = activeProducts.length;
         <div class="m-col-pills-row">
           <button class="m-sub-pill active" data-m-col="all">All ({totalCount})</button>
           {collections.map((col) => {
-            const cnt = getCollectionProductCount(col.key);
+            const cnt = colCounts[col.key] || 0;
             return (
               <button class="m-sub-pill" data-m-col={col.key}>
                 {col.name} ({cnt})
@@ -164,7 +173,7 @@ const totalCount = activeProducts.length;
         ALL PRODUCTS <span class="pill-cnt">{totalCount}</span>
       </button>
       {collections.map((col) => {
-        const cnt = getCollectionProductCount(col.key);
+        const cnt = colCounts[col.key] || 0;
         return (
           <button class="tab-pill" data-col={col.key} aria-pressed="false">
             {col.name.toUpperCase()} <span class="pill-cnt">{cnt}</span>
@@ -185,7 +194,7 @@ const totalCount = activeProducts.length;
         <div class="sidebar-divider"></div>
 
         {collections.map((col) => {
-          const colCount = getCollectionProductCount(col.key);
+          const colCount = colCounts[col.key] || 0;
           const isGifting = col.key === 'gifting-collection' || col.key === 'gifting';
           return (
             <div class={`sidebar-group ${isGifting ? 'gifting-group' : ''}`}>
@@ -196,7 +205,7 @@ const totalCount = activeProducts.length;
               {isGifting && col.subcategories && col.subcategories.length > 0 && (
                 <div class="sidebar-sub-list" id="gifting-sidebar-sub-list">
                   {col.subcategories.map((sub) => {
-                    const subCount = getSubcategoryProductCount(col.key, sub.key);
+                    const subCount = subCounts[`${col.key}:::${sub.key}`] || 0;
                     return (
                       <button class="sidebar-item sub-item" data-col={col.key} data-sub={sub.key}>
                         <span class="sub-name">{sub.name}</span>

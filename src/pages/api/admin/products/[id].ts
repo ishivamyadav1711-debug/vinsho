@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { prisma, logAuditAction } from '../../../../lib/db.js';
 import { getSessionUser } from '../../../../lib/auth.js';
 import { evaluatePurchasability } from '../../../../lib/purchasability.js';
+import { invalidateTaxonomyCache } from '../../../../utils/taxonomy.js';
 
 export const GET: APIRoute = async ({ request, params }) => {
   const user = await getSessionUser(request);
@@ -178,6 +179,7 @@ export const PUT: APIRoute = async ({ request, params }) => {
       userAgent: request.headers.get('user-agent') || ''
     });
 
+    invalidateTaxonomyCache();
     return new Response(JSON.stringify({ success: true, product: finalProduct }), { status: 200 });
   } catch (err: any) {
     return new Response(JSON.stringify({ error: err.message || 'Failed to update product.' }), { status: 500 });
@@ -215,5 +217,6 @@ export const DELETE: APIRoute = async ({ request, params }) => {
     userAgent: request.headers.get('user-agent') || ''
   });
 
+  invalidateTaxonomyCache();
   return new Response(JSON.stringify({ success: true, message: 'Product archived successfully.' }), { status: 200 });
 };

@@ -1,6 +1,6 @@
 ---
 import TextReveal from './motion/TextReveal.astro';
-import { getCollections, getCollectionProductCount, getActiveProducts } from '../utils/taxonomy';
+import { getCollections, getActiveProducts } from '../utils/taxonomy';
 
 const collections = await getCollections();
 const activeProducts = await getActiveProducts();
@@ -20,7 +20,7 @@ const collectionItems = collections.map((col: any, idx: any) => {
     num: `0${idx + 1}`,
     key: col.key,
     name: col.name,
-    count: `${getCollectionProductCount(col.key)} pieces`,
+    count: `${colProducts.length} pieces`,
     blurb: col.blurb,
     image: primaryImage,
     productImages: images.slice(0, 6), // Top 6 product images

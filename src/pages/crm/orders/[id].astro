@@ -84,35 +84,37 @@ const placedDate = new Date(order.placed_at).toLocaleString('en-IN', {
         <!-- Order Items -->
         <div class="detail-box">
           <h2 class="box-title">Order Items ({order.OrderItems.length})</h2>
-          <table class="items-table">
-            <thead>
-              <tr>
-                <th>Product Snapshot</th>
-                <th>SKU</th>
-                <th>HSN</th>
-                <th>Price</th>
-                <th>Qty</th>
-                <th>GST</th>
-                <th>Line Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              {order.OrderItems.map(item => (
+          <div class="table-scroll-container">
+            <table class="items-table">
+              <thead>
                 <tr>
-                  <td>
-                    <strong>{item.product_name_snapshot}</strong>
-                    <span class="item-sub">{item.variant_label_snapshot}</span>
-                  </td>
-                  <td><code>{item.sku_snapshot}</code></td>
-                  <td>{item.hsn_snapshot}</td>
-                  <td>₹{Number(item.unit_price_snapshot).toFixed(2)}</td>
-                  <td>{item.qty}</td>
-                  <td>{Number(item.gst_rate_snapshot)}%</td>
-                  <td><strong>₹{Number(item.line_total).toFixed(2)}</strong></td>
+                  <th>Product Snapshot</th>
+                  <th>SKU</th>
+                  <th>HSN</th>
+                  <th>Price</th>
+                  <th>Qty</th>
+                  <th>GST</th>
+                  <th>Line Total</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {order.OrderItems.map(item => (
+                  <tr>
+                    <td>
+                      <strong>{item.product_name_snapshot}</strong>
+                      <span class="item-sub">{item.variant_label_snapshot}</span>
+                    </td>
+                    <td><code>{item.sku_snapshot}</code></td>
+                    <td>{item.hsn_snapshot}</td>
+                    <td>₹{Number(item.unit_price_snapshot).toFixed(2)}</td>
+                    <td>{item.qty}</td>
+                    <td>{Number(item.gst_rate_snapshot)}%</td>
+                    <td><strong>₹{Number(item.line_total).toFixed(2)}</strong></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
           <!-- Financial Breakdown -->
           <div class="totals-breakdown">
@@ -418,9 +420,49 @@ const placedDate = new Date(order.placed_at).toLocaleString('en-IN', {
     gap: 1.5rem;
   }
 
-  @media (max-width: 900px) {
+  @media (max-width: 1023px) {
     .order-content-grid {
       grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .order-header-card {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 1rem;
+      padding: 1.15rem;
+    }
+    .order-number {
+      font-size: 1.6rem;
+    }
+    .header-status-area {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.75rem;
+    }
+    .badge-group {
+      flex-wrap: wrap;
+    }
+    .status-updater {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.5rem;
+    }
+    .status-select {
+      width: 100%;
+      min-height: 40px;
+    }
+    .btn-update {
+      width: 100%;
+      min-height: 40px;
+      text-align: center;
+    }
+    .detail-box {
+      padding: 1rem;
+    }
+    .items-table {
+      min-width: 680px;
     }
   }
 

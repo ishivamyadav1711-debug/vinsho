@@ -43,7 +43,7 @@ const [orders, totalOrdersCount, totalPaidCount, totalPendingCount, sumRevenue] 
   prisma.orders.count(),
   prisma.orders.count({ where: { payment_status: 'paid' } }),
   prisma.orders.count({ where: { status: 'Pending' } }),
-  prisma.orders.aggregate({ _sum: { grand_total: true } })
+  prisma.orders.aggregate({ _sum: { grand_total: true }, where: { payment_status: 'paid' } })
 ]);
 
 const totalRevenue = Number(sumRevenue._sum.grand_total || 0);
@@ -388,5 +388,63 @@ const totalRevenue = Number(sumRevenue._sum.grand_total || 0);
     text-align: center;
     padding: 3rem 1rem;
     color: #6b7280;
+  }
+
+  /* Tablet */
+  @media (max-width: 1023px) {
+    .metrics-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  /* Mobile */
+  @media (max-width: 767px) {
+    .metrics-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.65rem;
+    }
+    .metric-card {
+      padding: 0.85rem;
+    }
+    .metric-value {
+      font-size: 1.35rem;
+    }
+    .toolbar {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.75rem;
+    }
+    .filter-tabs {
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 4px;
+      width: 100%;
+    }
+    .filter-tab {
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .search-form {
+      width: 100%;
+    }
+    .search-input {
+      flex: 1;
+      min-width: 0;
+      min-height: 40px;
+    }
+    .search-btn {
+      min-height: 40px;
+      padding-inline: 1.1rem;
+    }
+    .orders-table {
+      min-width: 820px;
+    }
+  }
+
+  @media (max-width: 440px) {
+    .metrics-grid {
+      grid-template-columns: 1fr;
+    }
   }
 </style>

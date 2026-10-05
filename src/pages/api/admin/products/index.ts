@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { prisma, logAuditAction } from '../../../../lib/db.js';
 import { getSessionUser } from '../../../../lib/auth.js';
 import { evaluatePurchasability } from '../../../../lib/purchasability.js';
+import { invalidateTaxonomyCache } from '../../../../utils/taxonomy.js';
 
 export const GET: APIRoute = async ({ request, url }) => {
   const user = await getSessionUser(request);
@@ -152,6 +153,7 @@ export const POST: APIRoute = async ({ request }) => {
       userAgent: request.headers.get('user-agent') || ''
     });
 
+    invalidateTaxonomyCache();
     return new Response(JSON.stringify({ success: true, product: newProd }), { status: 201 });
   } catch (err: any) {
     return new Response(JSON.stringify({ error: err.message || 'Failed to create product.' }), { status: 500 });

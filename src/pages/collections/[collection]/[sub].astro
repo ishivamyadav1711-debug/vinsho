@@ -9,7 +9,7 @@ import Breadcrumbs from '../../../components/Breadcrumbs.astro';
 import ProductCard from '../../../components/ProductCard.astro';
 import Modal from '../../../components/Modal.astro';
 import CandleCraftsmanship from '../../../components/CandleCraftsmanship.astro';
-import { getCollections, getCollectionByKey, getSubcategoryByKey, getProductsBySubcategory, getSubcategoryProductCount } from '../../../utils/taxonomy';
+import { getCollectionByKey, getSubcategoryByKey, getProductsByCollection, type ProductItem } from '../../../utils/taxonomy';
 
 const { collection: collectionKey, sub: subKey } = Astro.params;
 
@@ -20,8 +20,9 @@ if (!collection || !subcategory) {
   return Astro.redirect('/collections');
 }
 
-const products = await getProductsBySubcategory(collection.key, subcategory.key);
-const totalCount = await getSubcategoryProductCount(collection.key, subcategory.key);
+const colProducts = await getProductsByCollection(collection.key);
+const products = colProducts.filter((p: ProductItem) => p.subcategoryKey === subcategory.key);
+const totalCount = products.length;
 
 const isCandleSub = subKey === 'candles' || collectionKey === 'candles' || subcategory.name.toLowerCase().includes('candle');
 
@@ -46,8 +47,8 @@ const breadcrumbItems = [
       <p class="sub-blurb">{subcategory.blurb || collection.blurb}</p>
 
       <nav class="subcat-nav-bar" aria-label="Sub-categories">
-        {collection.subcategories.map((sub) => {
-          const subCount = getSubcategoryProductCount(collection.key, sub.key);
+        {collection.subcategories.map((sub: any) => {
+          const subCount = colProducts.filter((p: ProductItem) => p.subcategoryKey === sub.key).length;
           const isActive = sub.key === subcategory.key;
           return (
             <a 
@@ -63,7 +64,7 @@ const breadcrumbItems = [
 
     {products.length > 0 ? (
       <div class="grid">
-        {products.map((product) => (
+        {products.map((product: ProductItem) => (
           <ProductCard product={product} />
         ))}
       </div>

@@ -497,5 +497,50 @@ const isConverted = lead.status !== 'Lead';
   .modal-foot { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.25rem; }
   .cancel-btn { background: none; border: 1px solid var(--line); padding: 0.45rem 1rem; border-radius: 999px; cursor: pointer; }
   .submit-btn { background: var(--maroon); color: #ffffff; border: none; padding: 0.45rem 1rem; border-radius: 999px; font-weight: 600; cursor: pointer; }
-  @media (max-width: 900px) { .profile-layout-grid { grid-template-columns: 1fr; } }
+  @media (max-width: 1023px) {
+    .profile-layout-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 767px) {
+    .profile-hero-card {
+      flex-direction: column;
+      align-items: stretch;
+      padding: 1.15rem;
+      gap: 1rem;
+    }
+    .lead-display-name {
+      font-size: 1.65rem;
+    }
+    .hero-right-actions {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.75rem;
+    }
+    .status-updater-box {
+      width: 100%;
+    }
+    .status-select-btn {
+      width: 100%;
+      min-height: 40px;
+    }
+    .convert-btn, .converted-badge-btn {
+      width: 100%;
+      text-align: center;
+      min-height: 40px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .info-grid {
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+    }
+    .info-section-card {
+      padding: 1rem;
+    }
+    .modal-card {
+      width: 100%;
+      padding: 1.25rem 1rem;
+    }
+  }
 </style>

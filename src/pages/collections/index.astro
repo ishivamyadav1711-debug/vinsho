@@ -32,8 +32,8 @@ const breadcrumbItems = [
 
     <div class="collections-master-grid">
       {collections.map((col) => {
-        const totalCount = getCollectionProductCount(col.key);
         const colProducts = activeProducts.filter(p => p.collectionKey === col.key);
+        const totalCount = colProducts.length;
 
         return (
           <section class="collection-master-card">
@@ -51,7 +51,7 @@ const breadcrumbItems = [
               <div class="subcat-chips-list">
                 <span class="subcat-label" style="font-size: 0.813rem; font-weight: 600; color: var(--maroon-2); margin-right: 0.5rem; align-self: center;">Select Subcategory:</span>
                 {col.subcategories.map((sub) => {
-                  const subCount = getSubcategoryProductCount(col.key, sub.key);
+                  const subCount = colProducts.filter(p => p.subcategoryKey === sub.key).length;
                   return (
                     <a href={`/collections/${col.key}/${sub.key}`} class="subcat-chip">
                       {sub.name} <span class="subcat-num">({subCount})</span>

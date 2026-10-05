@@ -206,40 +206,44 @@ const paginatedProducts = filtered.slice((currentPage - 1) * pageSize, currentPa
           />
         </div>
 
-        <select name="status" class="filter-select" onchange="this.form.submit()">
-          <option value="all" selected={statusFilter === 'all'}>All Stock Statuses</option>
-          <option value="in_stock" selected={statusFilter === 'in_stock'}>In Stock</option>
-          <option value="low_stock" selected={statusFilter === 'low_stock'}>Low Stock</option>
-          <option value="out_of_stock" selected={statusFilter === 'out_of_stock'}>Out of Stock</option>
-        </select>
+        <div class="filters-group">
+          <select name="status" class="filter-select" onchange="this.form.submit()">
+            <option value="all" selected={statusFilter === 'all'}>All Stock Statuses</option>
+            <option value="in_stock" selected={statusFilter === 'in_stock'}>In Stock</option>
+            <option value="low_stock" selected={statusFilter === 'low_stock'}>Low Stock</option>
+            <option value="out_of_stock" selected={statusFilter === 'out_of_stock'}>Out of Stock</option>
+          </select>
 
-        <select name="collection" class="filter-select" onchange="this.form.submit()">
-          <option value="all" selected={collectionFilter === 'all'}>All Collections</option>
-          {collections.map((c) => (
-            <option value={String(c.id)} selected={collectionFilter === String(c.id)}>{c.name}</option>
-          ))}
-        </select>
+          <select name="collection" class="filter-select" onchange="this.form.submit()">
+            <option value="all" selected={collectionFilter === 'all'}>All Collections</option>
+            {collections.map((c) => (
+              <option value={String(c.id)} selected={collectionFilter === String(c.id)}>{c.name}</option>
+            ))}
+          </select>
 
-        <select name="availability" class="filter-select" onchange="this.form.submit()">
-          <option value="all" selected={availabilityFilter === 'all'}>All Channels</option>
-          <option value="online" selected={availabilityFilter === 'online'}>Available Online</option>
-          <option value="offline" selected={availabilityFilter === 'offline'}>Not Available Online</option>
-        </select>
+          <select name="availability" class="filter-select" onchange="this.form.submit()">
+            <option value="all" selected={availabilityFilter === 'all'}>All Channels</option>
+            <option value="online" selected={availabilityFilter === 'online'}>Available Online</option>
+            <option value="offline" selected={availabilityFilter === 'offline'}>Not Available Online</option>
+          </select>
 
-        <select name="sort" class="filter-select" onchange="this.form.submit()">
-          <option value="name_asc" selected={sortBy === 'name_asc'}>Name (A-Z)</option>
-          <option value="name_desc" selected={sortBy === 'name_desc'}>Name (Z-A)</option>
-          <option value="price_asc" selected={sortBy === 'price_asc'}>Price (Low to High)</option>
-          <option value="price_desc" selected={sortBy === 'price_desc'}>Price (High to Low)</option>
-          <option value="stock_asc" selected={sortBy === 'stock_asc'}>Stock (Low to High)</option>
-          <option value="stock_desc" selected={sortBy === 'stock_desc'}>Stock (High to Low)</option>
-          <option value="updated_desc" selected={sortBy === 'updated_desc'}>Recently Updated</option>
-        </select>
+          <select name="sort" class="filter-select" onchange="this.form.submit()">
+            <option value="name_asc" selected={sortBy === 'name_asc'}>Name (A-Z)</option>
+            <option value="name_desc" selected={sortBy === 'name_desc'}>Name (Z-A)</option>
+            <option value="price_asc" selected={sortBy === 'price_asc'}>Price (Low to High)</option>
+            <option value="price_desc" selected={sortBy === 'price_desc'}>Price (High to Low)</option>
+            <option value="stock_asc" selected={sortBy === 'stock_asc'}>Stock (Low to High)</option>
+            <option value="stock_desc" selected={sortBy === 'stock_desc'}>Stock (High to Low)</option>
+            <option value="updated_desc" selected={sortBy === 'updated_desc'}>Recently Updated</option>
+          </select>
+        </div>
 
-        <button type="submit" class="btn-filter">Filter</button>
-        {(search || statusFilter !== 'all' || collectionFilter !== 'all' || availabilityFilter !== 'all' || sortBy !== 'name_asc') && (
-          <a href="/crm/products" class="btn-reset">Reset</a>
-        )}
+        <div class="filter-actions">
+          <button type="submit" class="btn-filter">Filter</button>
+          {(search || statusFilter !== 'all' || collectionFilter !== 'all' || availabilityFilter !== 'all' || sortBy !== 'name_asc') && (
+            <a href="/crm/products" class="btn-reset">Reset</a>
+          )}
+        </div>
       </form>
     </div>
 
@@ -1476,5 +1480,135 @@ const paginatedProducts = filtered.slice((currentPage - 1) * pageSize, currentPa
     font-size: 0.813rem;
     font-weight: 600;
     cursor: pointer;
+  }
+
+  .filters-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  .filter-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  /* Tablet */
+  @media (max-width: 1023px) {
+    .summary-metrics-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+    }
+    .search-input-wrap {
+      flex: 1 1 100%;
+      min-width: 0;
+    }
+    .filters-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      width: 100%;
+    }
+    .filter-select {
+      flex: 1 1 150px;
+      min-width: 130px;
+    }
+  }
+
+  /* Mobile */
+  @media (max-width: 767px) {
+    .page-head-row {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.75rem;
+    }
+    .page-title {
+      font-size: 1.6rem;
+    }
+    .head-actions .btn-secondary {
+      width: 100%;
+      text-align: center;
+      justify-content: center;
+      min-height: 40px;
+    }
+    .summary-metrics-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.5rem;
+    }
+    .metric-card {
+      padding: 0.85rem;
+    }
+    .metric-val {
+      font-size: 1.5rem;
+    }
+    .filter-card {
+      padding: 0.85rem;
+    }
+    .filter-form {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.6rem;
+    }
+    .search-input-wrap {
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+      min-height: 40px;
+    }
+    .filters-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      width: 100%;
+    }
+    .filter-select {
+      width: 100%;
+      min-height: 40px;
+      font-size: 0.813rem;
+      padding: 0.45rem 0.5rem;
+      box-sizing: border-box;
+    }
+    .filter-actions {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      width: 100%;
+    }
+    .btn-filter {
+      flex: 1;
+      min-height: 40px;
+      text-align: center;
+      font-size: 0.844rem;
+    }
+    .btn-reset {
+      padding: 0.45rem 0.65rem;
+    }
+    .products-table {
+      min-width: 880px;
+    }
+    .pagination-bar {
+      flex-direction: column;
+      gap: 0.75rem;
+      align-items: center;
+      text-align: center;
+    }
+    .row-action-btns {
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .modal-card {
+      padding: 0;
+    }
+    .modal-body {
+      padding: 1rem;
+    }
+  }
+
+  @media (max-width: 440px) {
+    .summary-metrics-grid {
+      grid-template-columns: 1fr;
+    }
   }
 </style>

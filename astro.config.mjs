@@ -13,6 +13,7 @@ export default defineConfig({
     sitemap({
       filter: (page) =>
         !page.includes('/admin') &&
+        !page.includes('/crm') &&
         !page.includes('/api') &&
         !page.includes('/account') &&
         !page.includes('/checkout') &&
@@ -41,6 +42,18 @@ export default defineConfig({
     '/product-category/gifting': '/collections/gifting',
     '/collections/gifting-collection': '/collections/gifting',
     '/product/show-piece': '/product/show-pieces',
-    '/product/show-peice': '/product/show-pieces'
+    '/product/show-peice': '/product/show-pieces',
+    '/admin': '/crm',
+    '/admin/login': '/crm/login',
+    '/admin/dashboard': '/crm/dashboard',
+    '/admin/crm': '/crm/dashboard',
+    '/admin/products': '/crm/products',
+    '/admin/customers': '/crm/customers',
+    '/admin/leads': '/crm/leads',
+    '/admin/orders': '/crm/orders',
+    '/admin/returns': '/crm/returns',
+    '/admin/analytics': '/crm/analytics',
+    '/admin/settings': '/crm/settings',
+    '/admin/audit-logs': '/crm/audit-logs'
   }
 });

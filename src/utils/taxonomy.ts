@@ -126,8 +126,27 @@ export function getTaxonomy() {
   return taxonomyData;
 }
 
-/** Async: Fetch collections from PostgreSQL, fallback to JSON seed. */
-export async function getCollections(): Promise<Collection[]> {
+// In-memory cache with TTL (60s) to eliminate repetitive network roundtrips to PostgreSQL
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
+
+let cachedCollections: CacheEntry<Collection[]> | null = null;
+let cachedProducts: CacheEntry<ProductItem[]> | null = null;
+const CACHE_TTL_MS = 60 * 1000;
+
+export function invalidateTaxonomyCache(): void {
+  cachedCollections = null;
+  cachedProducts = null;
+}
+
+/** Async: Fetch collections from PostgreSQL with in-memory caching. */
+export async function getCollections(forceFresh = false): Promise<Collection[]> {
+  if (!forceFresh && cachedCollections && (Date.now() - cachedCollections.timestamp < CACHE_TTL_MS)) {
+    return cachedCollections.data;
+  }
+
   try {
     const dbCols = await prisma.collections.findMany({
       where: { deleted_at: null, NOT: { key: 'dummy_collection' } },
@@ -141,7 +160,7 @@ export async function getCollections(): Promise<Collection[]> {
     });
 
     if (dbCols && dbCols.length > 0) {
-      return dbCols.map((c) => ({
+      const result = dbCols.map((c) => ({
         key: c.key,
         name: c.name,
         blurb: c.blurb || '',
@@ -152,18 +171,28 @@ export async function getCollections(): Promise<Collection[]> {
           blurb: s.blurb || ''
         }))
       }));
+      cachedCollections = { data: result, timestamp: Date.now() };
+      return result;
     }
   } catch (err) {
     console.warn('DB taxonomy read fallback to JSON:', err);
+    if (cachedCollections?.data) return cachedCollections.data;
   }
+
   // Fallback: exclude dummy_collection from static JSON too
-  return (taxonomyData.collections as Collection[]).filter(
+  const fallback = (taxonomyData.collections as Collection[]).filter(
     (c) => c.key !== 'dummy_collection'
   );
+  cachedCollections = { data: fallback, timestamp: Date.now() };
+  return fallback;
 }
 
-/** Async: Fetch all products from PostgreSQL, fallback to JSON seed. */
-export async function getAllProducts(): Promise<ProductItem[]> {
+/** Async: Fetch all products from PostgreSQL with in-memory caching. */
+export async function getAllProducts(forceFresh = false): Promise<ProductItem[]> {
+  if (!forceFresh && cachedProducts && (Date.now() - cachedProducts.timestamp < CACHE_TTL_MS)) {
+    return cachedProducts.data;
+  }
+
   try {
     const dbProducts = await prisma.products.findMany({
       where: { deleted_at: null },
@@ -177,7 +206,7 @@ export async function getAllProducts(): Promise<ProductItem[]> {
     });
 
     if (dbProducts && dbProducts.length > 0) {
-      return dbProducts.map((p) => {
+      const result = dbProducts.map((p) => {
         let parsedFeatures: Array<{ title: string; description: string }> = [];
         if (p.features) {
           try {
@@ -244,9 +273,13 @@ export async function getAllProducts(): Promise<ProductItem[]> {
           variants
         } as ProductItem;
       });
+
+      cachedProducts = { data: result, timestamp: Date.now() };
+      return result;
     }
   } catch (err) {
     console.warn('DB product read fallback to JSON:', err);
+    if (cachedProducts?.data) return cachedProducts.data;
   }
 
   const contentDescMap = Object.fromEntries(
@@ -254,7 +287,7 @@ export async function getAllProducts(): Promise<ProductItem[]> {
   );
 
   const seedProducts = (taxonomyData as any).products || [];
-  return (seedProducts as any[]).map(p => {
+  const fallback = (seedProducts as any[]).map(p => {
     const colKey = normalizeCollectionKey(p.collectionKey || p.collection || '');
     const isPurchasable = isProductPurchasable({
       slug: p.slug,
@@ -287,10 +320,13 @@ export async function getAllProducts(): Promise<ProductItem[]> {
       closingLine: p.closingLine || p.closing_line || ''
     };
   });
+
+  cachedProducts = { data: fallback, timestamp: Date.now() };
+  return fallback;
 }
 
-export async function getActiveProducts(): Promise<ProductItem[]> {
-  const all = await getAllProducts();
+export async function getActiveProducts(forceFresh = false): Promise<ProductItem[]> {
+  const all = await getAllProducts(forceFresh);
   return all.filter(p =>
     !p.mergedTo &&
     p.collectionKey !== 'dummy_collection' &&
@@ -310,31 +346,31 @@ export async function getSubcategoryByKey(collectionKey: string, subKey: string)
   return col?.subcategories.find(s => s.key === normSub || s.key === subKey);
 }
 
-export async function getCollectionProductCount(collectionKey: string): Promise<number> {
+export async function getCollectionProductCount(collectionKey: string, preloadedProducts?: ProductItem[]): Promise<number> {
   const normCol = normalizeCollectionKey(collectionKey);
-  const active = await getActiveProducts();
+  const active = preloadedProducts || await getActiveProducts();
   return active.filter(p => p.collectionKey === normCol).length;
 }
 
-export async function getSubcategoryProductCount(collectionKey: string, subcategoryKey: string): Promise<number> {
+export async function getSubcategoryProductCount(collectionKey: string, subcategoryKey: string, preloadedProducts?: ProductItem[]): Promise<number> {
   const normCol = normalizeCollectionKey(collectionKey);
   const normSub = normalizeSubcategoryKey(subcategoryKey);
-  const active = await getActiveProducts();
+  const active = preloadedProducts || await getActiveProducts();
   return active.filter(
     p => p.collectionKey === normCol && p.subcategoryKey === normSub
   ).length;
 }
 
-export async function getProductsByCollection(collectionKey: string): Promise<ProductItem[]> {
+export async function getProductsByCollection(collectionKey: string, preloadedProducts?: ProductItem[]): Promise<ProductItem[]> {
   const normCol = normalizeCollectionKey(collectionKey);
-  const active = await getActiveProducts();
+  const active = preloadedProducts || await getActiveProducts();
   return active.filter(p => p.collectionKey === normCol);
 }
 
-export async function getProductsBySubcategory(collectionKey: string, subcategoryKey: string): Promise<ProductItem[]> {
+export async function getProductsBySubcategory(collectionKey: string, subcategoryKey: string, preloadedProducts?: ProductItem[]): Promise<ProductItem[]> {
   const normCol = normalizeCollectionKey(collectionKey);
   const normSub = normalizeSubcategoryKey(subcategoryKey);
-  const active = await getActiveProducts();
+  const active = preloadedProducts || await getActiveProducts();
   return active.filter(
     p => p.collectionKey === normCol && p.subcategoryKey === normSub
   );

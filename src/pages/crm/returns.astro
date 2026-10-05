@@ -80,56 +80,58 @@ const pendingInspectionCount = returnsList.filter((r: any) => r.status === 'REQU
         <h2>Returns &amp; RTO Log</h2>
       </div>
       {returnsList.length > 0 ? (
-        <table class="crm-table">
-          <thead>
-            <tr>
-              <th>ID &amp; Order</th>
-              <th>Customer</th>
-              <th>Type</th>
-              <th>Reason</th>
-              <th>Refund Amount</th>
-              <th>Status</th>
-              <th>Inspection</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {returnsList.map(r => (
+        <div class="table-scroll-container">
+          <table class="crm-table">
+            <thead>
               <tr>
-                <td>
-                  <strong>#{r.id}</strong>
-                  <small>{r.order_number}</small>
-                </td>
-                <td>
-                  <strong>{r.customer_name}</strong>
-                  <small>{r.customer_phone}</small>
-                </td>
-                <td>
-                  <span class={`type-pill ${r.is_rto === 1 ? 'rto' : 'cust'}`}>
-                    {r.is_rto === 1 ? 'RTO' : 'Customer Return'}
-                  </span>
-                </td>
-                <td>{r.reason}</td>
-                <td>₹{r.refund_amount.toFixed(2)}</td>
-                <td><span class="status-badge">{r.status}</span></td>
-                <td>
-                  {r.inspection_result ? (
-                    <span class={`inspect-badge ${r.inspection_result === 'PASS' ? 'pass' : 'fail'}`}>
-                      {r.inspection_result} {r.inspection_result === 'PASS' ? '(Restocked)' : '(Damaged Write-off)'}
-                    </span>
-                  ) : (
-                    <em>Pending Inspection</em>
-                  )}
-                </td>
-                <td>
-                  {r.status !== 'INSPECTED' && (
-                    <button class="btn-inspect" onclick={`inspectReturn(${r.id})`}>Inspect &rarr;</button>
-                  )}
-                </td>
+                <th>ID &amp; Order</th>
+                <th>Customer</th>
+                <th>Type</th>
+                <th>Reason</th>
+                <th>Refund Amount</th>
+                <th>Status</th>
+                <th>Inspection</th>
+                <th>Action</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {returnsList.map(r => (
+                <tr>
+                  <td>
+                    <strong>#{r.id}</strong>
+                    <small>{r.order_number}</small>
+                  </td>
+                  <td>
+                    <strong>{r.customer_name}</strong>
+                    <small>{r.customer_phone}</small>
+                  </td>
+                  <td>
+                    <span class={`type-pill ${r.is_rto === 1 ? 'rto' : 'cust'}`}>
+                      {r.is_rto === 1 ? 'RTO' : 'Customer Return'}
+                    </span>
+                  </td>
+                  <td>{r.reason}</td>
+                  <td>₹{r.refund_amount.toFixed(2)}</td>
+                  <td><span class="status-badge">{r.status}</span></td>
+                  <td>
+                    {r.inspection_result ? (
+                      <span class={`inspect-badge ${r.inspection_result === 'PASS' ? 'pass' : 'fail'}`}>
+                        {r.inspection_result} {r.inspection_result === 'PASS' ? '(Restocked)' : '(Damaged Write-off)'}
+                      </span>
+                    ) : (
+                      <em>Pending Inspection</em>
+                    )}
+                  </td>
+                  <td>
+                    {r.status !== 'INSPECTED' && (
+                      <button class="btn-inspect" onclick={`inspectReturn(${r.id})`}>Inspect &rarr;</button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       ) : (
         <p class="empty-state-msg">No data available yet. Return requests and RTO undelivered items will appear here.</p>
       )}
@@ -164,7 +166,7 @@ const pendingInspectionCount = returnsList.filter((r: any) => r.status === 'REQU
 </script>
 
 <style>
-  .returns-container { padding: 1.5rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  .returns-container { padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
   .dash-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
   .dash-title { font-size: 1.6rem; font-weight: 700; color: #0f172a; margin: 0 0 0.25rem 0; }
   .dash-sub { font-size: 0.88rem; color: #64748b; margin: 0; }
@@ -198,4 +200,38 @@ const pendingInspectionCount = returnsList.filter((r: any) => r.status === 'REQU
 
   .btn-inspect { background: #8A174B; color: #fff; border: none; font-size: 0.75rem; padding: 0.3rem 0.75rem; border-radius: 3px; cursor: pointer; }
   .btn-inspect:hover { background: #6B0E38; }
+
+  /* Tablet */
+  @media (max-width: 1023px) {
+    .metrics-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  /* Mobile */
+  @media (max-width: 767px) {
+    .dash-head {
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .dash-title {
+      font-size: 1.5rem;
+    }
+    .metrics-grid {
+      grid-template-columns: 1fr;
+      gap: 0.65rem;
+    }
+    .metric-card {
+      padding: 0.85rem;
+    }
+    .m-val {
+      font-size: 1.5rem;
+    }
+    .content-card {
+      padding: 1rem;
+    }
+    .crm-table {
+      min-width: 820px;
+    }
+  }
 </style>
