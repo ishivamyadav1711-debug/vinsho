@@ -1,5 +1,5 @@
 ---
-export const prerender = true;
+export const prerender = false;
 
 import Base from '../../layouts/Base.astro';
 import Nav from '../../components/Nav.astro';
@@ -12,7 +12,7 @@ import { HamperBuilder } from '../../components/hamper/HamperBuilder';
 
 import '../../styles/hamper.css';
 
-const allProducts = getAllProducts();
+const allProducts = await getAllProducts();
 
 const breadcrumbItems = [
   { label: 'Home', url: '/' },
@@ -30,7 +30,7 @@ const breadcrumbItems = [
 
   <main id="main-content" class="wrap gifting-builder-page">
     <Breadcrumbs items={breadcrumbItems} />
-    <HamperBuilder client:load products={allProducts} />
+    <HamperBuilder client:load products={allProducts.map((p: any) => ({ ...p, price: p.price ?? null }))} />
   </main>
 
   <Footer />

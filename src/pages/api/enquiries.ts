@@ -31,7 +31,7 @@ export const POST: APIRoute = async ({ request }) => {
     const windowMs = 10 * 60 * 1000;
     const maxSubmissions = 3;
 
-    const rateRow = await prisma.enquiry_rate_limits.findUnique({
+    const rateRow = await prisma.enquiryRateLimits.findUnique({
       where: { identifier: rateIdentifier }
     });
 
@@ -45,7 +45,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     if (!rateRow || (now - Number(rateRow.first_attempt_at)) > windowMs) {
-      await prisma.enquiry_rate_limits.upsert({
+      await prisma.enquiryRateLimits.upsert({
         where: { identifier: rateIdentifier },
         create: {
           identifier: rateIdentifier,
@@ -58,7 +58,7 @@ export const POST: APIRoute = async ({ request }) => {
         }
       });
     } else {
-      await prisma.enquiry_rate_limits.update({
+      await prisma.enquiryRateLimits.update({
         where: { identifier: rateIdentifier },
         data: {
           attempts: { increment: 1 }

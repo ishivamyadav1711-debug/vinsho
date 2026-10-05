@@ -11,6 +11,7 @@ if (!user) {
 const now = new Date();
 const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+const currentMonth = now.toLocaleString('default', { month: 'long', year: 'numeric' });
 
 // 1. Sales Analytics
 const [totalRevRaw, monthRevRaw, totalPaidOrders] = await Promise.all([
@@ -39,7 +40,7 @@ const [totalOrdersCount, totalReturnsCount, rtoCount, lowStockCount] = await Pro
   prisma.orders.count(),
   prisma.returns.count(),
   prisma.returns.count({ where: { is_rto: true } }),
-  prisma.product_variants.count({ where: { stock: { lte: 5 } } })
+  prisma.productVariants.count({ where: { stock: { lte: 5 } } })
 ]);
 const returnRate = totalOrdersCount > 0 ? ((totalReturnsCount / totalOrdersCount) * 100) : 0;
 const rtoRate = totalOrdersCount > 0 ? ((rtoCount / totalOrdersCount) * 100) : 0;

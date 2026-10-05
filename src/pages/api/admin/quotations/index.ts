@@ -3,7 +3,7 @@ import { getSessionUser } from '../../../../lib/auth.js';
 import { createQuotation } from '../../../../lib/quotations.js';
 
 export const POST: APIRoute = async ({ request }) => {
-  const user = getSessionUser(request);
+  const user = await getSessionUser(request);
   if (!user) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
   }

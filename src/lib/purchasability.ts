@@ -7,6 +7,7 @@ export interface PurchasableCheckItem {
   subcategoryKey?: string;
   subcategory?: string;
   collectionKey?: string;
+  collection?: string;
   material?: string;
   isPurchasable?: boolean;
 }
@@ -17,9 +18,27 @@ export interface PurchasableCheckItem {
  * Only explicitly approved items (Candles, Cork products, Gift Baskets) are purchasable online.
  * All other products fall back to "Price on Request" -> "Get Quote".
  */
-export function isProductPurchasable(product: PurchasableCheckItem): boolean {
-  const colKey = (product.collectionKey || product.collection || '').toLowerCase().trim();
-  const subcat = (product.subcategoryKey || product.subcategory || '').toLowerCase().trim();
+export function isProductPurchasable(product: any): boolean {
+  let colKey = '';
+  if (typeof product.collectionKey === 'string') {
+    colKey = product.collectionKey;
+  } else if (typeof product.collection === 'string') {
+    colKey = product.collection;
+  } else if (product.collection && typeof product.collection === 'object') {
+    colKey = product.collection.key || product.collection.name || '';
+  }
+
+  let subcat = '';
+  if (typeof product.subcategoryKey === 'string') {
+    subcat = product.subcategoryKey;
+  } else if (typeof product.subcategory === 'string') {
+    subcat = product.subcategory;
+  } else if (product.subcategory && typeof product.subcategory === 'object') {
+    subcat = product.subcategory.key || product.subcategory.name || '';
+  }
+
+  colKey = String(colKey || '').toLowerCase().trim();
+  subcat = String(subcat || '').toLowerCase().trim();
 
   // DYNAMIC SINGLE SOURCE OF TRUTH:
   // IF product belongs to "Gifting Collection" -> AVAILABLE ONLINE (true)

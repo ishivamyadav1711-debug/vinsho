@@ -11,23 +11,45 @@ if (!user) {
 
 const { id } = Astro.params;
 if (!id) return Astro.redirect('/crm/leads');
+const leadId = parseInt(id, 10);
 
-const lead = await prisma.leads.findUnique({ where: { id: parseInt(id, 10) } });
+const lead = await prisma.customers.findFirst({
+  where: { id: leadId, deleted_at: null }
+});
 if (!lead) return Astro.redirect('/crm/leads');
 
-const [activities, notes, followUps, users] = await Promise.all([
-  prisma.lead_activities.findMany({ where: { lead_id: parseInt(id, 10) }, orderBy: { created_at: 'desc' } }),
-  prisma.lead_notes.findMany({ where: { lead_id: parseInt(id, 10) }, orderBy: { created_at: 'desc' } }),
-  prisma.follow_ups.findMany({ where: { lead_id: parseInt(id, 10) }, orderBy: { due_at: 'asc' } }),
+const [rawActivities, rawNotes, rawFollowUps, users] = await Promise.all([
+  prisma.crmActivities.findMany({ where: { entity_type: 'customer', entity_id: leadId }, orderBy: { created_at: 'desc' } }),
+  prisma.crmNotes.findMany({ where: { entity_type: 'customer', entity_id: leadId }, include: { author: { select: { name: true } } }, orderBy: { created_at: 'desc' } }),
+  prisma.followUps.findMany({ where: { entity_type: 'customer', entity_id: leadId }, orderBy: { due_at: 'asc' } }),
   prisma.adminUsers.findMany({ select: { id: true, name: true }, orderBy: { name: 'asc' } })
 ]);
+
+const activities = rawActivities.map(a => ({
+  ...a,
+  user_name: 'Admin',
+  notes: a.summary
+}));
+
+const notes = rawNotes.map(n => ({
+  ...n,
+  user_name: n.author?.name || 'Admin',
+  content: n.body
+}));
+
+const followUps = rawFollowUps.map(f => ({
+  ...f,
+  scheduled_at: f.due_at,
+  note: f.outcome || 'Scheduled follow-up'
+}));
 
 // Duplicate check
 let duplicateLead: any = null;
 if (lead.email || lead.phone) {
-  duplicateLead = await prisma.leads.findFirst({
+  duplicateLead = await prisma.customers.findFirst({
     where: {
-      id: { not: parseInt(id, 10) },
+      id: { not: leadId },
+      deleted_at: null,
       OR: [
         lead.email ? { email: lead.email } : {},
         lead.phone ? { phone: lead.phone } : {}
@@ -37,14 +59,7 @@ if (lead.email || lead.phone) {
   });
 }
 
-// Customer record check
-const customerRecord = await prisma.customers.findFirst({
-  where: { lead_id: parseInt(id, 10) },
-  select: { id: true, converted_at: true }
-});
-
-const productObj = taxonomyData.products.find(p => p.slug === lead.product_slug);
-const collectionObj = taxonomyData.collections.find(c => c.key === lead.collection_key);
+const isConverted = lead.status !== 'Lead';
 ---
 
 <AdminLayout title={`${lead.name} — Lead Profile`} activeNav="leads">
@@ -72,9 +87,8 @@ const collectionObj = taxonomyData.collections.find(c => c.key === lead.collecti
       <div class="hero-left">
         <h1 class="lead-display-name">{lead.name}</h1>
         <div class="hero-subline">
-          {lead.company && <span class="comp-text">🏢 {lead.company}</span>}
-          {lead.location && <span class="loc-text">📍 {lead.location}</span>}
-          <span class="source-badge">Source: {lead.source}</span>
+          {lead.city && <span class="loc-text">📍 {lead.city}</span>}
+          <span class="source-badge">Source: {lead.source || 'Website'}</span>
         </div>
       </div>
 
@@ -83,31 +97,18 @@ const collectionObj = taxonomyData.collections.find(c => c.key === lead.collecti
         <div class="status-updater-box">
           <label>Status:</label>
           <select id="status-select" data-lead-id={lead.id} class={`status-select-btn status-${lead.status.toLowerCase()}`}>
-            <option value="NEW" selected={lead.status === 'NEW'}>NEW</option>
-            <option value="CONTACTED" selected={lead.status === 'CONTACTED'}>CONTACTED</option>
-            <option value="QUALIFIED" selected={lead.status === 'QUALIFIED'}>QUALIFIED</option>
-            <option value="FOLLOW-UP" selected={lead.status === 'FOLLOW-UP'}>FOLLOW-UP</option>
-            <option value="PROPOSAL" selected={lead.status === 'PROPOSAL'}>PROPOSAL</option>
-            <option value="NEGOTIATION" selected={lead.status === 'NEGOTIATION'}>NEGOTIATION</option>
-            <option value="CONVERTED" selected={lead.status === 'CONVERTED'}>CONVERTED</option>
-            <option value="LOST" selected={lead.status === 'LOST'}>LOST</option>
-          </select>
-        </div>
-
-        <!-- Team Member Assignee Select -->
-        <div class="assign-updater-box">
-          <label>Assigned To:</label>
-          <select id="assignee-select" data-lead-id={lead.id} class="assign-select-btn">
-            <option value="">Unassigned</option>
-            {users.map(u => (
-              <option value={u.name} selected={lead.assigned_to === u.name}>{u.name}</option>
-            ))}
+            <option value="Lead" selected={lead.status === 'Lead'}>LEAD</option>
+            <option value="New" selected={lead.status === 'New'}>NEW</option>
+            <option value="Active" selected={lead.status === 'Active'}>ACTIVE</option>
+            <option value="Repeat" selected={lead.status === 'Repeat'}>REPEAT</option>
+            <option value="VIP" selected={lead.status === 'VIP'}>VIP</option>
+            <option value="Inactive" selected={lead.status === 'Inactive'}>INACTIVE</option>
           </select>
         </div>
 
         <!-- Convert Customer Button -->
-        {customerRecord ? (
-          <a href="/crm/customers" class="converted-badge-btn">✓ Converted Customer</a>
+        {isConverted ? (
+          <a href={`/crm/customers/${lead.id}`} class="converted-badge-btn">✓ Converted Customer</a>
         ) : (
           <button class="convert-btn" id="open-convert-modal-btn">Convert to Customer &rarr;</button>
         )}
@@ -135,50 +136,9 @@ const collectionObj = taxonomyData.collections.find(c => c.key === lead.collecti
               <span class="val"><a href={`mailto:${lead.email}`} class="val-link">{lead.email || '&mdash;'}</a></span>
             </div>
             <div class="info-item">
-              <span class="lbl">Company / Firm</span>
-              <span class="val">{lead.company || '&mdash;'}</span>
+              <span class="lbl">Location / City</span>
+              <span class="val">{lead.city || '&mdash;'}</span>
             </div>
-            <div class="info-item">
-              <span class="lbl">Location</span>
-              <span class="val">{lead.location || '&mdash;'}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Product & Collection Interest Card -->
-        <div class="info-section-card">
-          <h2>Product &amp; Collection Interest</h2>
-          <div class="interest-details-box">
-            {productObj ? (
-              <div class="product-preview-row">
-                <img src={productObj.image} alt={productObj.name} class="prod-thumb" />
-                <div>
-                  <h4 class="p-name">{productObj.name}</h4>
-                  <p class="p-cat">{productObj.subcategory} &middot; {productObj.collection}</p>
-                  <p class="p-mat">Material: {productObj.material}</p>
-                </div>
-              </div>
-            ) : collectionObj ? (
-              <div class="col-preview-box">
-                <h4 class="p-name">🎨 Collection: {collectionObj.name}</h4>
-                <p class="p-cat">{collectionObj.blurb}</p>
-              </div>
-            ) : (
-              <p class="no-prod-note">General Inquiry (No specific product attached)</p>
-            )}
-
-            {lead.requirement && (
-              <div class="req-box">
-                <span class="lbl">Requirement / Sizing Details:</span>
-                <p class="req-text">"{lead.requirement}"</p>
-              </div>
-            )}
-            {lead.budget && (
-              <div class="budget-row">
-                <span class="lbl">Budget Range:</span>
-                <span class="budget-val">{lead.budget}</span>
-              </div>
-            )}
           </div>
         </div>
 
@@ -228,7 +188,7 @@ const collectionObj = taxonomyData.collections.find(c => c.key === lead.collecti
             </div>
             <div class="f-field">
               <label>Follow-up Action / Task Note *</label>
-              <input type="text" name="note" placeholder="e.g. Send living room quotation" required class="f-input" />
+              <input type="text" name="note" placeholder="e.g. Follow up on enquiry" required class="f-input" />
             </div>
             <button type="submit" class="save-follow-btn">Save Scheduled Follow-up</button>
           </form>
@@ -304,11 +264,11 @@ const collectionObj = taxonomyData.collections.find(c => c.key === lead.collecti
         <button class="close-btn" id="close-convert-modal-btn">&times;</button>
       </div>
       <form id="convert-form" class="modal-form" data-lead-id={lead.id}>
-        <p class="convert-intro">Converting <b>{lead.name}</b> will create a permanent Customer Profile in the VINSHO CRM database.</p>
+        <p class="convert-intro">Converting <b>{lead.name}</b> will activate their Customer Profile in the VINSHO CRM database.</p>
 
         <div class="f-group">
           <label>Customer Delivery / Billing Address</label>
-          <textarea name="address" rows="3" placeholder="Enter billing & delivery address..." required>{lead.location}</textarea>
+          <textarea name="address" rows="3" placeholder="Enter billing & delivery address..." required>{lead.city}</textarea>
         </div>
 
         <div class="f-group" style="margin-top:1rem;">
@@ -340,23 +300,6 @@ const collectionObj = taxonomyData.collections.find(c => c.key === lead.collecti
       window.location.reload();
     } catch (err) {
       alert('Failed to update status');
-    }
-  });
-
-  // Assignee updater listener
-  const assigneeSelect = document.getElementById('assignee-select') as HTMLSelectElement | null;
-  assigneeSelect?.addEventListener('change', async () => {
-    const leadId = assigneeSelect.dataset.leadId;
-    const assigned_to = assigneeSelect.value;
-    try {
-      await fetch(`/api/admin/leads/${leadId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ assigned_to })
-      });
-      window.location.reload();
-    } catch (err) {
-      alert('Failed to update assignee');
     }
   });
 
@@ -475,7 +418,7 @@ const collectionObj = taxonomyData.collections.find(c => c.key === lead.collecti
         alert(data.error || 'Failed to convert customer');
         return;
       }
-      window.location.href = '/crm/customers';
+      window.location.href = `/crm/customers/${leadId}`;
     } catch (err) {
       alert('Conversion failed.');
     }
@@ -483,213 +426,60 @@ const collectionObj = taxonomyData.collections.find(c => c.key === lead.collecti
 </script>
 
 <style>
-  .lead-profile-container {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  .profile-top-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 0.844rem;
-  }
-
+  .lead-profile-container { display: flex; flex-direction: column; gap: 1.5rem; }
+  .profile-top-nav { display: flex; justify-content: space-between; align-items: center; font-size: 0.844rem; }
   .back-link { color: var(--maroon); text-decoration: none; font-weight: 600; }
   .lead-id-tag { background: var(--paper-3); color: var(--ink-soft); font-weight: 700; font-size: 0.75rem; padding: 0.2rem 0.6rem; border-radius: 4px; }
-
-  .duplicate-alert-banner {
-    background: #fffbe6;
-    border: 1px solid #ffe58f;
-    color: #873800;
-    padding: 0.85rem 1rem;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    font-size: 0.875rem;
-  }
-
+  .duplicate-alert-banner { background: #fffbe6; border: 1px solid #ffe58f; color: #873800; padding: 0.85rem 1rem; border-radius: 6px; display: flex; align-items: center; gap: 0.75rem; font-size: 0.875rem; }
   .dup-link { color: #d46b08; font-weight: 700; text-decoration: underline; }
-
-  .profile-hero-card {
-    background: var(--paper-2);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 1.5rem 1.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 1.25rem;
-  }
-
-  .lead-display-name {
-    font-family: var(--display);
-    font-size: 2.2rem;
-    color: var(--maroon-2);
-    margin: 0;
-  }
-
-  .hero-subline {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    font-size: 0.844rem;
-    color: var(--ink-soft);
-    margin-top: 0.35rem;
-  }
-
+  .profile-hero-card { background: var(--paper-2); border: 1px solid var(--line); border-radius: 8px; padding: 1.5rem 1.75rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.25rem; }
+  .lead-display-name { font-family: var(--display); font-size: 2.2rem; color: var(--maroon-2); margin: 0; }
+  .hero-subline { display: flex; align-items: center; gap: 1rem; font-size: 0.844rem; color: var(--ink-soft); margin-top: 0.35rem; }
   .source-badge { background: var(--paper-3); padding: 0.15rem 0.55rem; border-radius: 4px; font-weight: 500; }
-
-  .hero-right-actions {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    flex-wrap: wrap;
-  }
-
-  .status-updater-box, .assign-updater-box {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: var(--ink-soft);
-  }
-
-  .status-select-btn, .assign-select-btn {
-    padding: 0.45rem 0.85rem;
-    border-radius: 999px;
-    font-weight: 700;
-    font-size: 0.813rem;
-    outline: none;
-    border: 1px solid var(--line);
-  }
-
-  .status-new { background: #fef3c7; color: #92400e; }
-  .status-contacted { background: #e0f2fe; color: #075985; }
-  .status-qualified { background: #dcfce7; color: #166534; }
-  .status-follow-up { background: #fae8ff; color: #86198f; }
-  .status-proposal { background: #ede9fe; color: #5b21b6; }
-  .status-converted { background: #bbf7d0; color: #14532d; }
-  .status-lost { background: #fee2e2; color: #991b1b; }
-
-  .convert-btn {
-    background: var(--maroon);
-    color: #ffffff;
-    border: none;
-    font-size: 0.813rem;
-    font-weight: 600;
-    padding: 0.65rem 1.25rem;
-    border-radius: 999px;
-    cursor: pointer;
-  }
-
-  .converted-badge-btn {
-    background: #bbf7d0;
-    color: #14532d;
-    font-size: 0.813rem;
-    font-weight: 700;
-    padding: 0.65rem 1.25rem;
-    border-radius: 999px;
-    text-decoration: none;
-  }
-
-  /* Grid Layout */
-  .profile-layout-grid {
-    display: grid;
-    grid-template-columns: 1.2fr 1fr;
-    gap: 1.5rem;
-    align-items: start;
-  }
-
-  .info-section-card {
-    background: var(--paper-2);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .info-section-card h2 {
-    font-family: var(--display);
-    font-size: 1.25rem;
-    color: var(--maroon-2);
-    margin: 0 0 1rem;
-  }
-
-  .card-head-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 1rem;
-  }
-
+  .hero-right-actions { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+  .status-updater-box { display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.72rem; font-weight: 700; color: var(--ink-soft); }
+  .status-select-btn { padding: 0.45rem 0.85rem; border-radius: 999px; font-weight: 700; font-size: 0.813rem; outline: none; border: 1px solid var(--line); }
+  .status-lead { background: #fef3c7; color: #92400e; }
+  .status-new { background: #e0f2fe; color: #075985; }
+  .status-active { background: #dcfce7; color: #166534; }
+  .status-repeat { background: #ede9fe; color: #5b21b6; }
+  .status-vip { background: #fdf4ff; color: #a21caf; }
+  .status-inactive { background: #fee2e2; color: #991b1b; }
+  .convert-btn { background: var(--maroon); color: #ffffff; border: none; font-size: 0.813rem; font-weight: 600; padding: 0.65rem 1.25rem; border-radius: 999px; cursor: pointer; }
+  .converted-badge-btn { background: #bbf7d0; color: #14532d; font-size: 0.813rem; font-weight: 700; padding: 0.65rem 1.25rem; border-radius: 999px; text-decoration: none; }
+  .profile-layout-grid { display: grid; grid-template-columns: 1.2fr 1fr; gap: 1.5rem; align-items: start; }
+  .info-section-card { background: var(--paper-2); border: 1px solid var(--line); border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; }
+  .info-section-card h2 { font-family: var(--display); font-size: 1.25rem; color: var(--maroon-2); margin: 0 0 1rem; }
+  .card-head-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
   .card-head-row h2 { margin: 0; }
   .lock-tag { font-size: 0.72rem; color: var(--pink); font-weight: 600; }
-
-  .info-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-  }
-
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
   .info-item { display: flex; flex-direction: column; gap: 0.2rem; }
   .lbl { font-size: 0.75rem; color: var(--ink-soft); font-weight: 600; }
   .val { font-size: 0.875rem; font-weight: 500; color: var(--ink); }
   .val-link { color: var(--maroon-2); text-decoration: none; font-weight: 600; }
-
-  /* Product Interest */
-  .product-preview-row {
-    display: flex;
-    gap: 1rem;
-    align-items: center;
-    background: #ffffff;
-    border: 1px solid var(--line);
-    padding: 0.85rem;
-    border-radius: 6px;
-  }
-
-  .prod-thumb { width: 64px; height: 64px; object-fit: cover; border-radius: 4px; }
-  .p-name { font-family: var(--display); font-size: 1.05rem; margin: 0; color: var(--maroon-2); }
-  .p-cat { font-size: 0.781rem; color: var(--pink); font-weight: 600; margin: 0.2rem 0; }
-  .p-mat { font-size: 0.75rem; color: var(--ink-soft); margin: 0; }
-
-  .req-box { margin-top: 1rem; background: var(--paper-3); padding: 0.75rem; border-radius: 4px; }
-  .req-text { font-size: 0.844rem; color: var(--ink); margin: 0.25rem 0 0; font-style: italic; }
-
-  /* Notes */
   .note-form { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.25rem; }
   .note-input { background: #ffffff; border: 1px solid var(--line); border-radius: 4px; padding: 0.65rem; font-size: 0.844rem; outline: none; }
   .note-submit-btn { background: var(--maroon-2); color: #ffffff; border: none; font-size: 0.781rem; font-weight: 600; padding: 0.45rem 1rem; border-radius: 999px; cursor: pointer; align-self: flex-end; }
-
   .notes-list { display: flex; flex-direction: column; gap: 0.75rem; }
   .note-item { background: #ffffff; border: 1px solid var(--line); border-left: 3px solid var(--pink); border-radius: 4px; padding: 0.75rem; }
   .note-head { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--ink-soft); margin-bottom: 0.25rem; }
   .n-author { font-weight: 700; color: var(--maroon-2); }
   .n-content { font-size: 0.844rem; color: var(--ink); margin: 0; }
-
-  /* Followup Form */
   .small-action-btn { background: none; border: 1px solid var(--line); color: var(--maroon); font-size: 0.75rem; font-weight: 600; padding: 0.3rem 0.75rem; border-radius: 999px; cursor: pointer; }
   .followup-form { display: flex; flex-direction: column; gap: 0.65rem; background: #ffffff; padding: 1rem; border: 1px solid var(--line); border-radius: 6px; margin-bottom: 1rem; }
   .f-field { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.75rem; font-weight: 600; }
   .f-input { padding: 0.45rem; border: 1px solid var(--line); border-radius: 4px; font-size: 0.813rem; }
   .save-follow-btn { background: var(--maroon); color: #ffffff; border: none; padding: 0.45rem; border-radius: 999px; font-size: 0.781rem; font-weight: 600; cursor: pointer; }
-
   .fol-card { background: #ffffff; border: 1px solid var(--line); border-left: 3px solid #2563eb; border-radius: 4px; padding: 0.75rem; margin-bottom: 0.65rem; }
   .fol-card.completed { border-left-color: #16a34a; opacity: 0.7; }
   .fol-top { display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 600; color: var(--maroon-2); }
   .fol-text { font-size: 0.813rem; color: var(--ink); margin: 0.35rem 0 0.5rem; }
   .complete-fol-btn { background: var(--paper-3); border: 1px solid var(--line); color: var(--maroon); font-size: 0.72rem; font-weight: 700; padding: 0.25rem 0.65rem; border-radius: 999px; cursor: pointer; }
-
-  /* Activity Timeline */
   .act-form { display: flex; flex-direction: column; gap: 0.65rem; }
   .act-type-row { display: flex; flex-wrap: wrap; gap: 0.65rem; font-size: 0.781rem; }
   .act-textarea { background: #ffffff; border: 1px solid var(--line); border-radius: 4px; padding: 0.55rem; font-size: 0.844rem; outline: none; }
   .act-submit-btn { background: var(--maroon-2); color: #ffffff; border: none; padding: 0.55rem; border-radius: 999px; font-size: 0.781rem; font-weight: 600; cursor: pointer; }
-
   .timeline-list { display: flex; flex-direction: column; gap: 1rem; position: relative; padding-left: 0.5rem; }
   .timeline-item { display: flex; gap: 0.75rem; align-items: flex-start; }
   .tl-icon-dot { width: 10px; height: 10px; background: var(--maroon); border-radius: 50%; margin-top: 0.35rem; flex-shrink: 0; }
@@ -699,8 +489,6 @@ const collectionObj = taxonomyData.collections.find(c => c.key === lead.collecti
   .tl-by { color: var(--ink-soft); }
   .tl-date { color: var(--ink-soft); margin-left: auto; }
   .tl-notes { font-size: 0.813rem; color: var(--ink); margin: 0.25rem 0 0; }
-
-  /* Modal */
   .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: grid; place-items: center; padding: 1.5rem; }
   .modal-card { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; width: 100%; max-width: 500px; padding: 1.5rem; }
   .modal-head { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 0.5rem; }
@@ -709,8 +497,5 @@ const collectionObj = taxonomyData.collections.find(c => c.key === lead.collecti
   .modal-foot { display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.25rem; }
   .cancel-btn { background: none; border: 1px solid var(--line); padding: 0.45rem 1rem; border-radius: 999px; cursor: pointer; }
   .submit-btn { background: var(--maroon); color: #ffffff; border: none; padding: 0.45rem 1rem; border-radius: 999px; font-weight: 600; cursor: pointer; }
-
-  @media (max-width: 900px) {
-    .profile-layout-grid { grid-template-columns: 1fr; }
-  }
+  @media (max-width: 900px) { .profile-layout-grid { grid-template-columns: 1fr; } }
 </style>

@@ -1,15 +1,13 @@
 import { defineConfig } from 'astro/config';
-import node from '@astrojs/node';
+import vercel from '@astrojs/vercel';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://vinsho.com',
+  site: 'https://vinsho.in',
   output: 'server',
-  adapter: node({
-    mode: 'standalone'
-  }),
+  adapter: vercel(),
   integrations: [
     react(),
     sitemap({
@@ -34,14 +32,6 @@ export default defineConfig({
   },
   image: {
     domains: ['images.unsplash.com']
-  },
-  vite: {
-    optimizeDeps: {
-      exclude: ['better-sqlite3']
-    },
-    ssr: {
-      external: ['better-sqlite3']
-    }
   },
   redirects: {
     '/about-us': '/about',

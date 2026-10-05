@@ -1,284 +1,1480 @@
 ---
-import Base from '../../../layouts/Base.astro';
+import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { getSessionUser } from '../../../lib/auth';
 import { prisma } from '../../../lib/db';
-import { evaluatePurchasability, COMMERCE_MODE } from '../../../lib/purchasability';
+import { isProductPurchasable } from '../../../lib/purchasability';
 
 const user = await getSessionUser(Astro.request);
 if (!user) {
   return Astro.redirect('/crm/login');
 }
 
+const url = new URL(Astro.request.url);
+const search = (url.searchParams.get('q') || '').trim();
+const statusFilter = url.searchParams.get('status') || 'all';
+const collectionFilter = url.searchParams.get('collection') || 'all';
+const availabilityFilter = url.searchParams.get('availability') || 'all';
+const sortBy = url.searchParams.get('sort') || 'name_asc';
+const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10));
+const pageSize = 20;
+
+// Fetch collections for dropdown filter
 const collections = await prisma.collections.findMany({
   where: { deleted_at: null },
   orderBy: { name: 'asc' }
 });
 
+// Fetch all active products with relations
 const productsRaw = await prisma.products.findMany({
   where: { deleted_at: null },
-  orderBy: { name: 'asc' },
   include: {
-    collections: { select: { name: true } },
-    subcategories: { select: { name: true } },
-    product_images: {
+    collection: { select: { id: true, name: true, key: true } },
+    subcategory: { select: { id: true, name: true, key: true } },
+    ProductImages: {
       where: { is_primary: true },
       take: 1,
       select: { url: true }
     },
-    product_variants: true
+    ProductVariants: {
+      orderBy: { position: 'asc' }
+    }
   }
 });
 
-const productsWithEval = productsRaw.map((p) => {
-  const evalRes = evaluatePurchasability(p, p.product_variants as any[]);
+const lowStockThreshold = 5;
+
+// Process and map product data
+const processedProducts = productsRaw.map((p) => {
+  const primaryVariant = p.ProductVariants[0];
+  const totalStock = p.ProductVariants.reduce((sum, v) => sum + (v.stock ?? 0), 0);
+  const sku = primaryVariant?.sku || p.sku || `PRD-${p.id}`;
+  const price = primaryVariant?.selling_price ? Number(primaryVariant.selling_price) : 0;
+  const collectionKey = p.collection?.key || p.collection?.name || '';
+  const subcategoryKey = p.subcategory?.key || p.subcategory?.name || '';
+  const isOnline = Boolean(p.sellable_online && isProductPurchasable({
+    slug: p.slug,
+    name: p.name,
+    collectionKey,
+    subcategoryKey
+  }));
+
+  let stockStatus: 'IN STOCK' | 'LOW STOCK' | 'OUT OF STOCK' = 'IN STOCK';
+  if (totalStock <= 0) {
+    stockStatus = 'OUT OF STOCK';
+  } else if (totalStock <= lowStockThreshold) {
+    stockStatus = 'LOW STOCK';
+  }
+
   return {
-    ...p,
-    collection_name: p.collections?.name || '',
-    subcategory_name: p.subcategories?.name || '',
-    image_url: p.product_images[0]?.url || null,
-    variant_count: p.product_variants.length,
-    purchasability: evalRes
+    id: p.id,
+    name: p.name,
+    slug: p.slug,
+    sku,
+    sku_ref: p.sku_ref,
+    collectionId: p.collection_id,
+    collectionName: p.collection?.name || 'Uncategorized',
+    subcategoryName: p.subcategory?.name || '',
+    sellingPrice: price,
+    stock: totalStock,
+    stockStatus,
+    isOnline,
+    sellableOnline: p.sellable_online,
+    shippingClass: p.shipping_class,
+    imageUrl: p.ProductImages[0]?.url || '/placeholder-product.png',
+    updatedAt: p.updated_at,
+    variants: p.ProductVariants.map((v) => ({
+      id: v.id,
+      sku: v.sku,
+      size: v.size,
+      colour: v.colour,
+      stock: v.stock ?? 0,
+      sellingPrice: v.selling_price ? Number(v.selling_price) : 0
+    }))
   };
 });
+
+// Global Summary Counts across all real products
+const totalCount = processedProducts.length;
+const inStockCount = processedProducts.filter((p) => p.stockStatus === 'IN STOCK').length;
+const lowStockCount = processedProducts.filter((p) => p.stockStatus === 'LOW STOCK').length;
+const outOfStockCount = processedProducts.filter((p) => p.stockStatus === 'OUT OF STOCK').length;
+
+// Filter list
+let filtered = processedProducts.filter((p) => {
+  if (search) {
+    const q = search.toLowerCase();
+    const matchName = p.name.toLowerCase().includes(q);
+    const matchSku = p.sku.toLowerCase().includes(q) || (p.sku_ref && p.sku_ref.toLowerCase().includes(q));
+    const matchSlug = p.slug.toLowerCase().includes(q);
+    if (!matchName && !matchSku && !matchSlug) return false;
+  }
+
+  if (statusFilter !== 'all') {
+    if (statusFilter === 'in_stock' && p.stockStatus !== 'IN STOCK') return false;
+    if (statusFilter === 'low_stock' && p.stockStatus !== 'LOW STOCK') return false;
+    if (statusFilter === 'out_of_stock' && p.stockStatus !== 'OUT OF STOCK') return false;
+  }
+
+  if (collectionFilter !== 'all') {
+    if (String(p.collectionId) !== collectionFilter) return false;
+  }
+
+  if (availabilityFilter !== 'all') {
+    if (availabilityFilter === 'online' && !p.isOnline) return false;
+    if (availabilityFilter === 'offline' && p.isOnline) return false;
+  }
+
+  return true;
+});
+
+// Sort list
+filtered.sort((a, b) => {
+  if (sortBy === 'name_asc') return a.name.localeCompare(b.name);
+  if (sortBy === 'name_desc') return b.name.localeCompare(a.name);
+  if (sortBy === 'price_asc') return a.sellingPrice - b.sellingPrice;
+  if (sortBy === 'price_desc') return b.sellingPrice - a.sellingPrice;
+  if (sortBy === 'stock_asc') return a.stock - b.stock;
+  if (sortBy === 'stock_desc') return b.stock - a.stock;
+  if (sortBy === 'updated_desc') return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+  return 0;
+});
+
+const totalFiltered = filtered.length;
+const totalPages = Math.max(1, Math.ceil(totalFiltered / pageSize));
+const currentPage = Math.min(page, totalPages);
+const paginatedProducts = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 ---
 
-<Base title="Product Management — VINSHO Admin">
-  <div class="admin-dashboard-wrap">
-    <aside class="admin-sidebar">
-      <div class="sidebar-brand">
-        <strong>VINSHO ADMIN</strong>
-        <small>Backoffice System v1.0</small>
+<AdminLayout title="Product & Inventory Management" activeNav="products">
+  <div class="crm-products-page">
+    
+    <!-- Top Header -->
+    <div class="page-head-row">
+      <div>
+        <h1 class="page-title">Products &amp; Inventory</h1>
+        <p class="page-sub">Manage real product catalogue, stock levels, thresholds, and availability in real-time.</p>
       </div>
-      <nav class="admin-nav">
-        <a href="/crm/products" class="nav-item active">Products Catalogue</a>
-        <a href="/crm/dashboard" class="nav-item">Leads &amp; CRM</a>
-        <a href="/crm/analytics" class="nav-item">Analytics</a>
-        <a href="/crm/settings" class="nav-item">Settings</a>
-      </nav>
-      <div class="sidebar-user">
-        <span>Logged in as: <b>{user.name}</b></span>
-        <button id="admin-logout-btn" class="logout-link-btn">Logout</button>
+      <div class="head-actions">
+        <a href="/api/admin/products/export-csv" class="btn-secondary" download>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Export CSV
+        </a>
       </div>
-    </aside>
+    </div>
 
-    <main class="admin-content-area">
-      <header class="admin-page-header">
-        <div>
-          <h1>Product Catalogue Management</h1>
-          <p class="header-sub">Manage products, Legal Metrology declarations, variants, and purchasability statuses.</p>
-        </div>
-        <div class="header-right-meta">
-          <span class="mode-badge" data-mode={COMMERCE_MODE}>
-            COMMERCE_MODE: <strong>{COMMERCE_MODE.toUpperCase()}</strong>
-          </span>
-        </div>
-      </header>
+    <!-- Summary Metric KPI Cards -->
+    <div class="summary-metrics-grid">
+      <div class="metric-card">
+        <span class="metric-label">TOTAL PRODUCTS</span>
+        <span class="metric-val">{totalCount}</span>
+        <span class="metric-sub">Active in Catalogue</span>
+      </div>
+      <div class="metric-card in-stock">
+        <span class="metric-label">IN STOCK</span>
+        <span class="metric-val text-green">{inStockCount}</span>
+        <span class="metric-sub">&gt; {lowStockThreshold} units</span>
+      </div>
+      <div class="metric-card low-stock">
+        <span class="metric-label">LOW STOCK</span>
+        <span class="metric-val text-amber">{lowStockCount}</span>
+        <span class="metric-sub">1 &ndash; {lowStockThreshold} units</span>
+      </div>
+      <div class="metric-card out-of-stock">
+        <span class="metric-label">OUT OF STOCK</span>
+        <span class="metric-val text-red">{outOfStockCount}</span>
+        <span class="metric-sub">0 units available</span>
+      </div>
+    </div>
 
-      <!-- Search & Filters Toolbar -->
-      <div class="admin-filter-bar">
-        <div class="filter-input-wrap">
-          <input type="text" id="admin-search-input" placeholder="Search by name, slug, material..." class="admin-input" />
+    <!-- Toolbar Filters -->
+    <div class="filter-card">
+      <form method="GET" class="filter-form" id="products-filter-form">
+        <div class="search-input-wrap">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input 
+            type="search" 
+            name="q" 
+            value={search} 
+            placeholder="Search product name, SKU, slug..." 
+            class="search-input" 
+          />
         </div>
-        <select id="filter-collection" class="admin-select">
-          <option value="">All Collections</option>
-          {collections.map(c => (
-            <option value={c.id}>{c.name}</option>
+
+        <select name="status" class="filter-select" onchange="this.form.submit()">
+          <option value="all" selected={statusFilter === 'all'}>All Stock Statuses</option>
+          <option value="in_stock" selected={statusFilter === 'in_stock'}>In Stock</option>
+          <option value="low_stock" selected={statusFilter === 'low_stock'}>Low Stock</option>
+          <option value="out_of_stock" selected={statusFilter === 'out_of_stock'}>Out of Stock</option>
+        </select>
+
+        <select name="collection" class="filter-select" onchange="this.form.submit()">
+          <option value="all" selected={collectionFilter === 'all'}>All Collections</option>
+          {collections.map((c) => (
+            <option value={String(c.id)} selected={collectionFilter === String(c.id)}>{c.name}</option>
           ))}
         </select>
-        <select id="filter-phase" class="admin-select">
-          <option value="">All Launch Phases</option>
-          <option value="1">Phase 1 (Soft Launch - Standard)</option>
-          <option value="2">Phase 2 (Fragile)</option>
-          <option value="3">Phase 3 (Bulky)</option>
-          <option value="0">Phase 0 (Made-to-Order Only)</option>
-        </select>
-        <select id="filter-class" class="admin-select">
-          <option value="">All Shipping Classes</option>
-          <option value="standard">Standard</option>
-          <option value="fragile">Fragile</option>
-          <option value="bulky">Bulky</option>
-          <option value="made-to-order">Made-to-Order</option>
-        </select>
-      </div>
 
-      <!-- Dense Data Entry Product Table -->
-      <div class="table-card">
-        <table class="admin-table" id="products-table">
+        <select name="availability" class="filter-select" onchange="this.form.submit()">
+          <option value="all" selected={availabilityFilter === 'all'}>All Channels</option>
+          <option value="online" selected={availabilityFilter === 'online'}>Available Online</option>
+          <option value="offline" selected={availabilityFilter === 'offline'}>Not Available Online</option>
+        </select>
+
+        <select name="sort" class="filter-select" onchange="this.form.submit()">
+          <option value="name_asc" selected={sortBy === 'name_asc'}>Name (A-Z)</option>
+          <option value="name_desc" selected={sortBy === 'name_desc'}>Name (Z-A)</option>
+          <option value="price_asc" selected={sortBy === 'price_asc'}>Price (Low to High)</option>
+          <option value="price_desc" selected={sortBy === 'price_desc'}>Price (High to Low)</option>
+          <option value="stock_asc" selected={sortBy === 'stock_asc'}>Stock (Low to High)</option>
+          <option value="stock_desc" selected={sortBy === 'stock_desc'}>Stock (High to Low)</option>
+          <option value="updated_desc" selected={sortBy === 'updated_desc'}>Recently Updated</option>
+        </select>
+
+        <button type="submit" class="btn-filter">Filter</button>
+        {(search || statusFilter !== 'all' || collectionFilter !== 'all' || availabilityFilter !== 'all' || sortBy !== 'name_asc') && (
+          <a href="/crm/products" class="btn-reset">Reset</a>
+        )}
+      </form>
+    </div>
+
+    <!-- Products Table -->
+    <div class="table-card">
+      <div class="table-container">
+        <table class="products-table">
           <thead>
             <tr>
-              <th style="width: 50px;">Img</th>
-              <th>Product Name &amp; Slug</th>
-              <th>Collection / Subcategory</th>
-              <th>Shipping Class</th>
-              <th>Phase</th>
-              <th>Variants</th>
-              <th>Purchasability Status &amp; Missing Data</th>
-              <th style="text-align: right;">Action</th>
+              <th style="width: 60px;">Image</th>
+              <th>Product Details</th>
+              <th>Collection</th>
+              <th>Selling Price</th>
+              <th>Stock Quantity</th>
+              <th>Stock Status</th>
+              <th>Availability</th>
+              <th>Last Updated</th>
+              <th style="text-align: right;">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {productsWithEval.map((p) => {
-              const missingCount = p.purchasability.missingProductFields.length + p.purchasability.missingVariantFields.length;
-              return (
-                <tr data-col={p.collection_id} data-phase={p.launch_phase} data-class={p.shipping_class}>
+            {paginatedProducts.length === 0 ? (
+              <tr>
+                <td colspan="9" class="empty-state-cell">
+                  <p class="empty-title">No products found</p>
+                  <p class="empty-desc">Try clearing or adjusting your search filters.</p>
+                </td>
+              </tr>
+            ) : (
+              paginatedProducts.map((p) => (
+                <tr id={`prod-row-${p.id}`}>
                   <td>
-                    <img src={p.image_url || '/placeholder.png'} alt="" class="table-thumb" />
+                    <img 
+                      src={p.imageUrl} 
+                      alt={p.name} 
+                      class="product-thumb" 
+                      loading="lazy" 
+                      onerror="this.src='/placeholder-product.png'"
+                    />
                   </td>
                   <td>
-                    <strong>{p.name}</strong>
-                    <code class="slug-code">/{p.slug}</code>
-                    {p.description_source === 'placeholder' && (
-                      <span class="placeholder-tag" title="Description is placeholder copy">Placeholder Copy</span>
-                    )}
+                    <div class="prod-identity">
+                      <a href={`/crm/products/${p.id}`} class="prod-name-link">{p.name}</a>
+                      <span class="prod-sku">SKU: {p.sku}</span>
+                    </div>
                   </td>
                   <td>
-                    <span class="col-tag">{p.collection_name}</span>
-                    <span class="sub-tag">{p.subcategory_name}</span>
+                    <span class="category-tag">{p.collectionName}</span>
+                    {p.subcategoryName && <small class="subcat-text">{p.subcategoryName}</small>}
                   </td>
                   <td>
-                    <span class="class-badge" data-class={p.shipping_class}>{p.shipping_class}</span>
+                    <span class="price-val">{p.sellingPrice > 0 ? `₹${p.sellingPrice.toLocaleString('en-IN')}` : 'Price on Request'}</span>
                   </td>
-                  <td>Phase {p.launch_phase}</td>
                   <td>
-                    <span class={`variant-badge ${p.variant_count === 0 ? 'zero' : ''}`}>
-                      {p.variant_count} Variants
+                    <div class="stock-display">
+                      <span class="stock-number" id={`stock-val-${p.id}`}>{p.stock}</span>
+                      <small class="variant-info">{p.variants.length} variant(s)</small>
+                    </div>
+                  </td>
+                  <td>
+                    <span class={`status-pill ${p.stockStatus.toLowerCase().replace(/\s+/g, '-')}`} id={`status-pill-${p.id}`}>
+                      {p.stockStatus}
                     </span>
                   </td>
                   <td>
-                    {p.purchasability.isPurchasable ? (
-                      <span class="status-pill pass">✓ Eligible for Sale</span>
+                    {p.isOnline ? (
+                      <span class="avail-badge online">● Available Online</span>
                     ) : (
-                      <div class="missing-summary-box">
-                        <span class="status-pill fail">Enquiry Fallback</span>
-                        <small class="missing-count">
-                          {p.shipping_class === 'made-to-order' 
-                            ? 'Made to Order (Permanent Enquiry)' 
-                            : `${missingCount} missing fields`}
-                        </small>
-                      </div>
+                      <span class="avail-badge offline">○ Store / Gated</span>
                     )}
                   </td>
+                  <td>
+                    <span class="date-text">{new Date(p.updatedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                  </td>
                   <td style="text-align: right;">
-                    <a href={`/crm/products/${p.id}`} class="btn-edit">Edit Product &rarr;</a>
+                    <div class="row-action-btns">
+                      <button 
+                        type="button" 
+                        class="btn-manage-stock" 
+                        data-product={JSON.stringify(p)}
+                        onclick="openStockModal(this)"
+                      >
+                        Manage Stock
+                      </button>
+                      <a href={`/crm/products/${p.id}`} class="btn-edit-link" title="Full Product Editor">
+                        Edit
+                      </a>
+                    </div>
                   </td>
                 </tr>
-              );
-            })}
+              ))
+            )}
           </tbody>
         </table>
       </div>
-    </main>
+
+      <!-- Pagination -->
+      {totalPages > 1 && (
+        <div class="pagination-bar">
+          <span class="pagination-info">
+            Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, totalFiltered)} of {totalFiltered} products
+          </span>
+          <div class="pagination-links">
+            {currentPage > 1 && (
+              <a href={`/crm/products?page=${currentPage - 1}&q=${search}&status=${statusFilter}&collection=${collectionFilter}&availability=${availabilityFilter}&sort=${sortBy}`} class="page-link">
+                &larr; Previous
+              </a>
+            )}
+            <span class="current-page-num">Page {currentPage} of {totalPages}</span>
+            {currentPage < totalPages && (
+              <a href={`/crm/products?page=${currentPage + 1}&q=${search}&status=${statusFilter}&collection=${collectionFilter}&availability=${availabilityFilter}&sort=${sortBy}`} class="page-link">
+                Next &rarr;
+              </a>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+
+    <!-- Manage Stock Modal / Drawer -->
+    <div id="stock-modal" class="modal-overlay" hidden>
+      <div class="modal-card">
+        <div class="modal-head">
+          <div>
+            <h2 class="modal-title" id="modal-product-name">Product Name</h2>
+            <span class="modal-sku" id="modal-product-sku">SKU: ---</span>
+          </div>
+          <button type="button" class="modal-close-btn" onclick="closeStockModal()">&times;</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="modal-status-overview">
+            <div class="overview-item">
+              <span class="lbl">Current Stock:</span>
+              <span class="val" id="modal-current-stock">0</span>
+            </div>
+            <div class="overview-item">
+              <span class="lbl">Stock Status:</span>
+              <span class="val" id="modal-stock-status">IN STOCK</span>
+            </div>
+            <div class="overview-item">
+              <span class="lbl">Low Stock Threshold:</span>
+              <span class="val">5 units</span>
+            </div>
+            <div class="overview-item">
+              <span class="lbl">Channel:</span>
+              <span class="val" id="modal-channel-avail">Online</span>
+            </div>
+          </div>
+
+          <!-- Variant Selector (if multi-variant) -->
+          <div id="modal-variant-selector-wrap" class="variant-select-box" hidden>
+            <label for="modal-variant-select" class="field-label">Select Variant to Adjust:</label>
+            <select id="modal-variant-select" class="admin-select" onchange="onVariantChanged()">
+            </select>
+          </div>
+
+          <!-- Interactive Actions Tabs -->
+          <div class="action-tabs">
+            <button type="button" class="tab-btn active" data-tab="adjust" onclick="switchTab('adjust')">Quick Adjust (±)</button>
+            <button type="button" class="tab-btn" data-tab="set" onclick="switchTab('set')">Set Stock Quantity</button>
+            <button type="button" class="tab-btn" data-tab="status-actions" onclick="switchTab('status-actions')">In/Out of Stock</button>
+            <button type="button" class="tab-btn" data-tab="history" onclick="switchTab('history')">Audit History</button>
+          </div>
+
+          <!-- Tab 1: Quick Adjust -->
+          <div id="tab-pane-adjust" class="tab-pane active">
+            <div class="stepper-section">
+              <span class="section-lead">Add or remove specific stock units:</span>
+              <div class="stepper-controls">
+                <button type="button" class="stepper-btn minus" onclick="stepQuantity(-1)">-</button>
+                <input type="number" id="adjust-qty-input" value="1" min="1" class="stepper-input" />
+                <button type="button" class="stepper-btn plus" onclick="stepQuantity(1)">+</button>
+              </div>
+              <div class="stepper-actions">
+                <button type="button" class="btn-action-add" onclick="submitStockChange('ADD')">
+                  + Add Stock
+                </button>
+                <button type="button" class="btn-action-remove" onclick="submitStockChange('REMOVE')">
+                  - Remove Stock
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 2: Set Quantity -->
+          <div id="tab-pane-set" class="tab-pane" hidden>
+            <div class="set-section">
+              <label for="set-qty-input" class="field-label">Exact Inventory Count:</label>
+              <div class="set-input-row">
+                <input type="number" id="set-qty-input" min="0" placeholder="e.g. 25" class="admin-input" />
+                <button type="button" class="btn-action-set" onclick="submitStockChange('SET')">
+                  Set Exact Quantity
+                </button>
+              </div>
+              <small class="helper-text">This will immediately overwrite the current stock balance and record a <code>STOCK_SET</code> audit entry.</small>
+            </div>
+          </div>
+
+          <!-- Tab 3: Status Actions (Mark In / Out of Stock) -->
+          <div id="tab-pane-status-actions" class="tab-pane" hidden>
+            <div class="status-action-box">
+              <div class="status-action-row">
+                <div>
+                  <strong>Mark Out of Stock</strong>
+                  <p>Instantly sets stock quantity to 0 and flags item as Out of Stock.</p>
+                </div>
+                <button type="button" class="btn-action-danger" onclick="submitStockChange('MARK_OUT_OF_STOCK')">
+                  Mark Out of Stock (0)
+                </button>
+              </div>
+
+              <div class="status-action-divider"></div>
+
+              <div class="status-action-row">
+                <div>
+                  <strong>Mark In Stock</strong>
+                  <p>Restores item to In Stock with verified actual quantity.</p>
+                </div>
+                <div class="in-stock-entry-group">
+                  <input type="number" id="in-stock-qty" min="1" value="10" placeholder="Qty" class="in-stock-input" />
+                  <button type="button" class="btn-action-primary" onclick="submitStockChange('MARK_IN_STOCK')">
+                    Confirm &amp; Set In Stock
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tab 4: Audit History -->
+          <div id="tab-pane-history" class="tab-pane" hidden>
+            <div class="history-list-wrap">
+              <div id="history-loading" class="history-loading" hidden>Loading inventory movement history...</div>
+              <table class="history-table" id="history-table">
+                <thead>
+                  <tr>
+                    <th>Date &amp; Time</th>
+                    <th>Action / Reason</th>
+                    <th>Change</th>
+                    <th>Balance</th>
+                    <th>Actor / Order</th>
+                  </tr>
+                </thead>
+                <tbody id="history-tbody">
+                  <tr><td colspan="5" style="text-align: center; color: var(--ink-soft);">Click tab to view transactions.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Feedback alerts -->
+          <div id="modal-error-alert" class="alert-error" hidden></div>
+          <div id="modal-success-alert" class="alert-success" hidden></div>
+        </div>
+
+        <div class="modal-foot">
+          <button type="button" class="btn-modal-done" onclick="closeStockModal()">Close</button>
+        </div>
+      </div>
+    </div>
+
   </div>
-</Base>
+</AdminLayout>
 
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const searchInput = document.getElementById('admin-search-input') as HTMLInputElement | null;
-    const colSelect = document.getElementById('filter-collection') as HTMLSelectElement | null;
-    const phaseSelect = document.getElementById('filter-phase') as HTMLSelectElement | null;
-    const classSelect = document.getElementById('filter-class') as HTMLSelectElement | null;
-    const tableRows = document.querySelectorAll<HTMLTableRowElement>('#products-table tbody tr');
+  let activeProduct: any = null;
+  let activeVariantId: number | null = null;
 
-    function filterTable() {
-      const q = searchInput?.value.toLowerCase().trim() || '';
-      const col = colSelect?.value || '';
-      const phase = phaseSelect?.value || '';
-      const sClass = classSelect?.value || '';
+  (window as any).openStockModal = (btn: HTMLElement) => {
+    const raw = btn.getAttribute('data-product');
+    if (!raw) return;
+    activeProduct = JSON.parse(raw);
+    
+    // Populate header & overview
+    (document.getElementById('modal-product-name') as HTMLElement).textContent = activeProduct.name;
+    (document.getElementById('modal-product-sku') as HTMLElement).textContent = `SKU: ${activeProduct.sku}`;
+    (document.getElementById('modal-current-stock') as HTMLElement).textContent = String(activeProduct.stock);
+    (document.getElementById('modal-stock-status') as HTMLElement).textContent = activeProduct.stockStatus;
+    (document.getElementById('modal-channel-avail') as HTMLElement).textContent = activeProduct.isOnline ? 'Available Online' : 'Store / Gated';
 
-      tableRows.forEach(row => {
-        const text = row.textContent?.toLowerCase() || '';
-        const matchQ = !q || text.includes(q);
-        const matchCol = !col || row.dataset.col === col;
-        const matchPhase = !phase || row.dataset.phase === phase;
-        const matchClass = !sClass || row.dataset.class === sClass;
+    // Variant selector setup
+    const varSelectorWrap = document.getElementById('modal-variant-selector-wrap') as HTMLElement;
+    const varSelect = document.getElementById('modal-variant-select') as HTMLSelectElement;
+    varSelect.innerHTML = '';
 
-        if (matchQ && matchCol && matchPhase && matchClass) {
-          row.style.display = '';
-        } else {
-          row.style.display = 'none';
-        }
+    if (activeProduct.variants && activeProduct.variants.length > 0) {
+      activeProduct.variants.forEach((v: any) => {
+        const opt = document.createElement('option');
+        opt.value = String(v.id);
+        const label = [v.size, v.colour, v.sku ? `(${v.sku})` : ''].filter(Boolean).join(' - ') || `Variant #${v.id}`;
+        opt.textContent = `${label} — Stock: ${v.stock}`;
+        varSelect.appendChild(opt);
       });
+      activeVariantId = activeProduct.variants[0].id;
+      varSelectorWrap.hidden = activeProduct.variants.length <= 1;
+    } else {
+      activeVariantId = null;
+      varSelectorWrap.hidden = true;
     }
 
-    searchInput?.addEventListener('input', filterTable);
-    colSelect?.addEventListener('change', filterTable);
-    phaseSelect?.addEventListener('change', filterTable);
-    classSelect?.addEventListener('change', filterTable);
+    // Reset forms & alerts
+    (document.getElementById('adjust-qty-input') as HTMLInputElement).value = '1';
+    (document.getElementById('set-qty-input') as HTMLInputElement).value = String(activeProduct.stock);
+    hideAlerts();
+    (window as any).switchTab('adjust');
 
-    // Logout button
-    document.getElementById('admin-logout-btn')?.addEventListener('click', async () => {
-      await fetch('/api/admin/logout', { method: 'POST' });
-      window.location.href = '/crm/login';
+    (document.getElementById('stock-modal') as HTMLElement).hidden = false;
+  };
+
+  (window as any).closeStockModal = () => {
+    (document.getElementById('stock-modal') as HTMLElement).hidden = true;
+  };
+
+  (window as any).onVariantChanged = () => {
+    const varSelect = document.getElementById('modal-variant-select') as HTMLSelectElement;
+    activeVariantId = parseInt(varSelect.value, 10);
+    const selected = activeProduct.variants.find((v: any) => v.id === activeVariantId);
+    if (selected) {
+      (document.getElementById('modal-current-stock') as HTMLElement).textContent = String(selected.stock);
+      (document.getElementById('set-qty-input') as HTMLInputElement).value = String(selected.stock);
+    }
+  };
+
+  (window as any).stepQuantity = (delta: number) => {
+    const inp = document.getElementById('adjust-qty-input') as HTMLInputElement;
+    const current = Math.max(1, parseInt(inp.value || '1', 10) + delta);
+    inp.value = String(current);
+  };
+
+  (window as any).switchTab = (tabName: string) => {
+    document.querySelectorAll('.action-tabs .tab-btn').forEach((b) => {
+      b.classList.toggle('active', b.getAttribute('data-tab') === tabName);
     });
-  });
+
+    ['adjust', 'set', 'status-actions', 'history'].forEach((t) => {
+      const pane = document.getElementById(`tab-pane-${t}`);
+      if (pane) pane.hidden = t !== tabName;
+    });
+
+    if (tabName === 'history') {
+      loadInventoryHistory();
+    }
+  };
+
+  function hideAlerts() {
+    const err = document.getElementById('modal-error-alert');
+    const succ = document.getElementById('modal-success-alert');
+    if (err) err.hidden = true;
+    if (succ) succ.hidden = true;
+  }
+
+  function showError(msg: string) {
+    const err = document.getElementById('modal-error-alert');
+    if (err) {
+      err.textContent = msg;
+      err.hidden = false;
+    }
+  }
+
+  function showSuccess(msg: string) {
+    const succ = document.getElementById('modal-success-alert');
+    if (succ) {
+      succ.textContent = msg;
+      succ.hidden = false;
+    }
+  }
+
+  (window as any).submitStockChange = async (mode: string) => {
+    if (!activeProduct) return;
+    hideAlerts();
+
+    let quantity: number | undefined;
+
+    if (mode === 'ADD' || mode === 'REMOVE') {
+      quantity = parseInt((document.getElementById('adjust-qty-input') as HTMLInputElement).value || '1', 10);
+      if (isNaN(quantity) || quantity <= 0) {
+        showError('Please enter a valid positive quantity.');
+        return;
+      }
+    } else if (mode === 'SET') {
+      quantity = parseInt((document.getElementById('set-qty-input') as HTMLInputElement).value || '0', 10);
+      if (isNaN(quantity) || quantity < 0) {
+        showError('Stock quantity cannot be negative.');
+        return;
+      }
+      if (quantity === 0 && !confirm('Are you sure you want to set stock to 0 (Out of Stock)?')) {
+        return;
+      }
+    } else if (mode === 'MARK_OUT_OF_STOCK') {
+      if (!confirm(`Are you sure you want to mark '${activeProduct.name}' out of stock?`)) {
+        return;
+      }
+      quantity = 0;
+    } else if (mode === 'MARK_IN_STOCK') {
+      quantity = parseInt((document.getElementById('in-stock-qty') as HTMLInputElement).value || '10', 10);
+      if (isNaN(quantity) || quantity <= 0) {
+        showError('Please enter a positive stock quantity to mark in stock.');
+        return;
+      }
+    }
+
+    try {
+      const res = await fetch(`/api/admin/products/${activeProduct.id}/inventory`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          variantId: activeVariantId,
+          mode,
+          quantity
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        showError(data.error || 'Failed to update inventory.');
+        return;
+      }
+
+      showSuccess(`Stock successfully updated! New stock: ${data.newStock}`);
+      
+      // Update modal display
+      activeProduct.stock = data.newStock;
+      (document.getElementById('modal-current-stock') as HTMLElement).textContent = String(data.newStock);
+
+      let newStatus = 'IN STOCK';
+      if (data.newStock <= 0) newStatus = 'OUT OF STOCK';
+      else if (data.newStock <= 5) newStatus = 'LOW STOCK';
+
+      activeProduct.stockStatus = newStatus;
+      (document.getElementById('modal-stock-status') as HTMLElement).textContent = newStatus;
+
+      // Update background table row
+      const stockEl = document.getElementById(`stock-val-${activeProduct.id}`);
+      if (stockEl) stockEl.textContent = String(data.newStock);
+
+      const pillEl = document.getElementById(`status-pill-${activeProduct.id}`);
+      if (pillEl) {
+        pillEl.textContent = newStatus;
+        pillEl.className = `status-pill ${newStatus.toLowerCase().replace(/\s+/g, '-')}`;
+      }
+
+    } catch (err: any) {
+      showError(err.message || 'Network error updating stock.');
+    }
+  };
+
+  async function loadInventoryHistory() {
+    if (!activeProduct) return;
+    const loader = document.getElementById('history-loading');
+    const tbody = document.getElementById('history-tbody');
+    if (loader) loader.hidden = false;
+    if (tbody) tbody.innerHTML = '';
+
+    try {
+      const res = await fetch(`/api/admin/products/${activeProduct.id}/inventory-history`);
+      const data = await res.json();
+      if (loader) loader.hidden = true;
+
+      if (!res.ok || !data.success || !data.history || data.history.length === 0) {
+        if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--ink-soft); padding: 1.5rem;">No inventory history recorded yet.</td></tr>';
+        return;
+      }
+
+      if (tbody) {
+        tbody.innerHTML = data.history.map((h: any) => `
+          <tr>
+            <td><small>${new Date(h.createdAt).toLocaleString('en-IN')}</small></td>
+            <td><code>${h.reason}</code></td>
+            <td style="font-weight: 700; color: ${h.delta > 0 ? '#15803d' : '#b91c1c'};">${h.delta > 0 ? `+${h.delta}` : h.delta}</td>
+            <td><strong>${h.balanceAfter}</strong></td>
+            <td><small>${h.orderNumber || h.actorName || 'System'}</small></td>
+          </tr>
+        `).join('');
+      }
+    } catch (err) {
+      if (loader) loader.hidden = true;
+      if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #b91c1c;">Failed to load history.</td></tr>';
+    }
+  }
 </script>
 
 <style>
-  .admin-dashboard-wrap {
-    display: grid;
-    grid-template-columns: 240px 1fr;
-    min-height: 100vh;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background: #f4f6f8;
-    color: #1a1a1a;
+  .crm-products-page {
+    padding: 1.5rem 2rem 3rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    font-family: var(--sans, sans-serif);
   }
 
-  .admin-sidebar {
-    background: #1e293b;
-    color: #f8fafc;
+  .page-head-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .page-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--maroon, #670832);
+    margin: 0 0 0.25rem;
+    letter-spacing: -0.01em;
+  }
+
+  .page-sub {
+    font-size: 0.875rem;
+    color: var(--ink-soft, #6b5e59);
+    margin: 0;
+  }
+
+  .head-actions {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: #ffffff;
+    border: 1px solid var(--line, #e2d8d5);
+    color: var(--ink, #1c1917);
+    padding: 0.55rem 1rem;
+    border-radius: 6px;
+    font-size: 0.813rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .btn-secondary:hover {
+    background: var(--paper-2, #F9F4F0);
+    border-color: var(--maroon);
+    color: var(--maroon);
+  }
+
+  /* Metric Cards */
+  .summary-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .metric-card {
+    background: #ffffff;
+    border: 1px solid var(--line, #e2d8d5);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+  }
+
+  .metric-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft, #6b5e59);
+    text-transform: uppercase;
+    margin-bottom: 0.35rem;
+  }
+
+  .metric-val {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--ink, #1c1917);
+    line-height: 1.1;
+  }
+
+  .metric-sub {
+    font-size: 0.75rem;
+    color: var(--ink-soft, #6b5e59);
+    margin-top: 0.35rem;
+  }
+
+  .text-green { color: #15803d !important; }
+  .text-amber { color: #b45309 !important; }
+  .text-red { color: #b91c1c !important; }
+
+  /* Filters */
+  .filter-card {
+    background: #ffffff;
+    border: 1px solid var(--line, #e2d8d5);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .filter-form {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .search-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--paper-2, #F9F4F0);
+    border: 1px solid var(--line, #e2d8d5);
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    flex: 1;
+    min-width: 240px;
+  }
+
+  .search-input-wrap svg {
+    color: var(--ink-soft, #6b5e59);
+  }
+
+  .search-input {
+    border: none;
+    background: transparent;
+    font-size: 0.85rem;
+    color: var(--ink, #1c1917);
+    width: 100%;
+    outline: none;
+  }
+
+  .filter-select {
+    background: #ffffff;
+    border: 1px solid var(--line, #e2d8d5);
+    border-radius: 6px;
+    padding: 0.55rem 0.85rem;
+    font-size: 0.813rem;
+    color: var(--ink, #1c1917);
+    outline: none;
+    cursor: pointer;
+  }
+
+  .btn-filter {
+    background: var(--maroon, #670832);
+    color: #ffffff;
+    border: none;
+    padding: 0.55rem 1rem;
+    border-radius: 6px;
+    font-size: 0.813rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .btn-reset {
+    color: var(--maroon);
+    font-size: 0.813rem;
+    font-weight: 600;
+    text-decoration: underline;
+    padding: 0.55rem 0.5rem;
+  }
+
+  /* Table */
+  .table-card {
+    background: #ffffff;
+    border: 1px solid var(--line, #e2d8d5);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+  }
+
+  .table-container {
+    overflow-x: auto;
+  }
+
+  .products-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 0.844rem;
+  }
+
+  .products-table th {
+    background: var(--paper-2, #F9F4F0);
+    padding: 0.85rem 1rem;
+    font-weight: 600;
+    color: var(--maroon, #670832);
+    border-bottom: 1px solid var(--line, #e2d8d5);
+    font-size: 0.781rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+
+  .products-table td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--line, #e2d8d5);
+    vertical-align: middle;
+  }
+
+  .products-table tbody tr:hover {
+    background: #fdfbf9;
+  }
+
+  .product-thumb {
+    width: 44px;
+    height: 44px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid var(--line);
+    background: #f4ece8;
+  }
+
+  .prod-identity {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .prod-name-link {
+    font-weight: 600;
+    color: var(--ink, #1c1917);
+    text-decoration: none;
+  }
+
+  .prod-name-link:hover {
+    color: var(--maroon);
+    text-decoration: underline;
+  }
+
+  .prod-sku {
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+    font-family: monospace;
+  }
+
+  .category-tag {
+    font-weight: 500;
+    color: var(--ink);
+    display: block;
+  }
+
+  .subcat-text {
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+  }
+
+  .price-val {
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .stock-display {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+
+  .stock-number {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .variant-info {
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+  }
+
+  .status-pill {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .status-pill.in-stock {
+    background: #dcfce7;
+    color: #15803d;
+  }
+
+  .status-pill.low-stock {
+    background: #fef3c7;
+    color: #b45309;
+  }
+
+  .status-pill.out-of-stock {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+
+  .avail-badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+
+  .avail-badge.online {
+    color: #15803d;
+  }
+
+  .avail-badge.offline {
+    color: var(--ink-soft);
+  }
+
+  .date-text {
+    font-size: 0.781rem;
+    color: var(--ink-soft);
+  }
+
+  .row-action-btns {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+
+  .btn-manage-stock {
+    background: var(--maroon, #670832);
+    color: #ffffff;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    font-size: 0.781rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .btn-manage-stock:hover {
+    opacity: 0.9;
+  }
+
+  .btn-edit-link {
+    background: #ffffff;
+    border: 1px solid var(--line, #e2d8d5);
+    color: var(--ink);
+    padding: 0.4rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.781rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .btn-edit-link:hover {
+    background: var(--paper-2);
+    border-color: var(--maroon);
+    color: var(--maroon);
+  }
+
+  .empty-state-cell {
+    text-align: center;
+    padding: 3rem 1rem;
+  }
+
+  .empty-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 0 0 0.25rem;
+  }
+
+  .empty-desc {
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  .pagination-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    background: var(--paper-2);
+    border-top: 1px solid var(--line);
+    font-size: 0.813rem;
+  }
+
+  .pagination-links {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .page-link {
+    color: var(--maroon);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: grid;
+    place-items: center;
+    padding: 1.5rem;
+    z-index: 9999;
+  }
+
+  .modal-card {
+    background: #ffffff;
+    border-radius: 8px;
+    max-width: 600px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .modal-head {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .modal-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--maroon);
+    margin: 0;
+  }
+
+  .modal-sku {
+    font-size: 0.781rem;
+    color: var(--ink-soft);
+    font-family: monospace;
+  }
+
+  .modal-close-btn {
+    background: none;
+    border: none;
+    font-size: 1.75rem;
+    line-height: 1;
+    color: var(--ink-soft);
+    cursor: pointer;
+  }
+
+  .modal-body {
     padding: 1.5rem;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    gap: 1.25rem;
   }
 
-  .sidebar-brand strong { display: block; font-size: 1.15rem; letter-spacing: 0.05em; color: #fff; }
-  .sidebar-brand small { font-size: 0.75rem; color: #94a3b8; }
+  .modal-status-overview {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    background: var(--paper-2);
+    padding: 1rem;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+  }
 
-  .admin-nav { margin-top: 2rem; display: flex; flex-direction: column; gap: 0.4rem; }
-  .nav-item { color: #cbd5e1; padding: 0.6rem 0.85rem; border-radius: 4px; text-decoration: none; font-size: 0.88rem; font-weight: 500; }
-  .nav-item:hover, .nav-item.active { background: #334155; color: #fff; }
+  .overview-item {
+    display: flex;
+    flex-direction: column;
+  }
 
-  .sidebar-user { font-size: 0.781rem; color: #94a3b8; border-top: 1px solid #334155; padding-top: 1rem; }
-  .logout-link-btn { background: none; border: none; color: #ef4444; font-size: 0.781rem; cursor: pointer; padding: 0; margin-top: 0.25rem; display: block; }
+  .overview-item .lbl {
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    font-weight: 600;
+  }
 
-  .admin-content-area { padding: 2rem; }
-  .admin-page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
-  .admin-page-header h1 { font-size: 1.6rem; font-weight: 700; margin: 0 0 0.25rem 0; color: #0f172a; }
-  .header-sub { font-size: 0.88rem; color: #64748b; margin: 0; }
+  .overview-item .val {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--ink);
+  }
 
-  .mode-badge { background: #e2e8f0; padding: 0.35rem 0.75rem; border-radius: 4px; font-size: 0.75rem; color: #334155; }
-  .mode-badge[data-mode="enquiry"] { background: #fef3c7; color: #92400e; }
+  .field-label {
+    font-size: 0.813rem;
+    font-weight: 600;
+    color: var(--maroon);
+    margin-bottom: 0.35rem;
+    display: block;
+  }
 
-  .admin-filter-bar { display: flex; gap: 0.75rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
-  .filter-input-wrap { flex: 1; min-width: 240px; }
-  .admin-input, .admin-select { width: 100%; padding: 0.55rem 0.75rem; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.85rem; background: #fff; }
+  .admin-select, .admin-input {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    font-size: 0.875rem;
+    outline: none;
+  }
 
-  .table-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden; }
-  .admin-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-  .admin-table th { background: #f8fafc; text-align: left; padding: 0.75rem 1rem; font-weight: 600; color: #475569; border-bottom: 1px solid #e2e8f0; }
-  .admin-table td { padding: 0.75rem 1rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
-  .admin-table tr:hover { background: #f8fafc; }
+  .action-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--line);
+    gap: 0.5rem;
+  }
 
-  .table-thumb { width: 42px; height: 42px; object-fit: cover; border-radius: 4px; border: 1px solid #e2e8f0; }
-  .slug-code { display: block; font-size: 0.72rem; color: #64748b; font-family: monospace; }
-  .placeholder-tag { background: #fef3c7; color: #92400e; font-size: 0.65rem; padding: 0.1rem 0.4rem; border-radius: 2px; margin-top: 0.2rem; display: inline-block; }
+  .tab-btn {
+    background: none;
+    border: none;
+    padding: 0.6rem 0.8rem;
+    font-size: 0.813rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+  }
 
-  .col-tag { font-weight: 600; color: #1e293b; display: block; }
-  .sub-tag { font-size: 0.75rem; color: #64748b; }
+  .tab-btn.active {
+    color: var(--maroon);
+    border-bottom-color: var(--maroon);
+  }
 
-  .class-badge { font-size: 0.72rem; text-transform: uppercase; font-weight: 600; padding: 0.2rem 0.5rem; border-radius: 3px; background: #e2e8f0; color: #334155; }
-  .class-badge[data-class="made-to-order"] { background: #fae8ff; color: #86198f; }
+  .stepper-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    padding-top: 0.5rem;
+  }
 
-  .variant-badge { font-size: 0.75rem; background: #e0f2fe; color: #0369a1; padding: 0.2rem 0.5rem; border-radius: 999px; }
-  .variant-badge.zero { background: #fee2e2; color: #b91c1c; }
+  .section-lead {
+    font-size: 0.813rem;
+    color: var(--ink-soft);
+  }
 
-  .status-pill { font-size: 0.72rem; font-weight: 600; padding: 0.25rem 0.5rem; border-radius: 4px; }
-  .status-pill.pass { background: #dcfce7; color: #15803d; }
-  .status-pill.fail { background: #fef3c7; color: #b45309; }
-  .missing-summary-box { display: flex; flex-direction: column; gap: 0.15rem; }
-  .missing-count { font-size: 0.72rem; color: #dc2626; }
+  .stepper-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
 
-  .btn-edit { display: inline-block; background: #0f172a; color: #fff; padding: 0.35rem 0.75rem; border-radius: 4px; text-decoration: none; font-weight: 500; font-size: 0.781rem; }
-  .btn-edit:hover { background: #334155; }
+  .stepper-btn {
+    width: 38px;
+    height: 38px;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    font-size: 1.25rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .stepper-input {
+    width: 100px;
+    text-align: center;
+    padding: 0.55rem;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+
+  .stepper-actions {
+    display: flex;
+    gap: 0.75rem;
+  }
+
+  .btn-action-add {
+    background: #15803d;
+    color: #ffffff;
+    border: none;
+    padding: 0.65rem 1.25rem;
+    border-radius: 4px;
+    font-size: 0.844rem;
+    font-weight: 600;
+    cursor: pointer;
+    flex: 1;
+  }
+
+  .btn-action-remove {
+    background: #b91c1c;
+    color: #ffffff;
+    border: none;
+    padding: 0.65rem 1.25rem;
+    border-radius: 4px;
+    font-size: 0.844rem;
+    font-weight: 600;
+    cursor: pointer;
+    flex: 1;
+  }
+
+  .set-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-top: 0.5rem;
+  }
+
+  .set-input-row {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .btn-action-set {
+    background: var(--maroon);
+    color: #ffffff;
+    border: none;
+    padding: 0.6rem 1.25rem;
+    border-radius: 4px;
+    font-size: 0.813rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .helper-text {
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+  }
+
+  .status-action-box {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding-top: 0.5rem;
+  }
+
+  .status-action-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .status-action-row strong {
+    font-size: 0.875rem;
+    color: var(--ink);
+    display: block;
+  }
+
+  .status-action-row p {
+    font-size: 0.781rem;
+    color: var(--ink-soft);
+    margin: 0.15rem 0 0;
+  }
+
+  .status-action-divider {
+    height: 1px;
+    background: var(--line);
+  }
+
+  .btn-action-danger {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
+    padding: 0.55rem 0.85rem;
+    border-radius: 4px;
+    font-size: 0.781rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .btn-action-danger:hover {
+    background: #fecaca;
+  }
+
+  .in-stock-entry-group {
+    display: flex;
+    gap: 0.4rem;
+  }
+
+  .in-stock-input {
+    width: 70px;
+    padding: 0.5rem;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    text-align: center;
+    font-weight: 700;
+  }
+
+  .btn-action-primary {
+    background: #15803d;
+    color: #ffffff;
+    border: none;
+    padding: 0.55rem 0.85rem;
+    border-radius: 4px;
+    font-size: 0.781rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .history-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.781rem;
+  }
+
+  .history-table th {
+    background: var(--paper-2);
+    padding: 0.5rem;
+    border-bottom: 1px solid var(--line);
+    text-align: left;
+  }
+
+  .history-table td {
+    padding: 0.5rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .history-loading {
+    text-align: center;
+    font-size: 0.813rem;
+    color: var(--ink-soft);
+    padding: 1rem;
+  }
+
+  .alert-error {
+    background: #fee2e2;
+    color: #b91c1c;
+    padding: 0.75rem;
+    border-radius: 4px;
+    font-size: 0.813rem;
+  }
+
+  .alert-success {
+    background: #dcfce7;
+    color: #15803d;
+    padding: 0.75rem;
+    border-radius: 4px;
+    font-size: 0.813rem;
+  }
+
+  .modal-foot {
+    padding: 1rem 1.5rem;
+    background: var(--paper-2);
+    border-top: 1px solid var(--line);
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .btn-modal-done {
+    background: #ffffff;
+    border: 1px solid var(--line);
+    padding: 0.5rem 1.25rem;
+    border-radius: 4px;
+    font-size: 0.813rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
 </style>

@@ -159,41 +159,43 @@ export async function getCartItems(sessionToken: string): Promise<CartItemView[]
     }
   });
 
-  return items.map((ci) => {
-    const v = ci.variant;
-    const p = v.product;
-    const c = p.collection;
+  return items
+    .filter((ci): ci is typeof ci & { variant: NonNullable<typeof ci.variant> } => Boolean(ci.variant))
+    .map((ci) => {
+      const v = ci.variant;
+      const p = v.product;
+      const c = p.collection;
 
-    const colKey = (c?.key || '').toLowerCase();
-    const isGiftingCol = colKey.includes('gifting') || colKey.includes('gift') || p.slug.includes('combo') || p.slug.includes('gifting');
+      const colKey = (c?.key || '').toLowerCase();
+      const isGiftingCol = colKey.includes('gifting') || colKey.includes('gift') || p.slug.includes('combo') || p.slug.includes('gifting');
 
-    const isPurchasable = p.shipping_class !== 'made-to-order' &&
-      p.launch_phase > 0 &&
-      Boolean(p.sellable_online) &&
-      isGiftingCol &&
-      Boolean(p.country_of_origin) &&
-      Boolean(p.manufacturer_or_packer) &&
-      Boolean(p.consumer_care_contact);
+      const isPurchasable = p.shipping_class !== 'made-to-order' &&
+        p.launch_phase > 0 &&
+        Boolean(p.sellable_online) &&
+        isGiftingCol &&
+        Boolean(p.country_of_origin) &&
+        Boolean(p.manufacturer_or_packer) &&
+        Boolean(p.consumer_care_contact);
 
-    const primaryImage = p.ProductImages?.[0]?.url || '/placeholder.png';
+      const primaryImage = p.ProductImages?.[0]?.url || '/placeholder.png';
 
-    return {
-      cartItemId: ci.id,
-      variantId: v.id,
-      productSlug: p.slug,
-      productName: p.name,
-      shippingClass: p.shipping_class,
-      packedWeightKg: v.packed_weight_kg ? Number(v.packed_weight_kg) : undefined,
-      packedL: v.packed_l_cm ? Number(v.packed_l_cm) : undefined,
-      packedB: v.packed_b_cm ? Number(v.packed_b_cm) : undefined,
-      packedH: v.packed_h_cm ? Number(v.packed_h_cm) : undefined,
-      qty: ci.qty,
-      sellingPrice: v.selling_price ? Number(v.selling_price) : 0,
-      mrp: v.mrp ? Number(v.mrp) : undefined,
-      stock: v.stock || 100,
-      isPurchasable,
-      image: primaryImage,
-      variantTitle: [v.size, v.colour].filter(Boolean).join(' / ') || 'Standard Variant'
-    };
-  });
+      return {
+        cartItemId: ci.id,
+        variantId: v.id,
+        productSlug: p.slug,
+        productName: p.name,
+        shippingClass: p.shipping_class,
+        packedWeightKg: v.packed_weight_kg ? Number(v.packed_weight_kg) : undefined,
+        packedL: v.packed_l_cm ? Number(v.packed_l_cm) : undefined,
+        packedB: v.packed_b_cm ? Number(v.packed_b_cm) : undefined,
+        packedH: v.packed_h_cm ? Number(v.packed_h_cm) : undefined,
+        qty: ci.qty,
+        sellingPrice: v.selling_price ? Number(v.selling_price) : 0,
+        mrp: v.mrp ? Number(v.mrp) : undefined,
+        stock: v.stock || 100,
+        isPurchasable,
+        image: primaryImage,
+        variantTitle: [v.size, v.colour].filter(Boolean).join(' / ') || 'Standard Variant'
+      };
+    });
 }

@@ -29,3 +29,21 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+.vercel
+.env*
+
+# temporary scratch & audit files
+scratch/
+migration-backups/
+migration-reports/
+reports/
+data/backups/vinsho_pre_recovery_*
+data/vinsho.db.bak*
+db.js
+skills-lock.json
+
+# editor / assistant configs
+.agents/
+.claude/
+.cursor/
+.devin/

@@ -37,8 +37,19 @@ const PACKAGING_OPTIONS: PackagingOption[] = [
 
 export const HamperModal: React.FC<HamperModalProps> = ({ products }) => {
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [modalMode, setModalMode] = useState<'manual' | 'intro'>('manual');
+  const [modalMode, setModalMode] = useState<'manual' | 'intro' | 'curated'>('manual');
   const [modalStep, setModalStep] = useState<'products' | 'personalize' | 'preview'>('products');
+  const [selectedOccasion, setSelectedOccasion] = useState<string>('Special Occasion');
+  const [selectedBudgetId, setSelectedBudgetId] = useState<string>('all');
+  const [selectedItems, setSelectedItems] = useState<SelectedHamperItem[]>([]);
+  const [personalizeState, setPersonalizeState] = useState<HamperPersonalizeState>({
+    recipientName: '',
+    senderName: '',
+    message: '',
+    packagingId: 'box_signature_cork'
+  });
+  const [isValidating, setIsValidating] = useState<boolean>(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   // Global trigger listener for data-open-hamper-modal or custom event
   useEffect(() => {

@@ -42,15 +42,15 @@ export const GET: APIRoute = async ({ request, params }) => {
     }
 
     // Fetch items with variant and primary product image
-    const rawItems = await prisma.order_items.findMany({
+    const rawItems = await prisma.orderItems.findMany({
       where: { order_id: order.id },
       include: {
-        product_variants: {
+        variant: {
           include: {
-            products: {
+            product: {
               include: {
-                product_images: {
-                  where: { is_primary: 1 },
+                ProductImages: {
+                  where: { is_primary: true },
                   take: 1
                 }
               }

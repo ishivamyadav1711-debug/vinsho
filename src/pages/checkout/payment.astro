@@ -7,15 +7,15 @@ import CustomCursor from '../../components/motion/CustomCursor.astro';
 import { getCustomerFromSession } from '../../lib/customerAuth';
 
 // Server-side Authentication Gate for Payment & Order Review (§2)
-const customer = getCustomerFromSession(Astro.request);
+const customer = await getCustomerFromSession(Astro.request);
 if (!customer) {
   return Astro.redirect('/login?redirect=/checkout/payment');
 }
 ---
 
 <Base 
-  title="Checkout &mdash; Place Order | VINSHO" 
-  description="Review order details and place your order with VINSHO."
+  title="Checkout &mdash; Payment | VINSHO" 
+  description="Review order details and pay securely with VINSHO."
 >
   <CustomCursor />
   <Nav />
@@ -32,9 +32,12 @@ if (!customer) {
           </div>
 
           <div class="v-summary-box">
-            <h3>ORDER METHOD</h3>
+            <h3>PAYMENT METHOD</h3>
             <div class="v-box-body">
-              <strong>Direct WhatsApp Order (Order Placement &amp; Assistance)</strong>
+              <strong>Online Payment (Razorpay)</strong>
+              <p style="font-size: 0.813rem; color: #4b5563; margin-top: 0.25rem; margin-bottom: 0;">
+                UPI, Credit/Debit Cards, NetBanking, and Wallets supported. 256-bit encrypted &amp; secure.
+              </p>
             </div>
           </div>
         </div>
@@ -53,8 +56,12 @@ if (!customer) {
 
             <div id="v-pay-error" class="v-error-banner" hidden></div>
 
-            <button type="button" id="v-place-order-btn" class="v-btn-place-order">Order on WhatsApp</button>
-            <p class="v-whatsapp-support-text" style="font-size: 0.813rem; color: #6b7280; text-align: center; margin-top: 0.5rem; margin-bottom: 0;">Complete your order directly with us on WhatsApp.</p>
+            <button type="button" id="v-place-order-btn" class="v-btn-place-order">
+              PAY NOW &mdash; <span id="v-btn-amount">₹0</span>
+            </button>
+            <p class="v-support-text" style="font-size: 0.813rem; color: #6b7280; text-align: center; margin-top: 0.5rem; margin-bottom: 0;">
+              🔒 100% Safe &amp; Secure Payment
+            </p>
           </div>
         </div>
       </div>
@@ -66,14 +73,41 @@ if (!customer) {
 </Base>
 
 <script>
-  import { getLocalCartState, buildWhatsAppOrderUrl } from '../../scripts/cart-store';
+  import { getLocalCartState, clearCart } from '../../scripts/cart-store';
 
-  document.addEventListener('DOMContentLoaded', () => {
+  function loadRazorpayScript(): Promise<boolean> {
+    return new Promise((resolve) => {
+      if ((window as any).Razorpay) return resolve(true);
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
+      document.body.appendChild(script);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    // Preload checkout script
+    loadRazorpayScript().catch(() => {});
+
     const addrBox = document.getElementById('v-address-summary');
     const itemsBox = document.getElementById('v-items-list');
     const totalBox = document.getElementById('v-grand-total');
+    const btnAmount = document.getElementById('v-btn-amount');
     const placeOrderBtn = document.getElementById('v-place-order-btn') as HTMLButtonElement | null;
     const errorBanner = document.getElementById('v-pay-error');
+
+    function showError(msg: string) {
+      if (errorBanner) {
+        errorBanner.hidden = false;
+        errorBanner.textContent = msg;
+      }
+      if (placeOrderBtn) {
+        placeOrderBtn.disabled = false;
+        placeOrderBtn.textContent = 'RETRY PAYMENT';
+      }
+    }
 
     let addressData: any = null;
     try {
@@ -92,7 +126,7 @@ if (!customer) {
       addrBox.innerHTML = `
         <strong>${addressData.name}</strong> &middot; ${addressData.phone}<br/>
         ${addressData.line1}${addressData.line2 ? ', ' + addressData.line2 : ''}<br/>
-        ${addressData.city}, ${addressData.state} — <strong>${addressData.pincode}</strong>
+        ${addressData.city}, ${addressData.state} &mdash; <strong>${addressData.pincode}</strong>
       `;
     }
 
@@ -112,21 +146,136 @@ if (!customer) {
       `).join('');
     }
 
-    if (totalBox) {
-      totalBox.textContent = `₹${state.subtotal.toLocaleString('en-IN')}`;
-    }
+    const formattedTotal = `₹${state.subtotal.toLocaleString('en-IN')}`;
+    if (totalBox) totalBox.textContent = formattedTotal;
+    if (btnAmount) btnAmount.textContent = formattedTotal;
 
-    placeOrderBtn?.addEventListener('click', () => {
+    placeOrderBtn?.addEventListener('click', async () => {
       const currentState = getLocalCartState();
       if (!currentState.items || currentState.items.length === 0) {
         window.location.href = '/cart';
         return;
       }
 
-      const whatsappUrl = buildWhatsAppOrderUrl(currentState.items, currentState.subtotal);
-      const win = window.open(whatsappUrl, '_blank');
-      if (!win || win.closed || typeof win.closed === 'undefined') {
-        window.location.href = whatsappUrl;
+      if (errorBanner) errorBanner.hidden = true;
+      placeOrderBtn.disabled = true;
+      placeOrderBtn.textContent = 'INITIALIZING SECURE CHECKOUT...';
+
+      const scriptLoaded = await loadRazorpayScript();
+      if (!scriptLoaded || !(window as any).Razorpay) {
+        showError('Could not load payment gateway. Please check your internet connection.');
+        return;
+      }
+
+      const idempotencyKey = 'key_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
+
+      try {
+        const orderPayload = {
+          sessionToken: currentState.sessionToken,
+          name: addressData.name,
+          phone: addressData.phone,
+          email: addressData.email,
+          line1: addressData.line1,
+          line2: addressData.line2 || '',
+          city: addressData.city,
+          state: addressData.state,
+          pincode: addressData.pincode,
+          country: addressData.country || 'India',
+          idempotencyKey,
+          couponCode: currentState.couponCode || null,
+          items: currentState.items.map(i => ({
+            variantId: i.variantId || 0,
+            qty: i.quantity,
+            sellingPrice: i.price,
+            productName: i.name,
+            size: i.variantTitle,
+            sku: i.slug
+          }))
+        };
+
+        const res = await fetch('/api/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(orderPayload)
+        });
+
+        const checkoutData = await res.json();
+
+        if (!res.ok || !checkoutData.success) {
+          showError(checkoutData.error || 'Failed to create order. Please try again.');
+          return;
+        }
+
+        placeOrderBtn.textContent = 'OPENING PAYMENT MODAL...';
+
+        const rzpOptions = {
+          key: checkoutData.razorpayKeyId,
+          amount: Math.round(Number(checkoutData.grandTotal) * 100),
+          currency: checkoutData.currency || 'INR',
+          name: 'VINSHO',
+          description: `Order #${checkoutData.orderNumber}`,
+          order_id: checkoutData.razorpayOrderId,
+          prefill: {
+            name: addressData.name,
+            contact: addressData.phone,
+            email: addressData.email || ''
+          },
+          theme: {
+            color: '#8A174B'
+          },
+          handler: async function (response: any) {
+            placeOrderBtn.textContent = 'VERIFYING PAYMENT...';
+            try {
+              const verifyRes = await fetch('/api/checkout/verify-payment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  orderId: checkoutData.orderId,
+                  orderNumber: checkoutData.orderNumber,
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature
+                })
+              });
+
+              const verifyData = await verifyRes.json();
+
+              if (verifyRes.ok && verifyData.success) {
+                // Save confirmed order data for confirmation page
+                sessionStorage.setItem('vinsho_last_placed_order', JSON.stringify({
+                  orderNumber: checkoutData.orderNumber,
+                  address: addressData,
+                  items: currentState.items,
+                  grandTotal: checkoutData.grandTotal
+                }));
+
+                // Clear cart state
+                clearCart();
+
+                window.location.href = `/checkout/confirmation?orderNumber=${encodeURIComponent(checkoutData.orderNumber)}`;
+              } else {
+                showError(verifyData.error || 'Payment verification failed. Please contact customer support.');
+              }
+            } catch (err: any) {
+              showError('Network error while verifying payment. Please do not re-pay.');
+            }
+          },
+          modal: {
+            ondismiss: function () {
+              placeOrderBtn.disabled = false;
+              placeOrderBtn.innerHTML = `PAY NOW &mdash; ₹${Number(state.subtotal).toLocaleString('en-IN')}`;
+            }
+          }
+        };
+
+        const rzp = new (window as any).Razorpay(rzpOptions);
+        rzp.on('payment.failed', function (resp: any) {
+          showError(`Payment Failed: ${resp.error?.description || 'Transaction declined.'}`);
+        });
+        rzp.open();
+
+      } catch (err: any) {
+        showError(err.message || 'An unexpected error occurred. Please try again.');
       }
     });
   });
@@ -249,5 +398,15 @@ if (!customer) {
     font-size: 0.85rem;
     letter-spacing: 0.1em;
     cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .v-btn-place-order:hover:not(:disabled) {
+    background: #6e123b;
+  }
+
+  .v-btn-place-order:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
   }
 </style>

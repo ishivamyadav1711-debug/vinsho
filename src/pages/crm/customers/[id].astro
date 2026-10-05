@@ -35,13 +35,13 @@ const enquiries = await prisma.enquiries.findMany({
 const openEnquiries = enquiries.filter(e => e.status !== 'Converted' && e.status !== 'Lost');
 
 // Follow-ups
-const followupsRaw = await prisma.follow_ups.findMany({
+const followupsRaw = await prisma.followUps.findMany({
   where: { entity_type: 'customer', entity_id: parseInt(id, 10) },
   orderBy: { due_at: 'desc' },
-  include: { admin_users: { select: { name: true } } }
+  include: { assignee: { select: { name: true } } }
 });
-const followups = followupsRaw.map(f => ({ ...f, assignee_name: f.admin_users?.name || null }));
-const nextFollowup = followups.find(f => f.status === 'PENDING');
+const followups = followupsRaw.map((f: any) => ({ ...f, assignee_name: f.assignee?.name || null }));
+const nextFollowup = followups.find((f: any) => f.status === 'PENDING');
 
 // Quotations
 const quotations = await prisma.quotations.findMany({
@@ -58,16 +58,16 @@ const orders = await prisma.orders.findMany({
 
 // Payments (Full Financial Breakdown)
 const paymentsRaw = await prisma.payments.findMany({
-  where: { orders: { customer_id: parseInt(id, 10) } },
+  where: { order: { customer_id: parseInt(id, 10) } },
   orderBy: { created_at: 'desc' },
-  include: { orders: { select: { order_number: true, grand_total: true } } }
+  include: { order: { select: { order_number: true, grand_total: true } } }
 });
-const payments = paymentsRaw.map(p => ({
+const payments = paymentsRaw.map((p: any) => ({
   ...p,
-  order_number: p.orders?.order_number || '',
-  order_total: Number(p.orders?.grand_total ?? 0),
+  order_number: p.order?.order_number || '',
+  order_total: Number(p.order?.grand_total ?? 0),
   amount: Number(p.amount ?? 0),
-  refund_amount: p.refund_amount !== null ? Number(p.refund_amount) : null
+  refund_amount: 0
 }));
 
 // Financial calculations
@@ -96,28 +96,27 @@ payments.forEach(p => {
 const balanceDue = Math.max(0, totalPending);
 
 // Unified Chronological Activity Timeline
-const rawActivitiesData = await prisma.crm_activities.findMany({
+const rawActivitiesData = await prisma.crmActivities.findMany({
   where: { entity_type: 'customer', entity_id: parseInt(id, 10) },
   orderBy: { created_at: 'desc' },
-  take: 20,
-  include: { admin_users: { select: { name: true } } }
+  take: 20
 });
-const rawActivities = rawActivitiesData.map(a => ({ ...a, actor_name: a.admin_users?.name || 'System' }));
+const rawActivities = rawActivitiesData.map((a: any) => ({ ...a, actor_name: 'System' }));
 
-const products = await prisma.product_variants.findMany({
-  where: { products: { deleted_at: null } },
+const products = await prisma.productVariants.findMany({
+  where: { product: { deleted_at: null } },
   take: 50,
   select: {
     id: true,
     size: true,
     colour: true,
     selling_price: true,
-    products: { select: { name: true } }
+    product: { select: { name: true } }
   }
 });
-const productsList = products.map(v => ({
+const productsList = products.map((v: any) => ({
   variant_id: v.id,
-  product_name: v.products?.name || '',
+  product_name: v.product?.name || '',
   size: v.size,
   colour: v.colour,
   selling_price: Number(v.selling_price ?? 0)
@@ -148,7 +147,6 @@ const productsList = products.map(v => ({
         <div class="name-status-row">
           <h1 class="cust-name">{customer.name}</h1>
           <span class={`status-pill status-${computedStatus.toLowerCase()}`}>{computedStatus}</span>
-          {customer.company && <span class="comp-badge">🏢 {customer.company}</span>}
         </div>
         <p class="cust-contacts">
           <span>📞 <a href={`tel:${customer.phone}`}>{customer.phone}</a></span>
@@ -267,7 +265,7 @@ const productsList = products.map(v => ({
                   <td>{new Date(o.placed_at || o.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
                   <td><span class="pill">{o.status}</span></td>
                   <td><span class={`pill status-${o.payment_status}`}>{o.payment_status.toUpperCase()}</span></td>
-                  <td><strong>₹{o.grand_total.toLocaleString('en-IN')}</strong></td>
+                  <td><strong>₹{Number(o.grand_total).toLocaleString('en-IN')}</strong></td>
                 </tr>
               ))}
             </tbody>
@@ -340,7 +338,7 @@ const productsList = products.map(v => ({
                 <tr>
                   <td><strong>{q.quote_number}</strong></td>
                   <td><span class="pill">{q.status}</span></td>
-                  <td><strong>₹{q.grand_total.toLocaleString('en-IN')}</strong></td>
+                  <td><strong>₹{Number(q.grand_total).toLocaleString('en-IN')}</strong></td>
                   <td>{new Date(q.valid_until).toLocaleDateString('en-IN')}</td>
                   <td>
                     {q.status !== 'ACCEPTED' && (
@@ -460,7 +458,7 @@ const productsList = products.map(v => ({
 
 </AdminLayout>
 
-<script inline>
+<script is:inline>
   // Tab Switching Logic
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {

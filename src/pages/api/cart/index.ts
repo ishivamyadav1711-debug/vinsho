@@ -3,10 +3,10 @@ import { addItemToCart, getCartItems } from '../../../lib/cart.js';
 
 export const GET: APIRoute = async ({ request, url }) => {
   const sessionToken = url.searchParams.get('sessionToken') || request.headers.get('x-session-token') || 'guest-session';
-  const items = getCartItems(sessionToken);
+  const items = await getCartItems(sessionToken);
 
-  const subtotal = items.reduce((sum, item) => sum + (item.sellingPrice * item.qty), 0);
-  const totalItems = items.reduce((sum, item) => sum + item.qty, 0);
+  const subtotal = items.reduce((sum: number, item: any) => sum + (item.sellingPrice * item.qty), 0);
+  const totalItems = items.reduce((sum: number, item: any) => sum + item.qty, 0);
 
   return new Response(JSON.stringify({
     success: true,
@@ -34,7 +34,7 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response(JSON.stringify({ error: 'Quantity must be a positive integer between 1 and 999.' }), { status: 400 });
     }
 
-    const res = addItemToCart({
+    const res = await addItemToCart({
       sessionToken,
       variantId: variantId ? parseInt(variantId, 10) : undefined,
       slug,
@@ -46,9 +46,9 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response(JSON.stringify({ error: res.error }), { status: 400 });
     }
 
-    const items = getCartItems(sessionToken);
-    const subtotal = items.reduce((sum, item) => sum + (item.sellingPrice * item.qty), 0);
-    const totalItems = items.reduce((sum, item) => sum + item.qty, 0);
+    const items = await getCartItems(sessionToken);
+    const subtotal = items.reduce((sum: number, item: any) => sum + (item.sellingPrice * item.qty), 0);
+    const totalItems = items.reduce((sum: number, item: any) => sum + item.qty, 0);
 
     return new Response(JSON.stringify({
       success: true,

@@ -18,25 +18,25 @@ const productsRaw = await prisma.products.findMany({
   where: { deleted_at: null },
   orderBy: { name: 'asc' },
   include: {
-    collections: { select: { name: true } },
-    subcategories: { select: { name: true } },
-    product_images: {
+    collection: { select: { name: true } },
+    subcategory: { select: { name: true } },
+    ProductImages: {
       where: { is_primary: true },
       take: 1,
       select: { url: true }
     },
-    product_variants: true
+    ProductVariants: true
   }
 });
 
 const productsWithEval = productsRaw.map((p) => {
-  const evalRes = evaluatePurchasability(p, p.product_variants as any[]);
+  const evalRes = evaluatePurchasability(p, p.ProductVariants as any[]);
   return {
     ...p,
-    collection_name: p.collections?.name || '',
-    subcategory_name: p.subcategories?.name || '',
-    image_url: p.product_images[0]?.url || null,
-    variant_count: p.product_variants.length,
+    collection_name: p.collection?.name || '',
+    subcategory_name: p.subcategory?.name || '',
+    image_url: p.ProductImages[0]?.url || null,
+    variant_count: p.ProductVariants.length,
     purchasability: evalRes
   };
 });

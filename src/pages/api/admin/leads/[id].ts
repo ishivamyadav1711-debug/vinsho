@@ -1,9 +1,10 @@
 import type { APIRoute } from 'astro';
-import { db } from '../../../../lib/db';
-import { getSessionUser, logAuditAction } from '../../../../lib/auth';
+import { prisma } from '../../../../lib/db';
+import { getSessionUser } from '../../../../lib/auth';
+import { logCrmActivity } from '../../../../lib/crm';
 
 export const GET: APIRoute = async ({ request, params }) => {
-  const user = getSessionUser(request);
+  const user = await getSessionUser(request);
   if (!user) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
       status: 401,
@@ -16,23 +17,50 @@ export const GET: APIRoute = async ({ request, params }) => {
     return new Response(JSON.stringify({ error: 'Missing lead ID' }), { status: 400 });
   }
 
-  const lead = db.prepare('SELECT * FROM leads WHERE id = ?').get(id) as any;
+  const leadId = parseInt(id, 10);
+  const lead = await prisma.customers.findFirst({
+    where: { id: leadId, deleted_at: null }
+  });
+
   if (!lead) {
     return new Response(JSON.stringify({ error: 'Lead not found' }), { status: 404 });
   }
 
-  const activities = db.prepare('SELECT * FROM lead_activities WHERE lead_id = ? ORDER BY created_at DESC').all(id);
-  const notes = db.prepare('SELECT * FROM lead_notes WHERE lead_id = ? ORDER BY created_at DESC').all(id);
-  const followUps = db.prepare('SELECT * FROM follow_ups WHERE lead_id = ? ORDER BY scheduled_at ASC').all(id);
+  const activities = await prisma.crmActivities.findMany({
+    where: { entity_type: 'customer', entity_id: leadId },
+    orderBy: { created_at: 'desc' }
+  });
+
+  const rawNotes = await prisma.crmNotes.findMany({
+    where: { entity_type: 'customer', entity_id: leadId },
+    include: { author: { select: { name: true } } },
+    orderBy: { created_at: 'desc' }
+  });
+
+  const notes = rawNotes.map((n: any) => ({
+    ...n,
+    author_name: n.AdminUsers?.name || 'Admin'
+  }));
+
+  const followUps = await prisma.followUps.findMany({
+    where: { entity_type: 'customer', entity_id: leadId },
+    orderBy: { due_at: 'asc' }
+  });
 
   // Check duplicate email or phone (excluding current lead)
   let duplicateLead: any = null;
   if (lead.email || lead.phone) {
-    duplicateLead = db.prepare(`
-      SELECT id, name, email, phone, status, created_at FROM leads
-      WHERE id != ? AND ((email != '' AND email = ?) OR (phone != '' AND phone = ?))
-      LIMIT 1
-    `).get(id, lead.email || '', lead.phone || '');
+    duplicateLead = await prisma.customers.findFirst({
+      where: {
+        id: { not: leadId },
+        deleted_at: null,
+        OR: [
+          lead.email ? { email: lead.email } : {},
+          lead.phone ? { phone: lead.phone } : {}
+        ].filter(c => Object.keys(c).length > 0)
+      },
+      select: { id: true, name: true, email: true, phone: true, status: true, created_at: true }
+    });
   }
 
   return new Response(JSON.stringify({ lead, activities, notes, followUps, duplicateLead }), {
@@ -42,7 +70,7 @@ export const GET: APIRoute = async ({ request, params }) => {
 };
 
 export const PATCH: APIRoute = async ({ request, params }) => {
-  const user = getSessionUser(request);
+  const user = await getSessionUser(request);
   if (!user) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
       status: 401,
@@ -53,54 +81,53 @@ export const PATCH: APIRoute = async ({ request, params }) => {
   const { id } = params;
   if (!id) return new Response(JSON.stringify({ error: 'Missing lead ID' }), { status: 400 });
 
-  const lead = db.prepare('SELECT * FROM leads WHERE id = ?').get(id) as any;
+  const leadId = parseInt(id, 10);
+  const lead = await prisma.customers.findFirst({
+    where: { id: leadId, deleted_at: null }
+  });
+
   if (!lead) return new Response(JSON.stringify({ error: 'Lead not found' }), { status: 404 });
 
   try {
     const body = await request.json();
-    const { status, assigned_to, name, email, phone, company, location, budget, requirement, collection_key, subcategory_key, product_slug } = body;
+    const { status, assigned_to, name, email, phone, company, location } = body;
 
-    const now = new Date().toISOString();
+    const now = new Date();
 
     // Track status change activity
     if (status && status !== lead.status) {
-      db.prepare(`
-        INSERT INTO lead_activities (id, lead_id, user_id, user_name, type, notes, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-      `).run('act-' + Date.now(), id, user.id, user.name, 'STATUS_CHANGE', `Status changed from ${lead.status} to ${status}`, now);
-      logAuditAction(user.id, user.name, 'STATUS_CHANGE', `leads:${id}`, `Changed status of ${lead.name} from ${lead.status} to ${status}`);
+      await logCrmActivity({
+        entityType: 'customer',
+        entityId: leadId,
+        actorId: user.id,
+        type: 'STATUS_CHANGE',
+        summary: `Status changed from ${lead.status} to ${status}`
+      });
     }
 
     // Track assignment change activity
-    if (assigned_to !== undefined && assigned_to !== lead.assigned_to) {
+    if (assigned_to !== undefined) {
       const newAssignee = assigned_to || 'Unassigned';
-      db.prepare(`
-        INSERT INTO lead_activities (id, lead_id, user_id, user_name, type, notes, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-      `).run('act-' + Date.now(), id, user.id, user.name, 'ASSIGNMENT', `Assigned to ${newAssignee}`, now);
-      logAuditAction(user.id, user.name, 'ASSIGN_LEAD', `leads:${id}`, `Assigned lead ${lead.name} to ${newAssignee}`);
+      await logCrmActivity({
+        entityType: 'customer',
+        entityId: leadId,
+        actorId: user.id,
+        type: 'ASSIGNMENT',
+        summary: `Assigned to ${newAssignee}`
+      });
     }
 
-    db.prepare(`
-      UPDATE leads
-      SET name = COALESCE(?, name),
-          email = COALESCE(?, email),
-          phone = COALESCE(?, phone),
-          company = COALESCE(?, company),
-          location = COALESCE(?, location),
-          status = COALESCE(?, status),
-          assigned_to = COALESCE(?, assigned_to),
-          budget = COALESCE(?, budget),
-          requirement = COALESCE(?, requirement),
-          collection_key = COALESCE(?, collection_key),
-          subcategory_key = COALESCE(?, subcategory_key),
-          product_slug = COALESCE(?, product_slug),
-          updated_at = ?
-      WHERE id = ?
-    `).run(
-      name, email, phone, company, location, status, assigned_to, budget, requirement, collection_key, subcategory_key, product_slug,
-      now, id
-    );
+    await prisma.customers.update({
+      where: { id: leadId },
+      data: {
+        name: name !== undefined ? name.trim() : undefined,
+        email: email !== undefined ? (email ? email.trim().toLowerCase() : null) : undefined,
+        phone: phone !== undefined ? phone.trim() : undefined,
+        city: location !== undefined ? location.trim() : undefined,
+        status: status !== undefined ? status : undefined,
+        updated_at: now
+      }
+    });
 
     return new Response(JSON.stringify({ success: true }), {
       status: 200,

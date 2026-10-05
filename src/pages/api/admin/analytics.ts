@@ -1,54 +1,76 @@
 import type { APIRoute } from 'astro';
-import { db } from '../../../lib/db';
+import { prisma } from '../../../lib/db';
 import { getSessionUser } from '../../../lib/auth';
 
 export const GET: APIRoute = async ({ request }) => {
-  const user = getSessionUser(request);
+  const user = await getSessionUser(request);
   if (!user) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json' }
+    });
   }
 
-  const totalLeads = (db.prepare('SELECT COUNT(*) as cnt FROM leads').get() as any).cnt;
-  const newLeads = (db.prepare("SELECT COUNT(*) as cnt FROM leads WHERE status = 'NEW'").get() as any).cnt;
-  const qualifiedLeads = (db.prepare("SELECT COUNT(*) as cnt FROM leads WHERE status = 'QUALIFIED'").get() as any).cnt;
-  const convertedLeads = (db.prepare("SELECT COUNT(*) as cnt FROM leads WHERE status = 'CONVERTED'").get() as any).cnt;
-  const lostLeads = (db.prepare("SELECT COUNT(*) as cnt FROM leads WHERE status = 'LOST'").get() as any).cnt;
+  const [
+    totalLeads,
+    newLeads,
+    qualifiedLeads,
+    convertedLeads,
+    lostLeads,
+    sourcesRaw,
+    statusRaw
+  ] = await Promise.all([
+    prisma.enquiries.count(),
+    prisma.enquiries.count({ where: { status: 'New' } }),
+    prisma.enquiries.count({ where: { status: 'Qualified' } }),
+    prisma.enquiries.count({ where: { status: 'Converted' } }),
+    prisma.enquiries.count({ where: { status: 'Lost' } }),
+    prisma.enquiries.groupBy({
+      by: ['source'],
+      _count: { id: true },
+      orderBy: { _count: { id: 'desc' } }
+    }),
+    prisma.enquiries.groupBy({
+      by: ['status'],
+      _count: { id: true }
+    })
+  ]);
 
   const conversionRate = totalLeads > 0 ? ((convertedLeads / totalLeads) * 100).toFixed(1) + '%' : '0.0%';
 
-  // Lead Sources breakdown
-  const sources = db.prepare(`
-    SELECT source, COUNT(*) as count
-    FROM leads
-    GROUP BY source
-    ORDER BY count DESC
-  `).all();
+  const sources = sourcesRaw.map(s => ({
+    source: s.source,
+    count: s._count.id
+  }));
 
-  // Collection Interest breakdown
-  const collectionInterest = db.prepare(`
-    SELECT collection_key, COUNT(*) as count
-    FROM leads
-    WHERE collection_key != ''
-    GROUP BY collection_key
-    ORDER BY count DESC
-  `).all();
+  const statusBreakdown = statusRaw.map(s => ({
+    status: s.status,
+    count: s._count.id
+  }));
 
   // Top Product Interest breakdown
-  const productInterest = db.prepare(`
-    SELECT product_slug, COUNT(*) as count
-    FROM leads
-    WHERE product_slug != ''
-    GROUP BY product_slug
-    ORDER BY count DESC
-    LIMIT 6
-  `).all();
+  const productInterestRaw = await prisma.enquiries.groupBy({
+    by: ['product_id'],
+    where: { product_id: { not: null } },
+    _count: { id: true },
+    orderBy: { _count: { id: 'desc' } },
+    take: 6
+  });
 
-  // Status breakdown
-  const statusBreakdown = db.prepare(`
-    SELECT status, COUNT(*) as count
-    FROM leads
-    GROUP BY status
-  `).all();
+  const productIds = productInterestRaw.map(p => p.product_id).filter((id): id is number => id !== null);
+  const products = await prisma.products.findMany({
+    where: { id: { in: productIds } },
+    select: { id: true, slug: true, name: true }
+  });
+  const prodMap = new Map(products.map(p => [p.id, p]));
+
+  const productInterest = productInterestRaw.map(p => ({
+    product_slug: prodMap.get(p.product_id!)?.slug || `product-${p.product_id}`,
+    product_name: prodMap.get(p.product_id!)?.name || 'Product',
+    count: p._count.id
+  }));
+
+  const collectionInterest: any[] = [];
 
   return new Response(JSON.stringify({
     metrics: {
@@ -63,5 +85,8 @@ export const GET: APIRoute = async ({ request }) => {
     collectionInterest,
     productInterest,
     statusBreakdown
-  }), { status: 200 });
+  }), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json' }
+  });
 };

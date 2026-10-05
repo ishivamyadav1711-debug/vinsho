@@ -4,8 +4,8 @@ import TextReveal from './motion/TextReveal.astro';
 import FilterPanel from './FilterPanel.astro';
 import { getCollections, getActiveProducts, getCollectionProductCount, getSubcategoryProductCount } from '../utils/taxonomy';
 
-const collections = getCollections();
-const activeProducts = getActiveProducts();
+const collections = await getCollections();
+const activeProducts = await getActiveProducts();
 const totalCount = activeProducts.length;
 ---
 

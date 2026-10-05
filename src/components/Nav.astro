@@ -200,7 +200,7 @@ const collections = taxonomyData.collections;
     let isTransitioning = false;
 
     function openDrawer() {
-      if (isTransitioning) return;
+      if (!drawer || !backdrop || !toggleBtn || isTransitioning) return;
       drawer.hidden = false;
       backdrop.hidden = false;
       drawer.setAttribute('aria-hidden', 'false');
@@ -216,7 +216,7 @@ const collections = taxonomyData.collections;
     }
 
     function closeDrawer() {
-      if (isTransitioning) return;
+      if (!drawer || !backdrop || !toggleBtn || isTransitioning) return;
       isTransitioning = true;
 
       drawer.classList.remove('open');
@@ -225,7 +225,7 @@ const collections = taxonomyData.collections;
       toggleBtn.setAttribute('aria-expanded', 'false');
 
       setTimeout(() => {
-        if (!drawer.classList.contains('open')) {
+        if (drawer && backdrop && !drawer.classList.contains('open')) {
           drawer.hidden = true;
           backdrop.hidden = true;
           drawer.setAttribute('aria-hidden', 'true');

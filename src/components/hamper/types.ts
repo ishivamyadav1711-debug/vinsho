@@ -21,7 +21,10 @@ export interface GiftProduct {
   subcategory: string;
   subcategoryKey: string;
   material?: string;
+  tagline?: string;
+  description?: string;
   giftEligible?: boolean;
+  isPurchasable?: boolean;
   variants?: ProductVariant[];
 }
 

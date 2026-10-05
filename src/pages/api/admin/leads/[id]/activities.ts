@@ -1,15 +1,17 @@
 import type { APIRoute } from 'astro';
-import { db } from '../../../../../lib/db';
-import { getSessionUser, logAuditAction } from '../../../../../lib/auth';
+import { prisma } from '../../../../../lib/db';
+import { getSessionUser } from '../../../../../lib/auth';
+import { logCrmActivity } from '../../../../../lib/crm';
 
 export const POST: APIRoute = async ({ request, params }) => {
-  const user = getSessionUser(request);
+  const user = await getSessionUser(request);
   if (!user) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
   }
 
-  const { id: leadId } = params;
-  if (!leadId) return new Response(JSON.stringify({ error: 'Missing lead ID' }), { status: 400 });
+  const { id } = params;
+  if (!id) return new Response(JSON.stringify({ error: 'Missing lead ID' }), { status: 400 });
+  const leadId = parseInt(id, 10);
 
   try {
     const { type, notes } = await request.json();
@@ -17,20 +19,25 @@ export const POST: APIRoute = async ({ request, params }) => {
       return new Response(JSON.stringify({ error: 'Activity type and notes are required' }), { status: 400 });
     }
 
-    const now = new Date().toISOString();
-    const actId = 'act-' + Date.now();
+    const now = new Date();
 
-    db.prepare(`
-      INSERT INTO lead_activities (id, lead_id, user_id, user_name, type, notes, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `).run(actId, leadId, user.id, user.name, type, notes, now);
+    const activity = await prisma.crmActivities.create({
+      data: {
+        entity_type: 'customer',
+        entity_id: leadId,
+        actor_id: user.id,
+        type: type.toUpperCase(),
+        summary: notes,
+        created_at: now
+      }
+    });
 
-    // Update last_contact_at and updated_at on lead
-    db.prepare('UPDATE leads SET last_contact_at = ?, updated_at = ? WHERE id = ?').run(now, now, leadId);
+    await prisma.customers.update({
+      where: { id: leadId },
+      data: { updated_at: now }
+    });
 
-    logAuditAction(user.id, user.name, 'ADD_ACTIVITY', `leads:${leadId}`, `Added ${type} activity`);
-
-    return new Response(JSON.stringify({ success: true, activityId: actId }), { status: 201 });
+    return new Response(JSON.stringify({ success: true, activityId: activity.id }), { status: 201 });
   } catch (err: any) {
     return new Response(JSON.stringify({ error: 'Failed to add activity' }), { status: 500 });
   }

@@ -269,9 +269,11 @@ const contactPageSchema = {
               <!-- Primary Submit Button -->
               <Magnetic strength={3}>
                 <button type="submit" class="contact-submit-btn" id="contact-submit-btn" aria-label="Send Message to VINSHO Customer Support">
-                  <svg id="btn-spinner" class="btn-spinner" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true" hidden>
-                    <circle cx="12" cy="12" r="9" stroke-dasharray="32" stroke-dashoffset="12" stroke-linecap="round" />
-                  </svg>
+                  <span id="btn-spinner" class="btn-spinner" hidden>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                      <circle cx="12" cy="12" r="9" stroke-dasharray="32" stroke-dashoffset="12" stroke-linecap="round" />
+                    </svg>
+                  </span>
                   <span id="btn-text">Send Message</span>
                   <svg id="btn-icon" class="btn-icon-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                     <path d="M5 12h14M12 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>

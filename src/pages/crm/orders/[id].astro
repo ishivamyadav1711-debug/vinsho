@@ -1,0 +1,523 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { prisma } from '../../../lib/db';
+import { getSessionUser } from '../../../lib/auth';
+import { VALID_STATUS_TRANSITIONS } from '../../../lib/orders';
+
+const user = await getSessionUser(Astro.request);
+if (!user) {
+  return Astro.redirect('/crm/login');
+}
+
+const orderId = Number(Astro.params.id);
+if (!orderId || isNaN(orderId)) {
+  return Astro.redirect('/crm/orders');
+}
+
+const order = await prisma.orders.findUnique({
+  where: { id: orderId },
+  include: {
+    customer: true,
+    shipping_address: true,
+    billing_address: true,
+    OrderItems: true,
+    Payments: true,
+    Invoices: true
+  }
+});
+
+if (!order) {
+  return Astro.redirect('/crm/orders');
+}
+
+const allowedNextStatuses = VALID_STATUS_TRANSITIONS[order.status] || [];
+const placedDate = new Date(order.placed_at).toLocaleString('en-IN', {
+  dateStyle: 'medium',
+  timeStyle: 'short'
+});
+---
+
+<AdminLayout title={`Order #${order.order_number}`} activeNav="orders">
+  <div class="order-detail-shell">
+    <div class="top-nav">
+      <a href="/crm/orders" class="back-link">&larr; Back to All Orders</a>
+    </div>
+
+    <!-- Header Card -->
+    <div class="order-header-card">
+      <div class="header-main">
+        <span class="eyebrow">ORDER DETAILS</span>
+        <h1 class="order-number">#{order.order_number}</h1>
+        <p class="order-meta">Placed on {placedDate} &middot; Currency: {order.currency || 'INR'}</p>
+      </div>
+
+      <div class="header-status-area">
+        <div class="badge-group">
+          <span class={`badge status-${(order.status || 'pending').toLowerCase()}`}>
+            Status: {order.status}
+          </span>
+          <span class={`badge payment-${(order.payment_status || 'pending').toLowerCase()}`}>
+            Payment: {order.payment_status}
+          </span>
+        </div>
+
+        {allowedNextStatuses.length > 0 && (
+          <form id="v-status-form" class="status-updater">
+            <label for="v-new-status">Update Status:</label>
+            <select id="v-new-status" name="status" class="status-select">
+              <option value="">Select next status...</option>
+              {allowedNextStatuses.map(s => (
+                <option value={s}>{s}</option>
+              ))}
+            </select>
+            <button type="submit" id="v-update-btn" class="btn-update">Update</button>
+          </form>
+        )}
+      </div>
+    </div>
+
+    <div id="v-status-alert" class="alert-banner" hidden></div>
+
+    <div class="order-content-grid">
+      <!-- Left Column: Items & Totals -->
+      <div class="content-left">
+        <!-- Order Items -->
+        <div class="detail-box">
+          <h2 class="box-title">Order Items ({order.OrderItems.length})</h2>
+          <table class="items-table">
+            <thead>
+              <tr>
+                <th>Product Snapshot</th>
+                <th>SKU</th>
+                <th>HSN</th>
+                <th>Price</th>
+                <th>Qty</th>
+                <th>GST</th>
+                <th>Line Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {order.OrderItems.map(item => (
+                <tr>
+                  <td>
+                    <strong>{item.product_name_snapshot}</strong>
+                    <span class="item-sub">{item.variant_label_snapshot}</span>
+                  </td>
+                  <td><code>{item.sku_snapshot}</code></td>
+                  <td>{item.hsn_snapshot}</td>
+                  <td>₹{Number(item.unit_price_snapshot).toFixed(2)}</td>
+                  <td>{item.qty}</td>
+                  <td>{Number(item.gst_rate_snapshot)}%</td>
+                  <td><strong>₹{Number(item.line_total).toFixed(2)}</strong></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <!-- Financial Breakdown -->
+          <div class="totals-breakdown">
+            <div class="totals-row">
+              <span>Subtotal:</span>
+              <span>₹{Number(order.subtotal).toFixed(2)}</span>
+            </div>
+            {Number(order.discount_total || 0) > 0 && (
+              <div class="totals-row text-green">
+                <span>Discount ({order.coupon_code || 'COUPON'}):</span>
+                <span>-₹{Number(order.discount_total).toFixed(2)}</span>
+              </div>
+            )}
+            <div class="totals-row">
+              <span>Tax Total (GST):</span>
+              <span>₹{Number(order.tax_total).toFixed(2)}</span>
+            </div>
+            <div class="totals-row">
+              <span>Shipping Fee:</span>
+              <span>₹{Number(order.shipping_total).toFixed(2)}</span>
+            </div>
+            <div class="totals-row grand-total">
+              <span>Grand Total:</span>
+              <strong>₹{Number(order.grand_total).toFixed(2)}</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payments -->
+        <div class="detail-box">
+          <h2 class="box-title">Payment Transactions</h2>
+          {order.Payments.length === 0 ? (
+            <p class="empty-note">No payment transactions recorded yet.</p>
+          ) : (
+            <table class="items-table">
+              <thead>
+                <tr>
+                  <th>Provider</th>
+                  <th>Payment ID</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {order.Payments.map(p => (
+                  <tr>
+                    <td><strong>{p.provider}</strong></td>
+                    <td><code>{p.provider_payment_id}</code></td>
+                    <td>₹{Number(p.amount).toFixed(2)}</td>
+                    <td>
+                      <span class={`badge payment-${p.status.toLowerCase()}`}>
+                        {p.status}
+                      </span>
+                    </td>
+                    <td>{new Date(p.created_at).toLocaleString('en-IN')}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+
+      <!-- Right Column: Customer & Addresses & Invoices -->
+      <div class="content-right">
+        <!-- Customer Info -->
+        <div class="detail-box">
+          <h2 class="box-title">Customer Information</h2>
+          <div class="info-block">
+            <strong>{order.customer.name}</strong>
+            <p>Phone: <a href={`tel:${order.customer.phone}`}>{order.customer.phone}</a></p>
+            {order.customer.email && (
+              <p>Email: <a href={`mailto:${order.customer.email}`}>{order.customer.email}</a></p>
+            )}
+            <p>Customer ID: #{order.customer.id}</p>
+          </div>
+        </div>
+
+        <!-- Shipping Address -->
+        <div class="detail-box">
+          <h2 class="box-title">Delivery Address</h2>
+          {order.shipping_address ? (
+            <div class="info-block">
+              <strong>{order.shipping_address.name}</strong>
+              <p>{order.shipping_address.phone}</p>
+              <p>{order.shipping_address.line1}</p>
+              {order.shipping_address.line2 && <p>{order.shipping_address.line2}</p>}
+              <p>{order.shipping_address.city}, {order.shipping_address.state} &mdash; <strong>{order.shipping_address.pincode}</strong></p>
+              <p>{order.shipping_address.country}</p>
+            </div>
+          ) : (
+            <p class="empty-note">No shipping address attached.</p>
+          )}
+        </div>
+
+        <!-- Invoices -->
+        <div class="detail-box">
+          <h2 class="box-title">Tax Invoice</h2>
+          {order.Invoices.length === 0 ? (
+            <p class="empty-note">Invoice generated automatically upon payment confirmation.</p>
+          ) : (
+            <div class="info-block">
+              {order.Invoices.map(inv => (
+                <div>
+                  <p>Invoice #: <strong>{inv.invoice_number}</strong></p>
+                  <p>Issued: {new Date(inv.issued_at).toLocaleString('en-IN')}</p>
+                  {inv.pdf_url && (
+                    <a href={inv.pdf_url} target="_blank" class="btn-invoice">
+                      View Generated Invoice &rarr;
+                    </a>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  </div>
+</AdminLayout>
+
+<script define:vars={{ orderId }}>
+  document.getElementById('v-status-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const select = document.getElementById('v-new-status');
+    const alertBox = document.getElementById('v-status-alert');
+    const updateBtn = document.getElementById('v-update-btn');
+
+    const newStatus = select.value;
+    if (!newStatus) return;
+
+    if (!confirm(`Are you sure you want to change order status to "${newStatus}"?`)) {
+      return;
+    }
+
+    updateBtn.disabled = true;
+    updateBtn.textContent = 'Updating...';
+
+    try {
+      const res = await fetch(`/api/admin/orders/${orderId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        alertBox.hidden = false;
+        alertBox.className = 'alert-banner alert-success';
+        alertBox.textContent = `Order status successfully updated to "${newStatus}". Reloading...`;
+        setTimeout(() => window.location.reload(), 1000);
+      } else {
+        alertBox.hidden = false;
+        alertBox.className = 'alert-banner alert-error';
+        alertBox.textContent = data.error || 'Failed to update order status.';
+        updateBtn.disabled = false;
+        updateBtn.textContent = 'Update';
+      }
+    } catch (err) {
+      alertBox.hidden = false;
+      alertBox.className = 'alert-banner alert-error';
+      alertBox.textContent = err.message || 'Network error.';
+      updateBtn.disabled = false;
+      updateBtn.textContent = 'Update';
+    }
+  });
+</script>
+
+<style>
+  .order-detail-shell {
+    padding: 2rem;
+    max-width: 1200px;
+    margin-inline: auto;
+  }
+
+  .top-nav {
+    margin-bottom: 1.5rem;
+  }
+
+  .back-link {
+    color: #8A174B;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .order-header-card {
+    background: #ffffff;
+    border: 1px solid rgba(138, 23, 75, 0.12);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+  }
+
+  .eyebrow {
+    font-size: 0.725rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: #8A174B;
+  }
+
+  .order-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.85rem;
+    color: #1f2937;
+    margin: 0.25rem 0;
+  }
+
+  .order-meta {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin: 0;
+  }
+
+  .header-status-area {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.75rem;
+  }
+
+  .badge-group {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .badge {
+    padding: 0.35rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.785rem;
+    font-weight: 600;
+  }
+
+  .status-confirmed, .payment-paid {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  .status-pending, .payment-pending {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .status-shipped {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+
+  .status-delivered {
+    background: #e0e7ff;
+    color: #3730a3;
+  }
+
+  .status-cancelled, .payment-failed {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .status-updater {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+  }
+
+  .status-select {
+    padding: 0.4rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.85rem;
+  }
+
+  .btn-update {
+    padding: 0.4rem 0.85rem;
+    background: #8A174B;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .alert-banner {
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .alert-success { background: #d1fae5; color: #065f46; }
+  .alert-error { background: #fee2e2; color: #991b1b; }
+
+  .order-content-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+  }
+
+  @media (max-width: 900px) {
+    .order-content-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .detail-box {
+    background: #ffffff;
+    border: 1px solid rgba(138, 23, 75, 0.12);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .box-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #8A174B;
+    margin: 0 0 1rem;
+  }
+
+  .items-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+  }
+
+  .items-table th {
+    background: #faf6f0;
+    padding: 0.65rem 0.75rem;
+    text-align: left;
+    color: #4b5563;
+    font-weight: 600;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .items-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  .item-sub {
+    display: block;
+    font-size: 0.75rem;
+    color: #6b7280;
+  }
+
+  .totals-breakdown {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .totals-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: #4b5563;
+  }
+
+  .totals-row.grand-total {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #e5e7eb;
+    font-size: 1.15rem;
+    color: #8A174B;
+  }
+
+  .text-green { color: #059669; }
+
+  .info-block p {
+    margin: 0.35rem 0;
+    font-size: 0.875rem;
+    color: #4b5563;
+  }
+
+  .info-block a {
+    color: #8A174B;
+    text-decoration: none;
+  }
+
+  .btn-invoice {
+    display: inline-block;
+    margin-top: 0.75rem;
+    padding: 0.45rem 0.85rem;
+    background: #faf6f0;
+    color: #8A174B;
+    border: 1px solid #8A174B;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .empty-note {
+    font-size: 0.85rem;
+    color: #9ca3af;
+    margin: 0;
+  }
+</style>

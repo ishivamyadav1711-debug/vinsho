@@ -7,7 +7,7 @@ import CustomCursor from '../../components/motion/CustomCursor.astro';
 import { getCustomerFromSession } from '../../lib/customerAuth';
 
 // Server-side Authentication Gate for Purchase (§2)
-const customer = getCustomerFromSession(Astro.request);
+const customer = await getCustomerFromSession(Astro.request);
 if (!customer) {
   return Astro.redirect('/login?redirect=/checkout/address');
 }

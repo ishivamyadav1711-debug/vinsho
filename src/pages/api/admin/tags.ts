@@ -30,15 +30,21 @@ export const POST: APIRoute = async ({ request }) => {
     const tagColour = colour || '#8A174B';
     const now = new Date();
 
-    const tag = await prisma.tags.upsert({
-      where: { name: cleanName },
-      update: { colour: tagColour },
-      create: {
-        name: cleanName,
-        colour: tagColour,
-        created_at: now
-      }
-    });
+    let tag = await prisma.tags.findFirst({ where: { name: cleanName } });
+    if (tag) {
+      tag = await prisma.tags.update({
+        where: { id: tag.id },
+        data: { colour: tagColour }
+      });
+    } else {
+      tag = await prisma.tags.create({
+        data: {
+          name: cleanName,
+          colour: tagColour,
+          created_at: now
+        }
+      });
+    }
 
     return new Response(JSON.stringify({ success: true, tag }), { status: 201 });
   } catch (err: any) {

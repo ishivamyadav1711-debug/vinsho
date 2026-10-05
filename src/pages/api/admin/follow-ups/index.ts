@@ -1,10 +1,10 @@
 import type { APIRoute } from 'astro';
 import { getSessionUser } from '../../../../lib/auth.js';
-import { db } from '../../../../lib/db.js';
+import { prisma } from '../../../../lib/db.js';
 import { logCrmActivity } from '../../../../lib/crm.js';
 
 export const POST: APIRoute = async ({ request }) => {
-  const user = getSessionUser(request);
+  const user = await getSessionUser(request);
   if (!user) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
   }
@@ -17,22 +17,32 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response(JSON.stringify({ error: 'entityId and dueAt are required.' }), { status: 400 });
     }
 
-    const now = new Date().toISOString();
-    const res = db.prepare(`
-      INSERT INTO follow_ups (entity_type, entity_id, due_at, assigned_to, status, priority, outcome, created_at)
-      VALUES (?, ?, ?, ?, 'PENDING', ?, ?, ?)
-    `).run(entityType, entityId, dueAt, user.id, priority, outcome || '', now);
+    const now = new Date();
+    const dueDate = new Date(dueAt);
 
-    logCrmActivity({
+    const followUp = await prisma.followUps.create({
+      data: {
+        entity_type: entityType,
+        entity_id: parseInt(entityId, 10),
+        due_at: dueDate,
+        assigned_to: user.id,
+        status: 'PENDING',
+        priority,
+        outcome: outcome || '',
+        created_at: now
+      }
+    });
+
+    await logCrmActivity({
       entityType: entityType as 'customer' | 'enquiry',
       entityId: parseInt(entityId, 10),
       actorId: user.id,
       type: 'FOLLOWUP_SCHEDULED',
-      summary: `Scheduled follow-up for ${new Date(dueAt).toLocaleString('en-IN')}: "${outcome || 'Follow-up'}"`,
-      meta: { dueAt, outcome, followUpId: res.lastInsertRowid }
+      summary: `Scheduled follow-up for ${dueDate.toLocaleString('en-IN')}: "${outcome || 'Follow-up'}"`,
+      meta: { dueAt, outcome, followUpId: followUp.id }
     });
 
-    return new Response(JSON.stringify({ success: true, followUpId: res.lastInsertRowid }), {
+    return new Response(JSON.stringify({ success: true, followUpId: followUp.id }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });

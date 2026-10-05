@@ -9,20 +9,38 @@ if (!user) {
 }
 
 const returnsListRaw = await prisma.returns.findMany({
-  orderBy: { created_at: 'desc' },
-  include: {
-    orders: { select: { order_number: true } },
-    customers: { select: { name: true, phone: true } },
-    admin_users: { select: { name: true } }
-  }
+  orderBy: { created_at: 'desc' }
 });
+
+const orderIds = Array.from(new Set(returnsListRaw.map(r => r.order_id).filter(Boolean)));
+const customerIds = Array.from(new Set(returnsListRaw.map(r => r.customer_id).filter(Boolean)));
+const inspectorIds = Array.from(new Set(returnsListRaw.map(r => r.inspected_by).filter((id): id is number => typeof id === 'number')));
+
+const [orders, customers, inspectors] = await Promise.all([
+  prisma.orders.findMany({
+    where: { id: { in: orderIds } },
+    select: { id: true, order_number: true }
+  }),
+  prisma.customers.findMany({
+    where: { id: { in: customerIds } },
+    select: { id: true, name: true, phone: true }
+  }),
+  prisma.adminUsers.findMany({
+    where: { id: { in: inspectorIds } },
+    select: { id: true, name: true }
+  })
+]);
+
+const orderMap = new Map(orders.map(o => [o.id, o]));
+const customerMap = new Map(customers.map(c => [c.id, c]));
+const inspectorMap = new Map(inspectors.map(i => [i.id, i]));
 
 const returnsList = returnsListRaw.map(r => ({
   ...r,
-  order_number: r.orders?.order_number || '',
-  customer_name: r.customers?.name || '',
-  customer_phone: r.customers?.phone || '',
-  inspector_name: r.admin_users?.name || null,
+  order_number: orderMap.get(r.order_id)?.order_number || '',
+  customer_name: customerMap.get(r.customer_id)?.name || '',
+  customer_phone: customerMap.get(r.customer_id)?.phone || '',
+  inspector_name: r.inspected_by ? inspectorMap.get(r.inspected_by)?.name || null : null,
   refund_amount: Number(r.refund_amount ?? 0)
 }));
 
@@ -91,8 +109,8 @@ const pendingInspectionCount = returnsList.filter(r => r.status === 'REQUESTED' 
                   <small>{r.customer_phone}</small>
                 </td>
                 <td>
-                  <span class={`type-pill ${r.is_rto === 1 ? 'rto' : 'cust'}`}>
-                    {r.is_rto === 1 ? 'RTO' : 'Customer Return'}
+                  <span class={`type-pill ${r.is_rto ? 'rto' : 'cust'}`}>
+                    {r.is_rto ? 'RTO' : 'Customer Return'}
                   </span>
                 </td>
                 <td>{r.reason}</td>
@@ -123,7 +141,7 @@ const pendingInspectionCount = returnsList.filter(r => r.status === 'REQUESTED' 
   </div>
 </AdminLayout>
 
-<script inline>
+<script is:inline>
   async function inspectReturn(returnId) {
     const result = prompt('Enter Inspection Result: PASS (Restores sellable stock) or FAIL (Logs damaged write-off):');
     if (!result || (result !== 'PASS' && result !== 'FAIL')) {

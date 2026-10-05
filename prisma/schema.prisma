@@ -1,0 +1,599 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Collections {
+  id            Int             @id @default(autoincrement())
+  key           String          @unique
+  name          String
+  blurb         String?         @default("")
+  order_index   Int?            @default(0)
+  created_at    DateTime
+  updated_at    DateTime
+  deleted_at    DateTime?
+  Products      Products[]
+  Subcategories Subcategories[]
+
+  @@map("collections")
+}
+
+model Subcategories {
+  id            Int         @id @default(autoincrement())
+  collection_id Int
+  key           String      @unique
+  name          String
+  blurb         String?     @default("")
+  order_index   Int?        @default(0)
+  created_at    DateTime
+  updated_at    DateTime
+  deleted_at    DateTime?
+  Products      Products[]
+  collection    Collections @relation(fields: [collection_id], references: [id])
+
+  @@map("subcategories")
+}
+
+model Products {
+  id                     Int               @id @default(autoincrement())
+  slug                   String            @unique
+  name                   String
+  collection_id          Int
+  subcategory_id         Int
+  description            String?           @default("")
+  description_source     String?           @default("placeholder")
+  material               String?           @default("")
+  shipping_class         String            @default("standard")
+  launch_phase           Int               @default(1)
+  sellable_online        Boolean           @default(true)
+  returnable             Boolean           @default(true)
+  country_of_origin      String?           @default("India")
+  manufacturer_or_packer String?
+  consumer_care_contact  String?
+  lead_time_days         Int?
+  care_instructions      String?
+  is_purchasable         Boolean           @default(false)
+  created_at             DateTime
+  updated_at             DateTime
+  deleted_at             DateTime?
+  tagline                String?           @default("")
+  features               String?           @default("[]")
+  closing_line           String?           @default("")
+  sku                    String?
+  gift_eligible          Boolean           @default(false)
+  sku_ref                String?
+  status                 String?           @default("draft")
+  ProductImages          ProductImages[]
+  ProductVariants        ProductVariants[]
+  collection             Collections       @relation(fields: [collection_id], references: [id])
+  subcategory            Subcategories     @relation(fields: [subcategory_id], references: [id])
+
+  @@map("products")
+}
+
+model ProductImages {
+  id         Int      @id @default(autoincrement())
+  product_id Int
+  url        String
+  alt        String?  @default("")
+  position   Int?     @default(0)
+  is_primary Boolean? @default(false)
+  created_at DateTime
+  updated_at DateTime
+  product    Products @relation(fields: [product_id], references: [id])
+
+  @@map("product_images")
+}
+
+model ProductVariants {
+  id                       Int                 @id @default(autoincrement())
+  product_id               Int
+  sku                      String?
+  size                     String?
+  colour                   String?
+  mrp                      Decimal?
+  selling_price            Decimal?
+  currency                 String?             @default("INR")
+  hsn_code                 String?
+  gst_rate                 Decimal?
+  net_quantity             String?
+  packed_weight_kg         Decimal?
+  packed_l_cm              Decimal?
+  packed_b_cm              Decimal?
+  packed_h_cm              Decimal?
+  stock                    Int?
+  position                 Int?                @default(0)
+  created_at               DateTime
+  updated_at               DateTime
+  CartItems                CartItems[]
+  combo_items_as_combo     ComboItems[]        @relation("ComboVariant")
+  combo_items_as_component ComboItems[]        @relation("ComponentVariant")
+  OrderItems               OrderItems[]
+  product                  Products            @relation(fields: [product_id], references: [id])
+  StockReservations        StockReservations[]
+
+  @@map("product_variants")
+}
+
+model AdminUsers {
+  id            Int             @id @default(autoincrement())
+  name          String
+  email         String          @unique
+  password_hash String
+  role          String          @default("SUPER_ADMIN")
+  is_active     Boolean         @default(true)
+  last_login_at DateTime?
+  created_at    DateTime
+  updated_at    DateTime
+  AdminSessions AdminSessions[]
+  CrmNotes      CrmNotes[]
+  FollowUps     FollowUps[]
+  Quotations    Quotations[]
+
+  @@map("admin_users")
+}
+
+model AuditLogs {
+  id         Int      @id @default(autoincrement())
+  actor_id   Int
+  action     String
+  entity     String
+  entity_id  Int
+  before     String?
+  after      String?
+  ip         String?  @default("")
+  user_agent String?  @default("")
+  created_at DateTime
+
+  @@map("audit_logs")
+}
+
+model AdminSessions {
+  token      String     @id
+  user_id    Int
+  expires_at BigInt
+  ip         String?    @default("")
+  user_agent String?    @default("")
+  created_at DateTime
+  user       AdminUsers @relation(fields: [user_id], references: [id])
+
+  @@map("admin_sessions")
+}
+
+model LoginRateLimits {
+  ip              String  @id
+  attempts        Int?    @default(1)
+  first_failed_at BigInt
+  blocked_until   BigInt? @default(0)
+
+  @@map("login_rate_limits")
+}
+
+model NewsletterSubscribers {
+  id         String   @id
+  email      String   @unique
+  source     String?  @default("Footer Form")
+  created_at DateTime
+
+  @@map("newsletter_subscribers")
+}
+
+model Customers {
+  id               Int                @id @default(autoincrement())
+  name             String
+  email            String?
+  phone            String
+  city             String?            @default("")
+  state            String?            @default("")
+  pincode          String?            @default("")
+  country          String?            @default("India")
+  status           String             @default("Lead")
+  source           String?            @default("Website Enquiry")
+  first_order_at   DateTime?
+  last_order_at    DateTime?
+  total_orders     Int?               @default(0)
+  total_spend      Decimal?           @default(0)
+  consent_at       DateTime?
+  consent_purpose  String?
+  created_at       DateTime
+  updated_at       DateTime
+  deleted_at       DateTime?
+  password_hash    String?
+  reset_token      String?
+  reset_expires    BigInt?
+  Addresses        Addresses[]
+  Carts            Carts[]
+  CustomerSessions CustomerSessions[]
+  Enquiries        Enquiries[]
+  Orders           Orders[]
+  Quotations       Quotations[]
+
+  @@map("customers")
+}
+
+model Enquiries {
+  id             Int       @id @default(autoincrement())
+  customer_id    Int
+  product_id     Int?
+  variant_id     Int?
+  name           String
+  phone          String
+  email          String?
+  message        String?   @default("")
+  source         String    @default("Product Page")
+  status         String    @default("New")
+  assigned_to    Int?
+  value_estimate Decimal?
+  created_at     DateTime
+  updated_at     DateTime
+  closed_at      DateTime?
+  lost_reason    String?
+  customer       Customers @relation(fields: [customer_id], references: [id])
+
+  @@map("enquiries")
+}
+
+model CrmNotes {
+  id          Int        @id @default(autoincrement())
+  entity_type String
+  entity_id   Int
+  author_id   Int
+  body        String
+  is_internal Boolean?   @default(true)
+  created_at  DateTime
+  author      AdminUsers @relation(fields: [author_id], references: [id])
+
+  @@map("crm_notes")
+}
+
+model FollowUps {
+  id           Int        @id @default(autoincrement())
+  entity_type  String
+  entity_id    Int
+  due_at       DateTime
+  assigned_to  Int
+  status       String     @default("PENDING")
+  priority     String     @default("MEDIUM")
+  completed_at DateTime?
+  outcome      String?    @default("")
+  created_at   DateTime
+  assignee     AdminUsers @relation(fields: [assigned_to], references: [id])
+
+  @@map("follow_ups")
+}
+
+model CrmActivities {
+  id          Int      @id @default(autoincrement())
+  entity_type String
+  entity_id   Int
+  actor_id    Int?
+  type        String
+  summary     String
+  meta        String?
+  created_at  DateTime
+
+  @@map("crm_activities")
+}
+
+model Tags {
+  id         Int         @id @default(autoincrement())
+  name       String
+  colour     String      @default("#670832")
+  created_at DateTime
+  Taggables  Taggables[]
+
+  @@map("tags")
+}
+
+model Taggables {
+  id          Int      @id @default(autoincrement())
+  tag_id      Int
+  entity_type String
+  entity_id   Int
+  created_at  DateTime
+  tag         Tags     @relation(fields: [tag_id], references: [id])
+
+  @@map("taggables")
+}
+
+model NotificationLog {
+  id          Int       @id @default(autoincrement())
+  channel     String
+  template    String
+  recipient   String
+  entity_type String?
+  entity_id   Int?
+  status      String    @default("LOGGED_DEV")
+  sent_at     DateTime?
+  error       String?
+  created_at  DateTime
+
+  @@map("notification_log")
+}
+
+model EnquiryRateLimits {
+  identifier       String  @id
+  attempts         Int?    @default(1)
+  first_attempt_at BigInt
+  blocked_until    BigInt? @default(0)
+
+  @@map("enquiry_rate_limits")
+}
+
+model InventoryTxns {
+  id            Int      @id @default(autoincrement())
+  variant_id    Int
+  delta         Int
+  reason        String
+  order_id      Int?
+  actor_id      Int?
+  balance_after Int
+  created_at    DateTime
+
+  @@map("inventory_txns")
+}
+
+model PaymentEvents {
+  id                Int      @id @default(autoincrement())
+  payment_id        Int?
+  provider_event_id String   @unique
+  type              String
+  payload           String
+  processed_at      DateTime
+
+  @@map("payment_events")
+}
+
+model Carts {
+  id                Int                 @id @default(autoincrement())
+  customer_id       Int?
+  session_token     String              @unique
+  status            String              @default("ACTIVE")
+  expires_at        BigInt
+  created_at        DateTime
+  updated_at        DateTime
+  CartItems         CartItems[]
+  customer          Customers?          @relation(fields: [customer_id], references: [id])
+  StockReservations StockReservations[]
+
+  @@map("carts")
+}
+
+model CartItems {
+  id                  Int              @id @default(autoincrement())
+  cart_id             Int
+  variant_id          Int?
+  qty                 Int              @default(1)
+  unit_price_snapshot Decimal
+  created_at          DateTime
+  cart                Carts            @relation(fields: [cart_id], references: [id])
+  variant             ProductVariants? @relation(fields: [variant_id], references: [id])
+
+  @@map("cart_items")
+}
+
+model Addresses {
+  id                 Int       @id @default(autoincrement())
+  customer_id        Int
+  type               String    @default("SHIPPING")
+  name               String
+  phone              String
+  line1              String
+  line2              String?   @default("")
+  city               String
+  state              String
+  pincode            String
+  country            String    @default("India")
+  is_default         Boolean?  @default(false)
+  created_at         DateTime
+  customer           Customers @relation(fields: [customer_id], references: [id])
+  orders_as_billing  Orders[]  @relation("OrderBillingAddress")
+  orders_as_shipping Orders[]  @relation("OrderShippingAddress")
+
+  @@map("addresses")
+}
+
+model StockReservations {
+  id         Int             @id @default(autoincrement())
+  variant_id Int
+  cart_id    Int
+  qty        Int
+  expires_at BigInt
+  created_at DateTime
+  cart       Carts           @relation(fields: [cart_id], references: [id])
+  variant    ProductVariants @relation(fields: [variant_id], references: [id])
+
+  @@map("stock_reservations")
+}
+
+model Invoices {
+  id             Int      @id @default(autoincrement())
+  order_id       Int
+  invoice_number String   @unique
+  pdf_url        String
+  issued_at      DateTime
+  order          Orders   @relation(fields: [order_id], references: [id])
+
+  @@map("invoices")
+}
+
+model ShippingZones {
+  id             Int      @id @default(autoincrement())
+  name           String
+  pincode_ranges String
+  rules          String
+  created_at     DateTime
+
+  @@map("shipping_zones")
+}
+
+model GaplessSequences {
+  sequence_name String @id
+  current_val   Int?   @default(0)
+
+  @@map("gapless_sequences")
+}
+
+model Returns {
+  id                Int      @id @default(autoincrement())
+  order_id          Int
+  customer_id       Int
+  type              String   @default("CUSTOMER_INITIATED")
+  reason            String
+  status            String   @default("REQUESTED")
+  refund_amount     Decimal
+  is_rto            Boolean? @default(false)
+  inspected_by      Int?
+  inspection_result String?
+  inspection_notes  String?  @default("")
+  created_at        DateTime
+  updated_at        DateTime
+
+  @@map("returns")
+}
+
+model ReturnItems {
+  id            Int     @id @default(autoincrement())
+  return_id     Int
+  order_item_id Int
+  variant_id    Int
+  qty           Int
+  unit_price    Decimal
+  tax_amount    Decimal
+  line_total    Decimal
+
+  @@map("return_items")
+}
+
+model Orders {
+  id                  Int          @id @default(autoincrement())
+  order_number        String       @unique
+  customer_id         Int
+  status              String       @default("Pending")
+  payment_status      String       @default("pending")
+  subtotal            Decimal
+  tax_total           Decimal
+  shipping_total      Decimal
+  discount_total      Decimal?     @default(0)
+  grand_total         Decimal
+  currency            String       @default("INR")
+  shipping_address_id Int
+  billing_address_id  Int
+  is_interstate       Boolean      @default(false)
+  placed_at           DateTime
+  idempotency_key     String       @unique
+  created_at          DateTime
+  updated_at          DateTime
+  coupon_code         String?
+  Invoices            Invoices[]
+  OrderItems          OrderItems[]
+  billing_address     Addresses    @relation("OrderBillingAddress", fields: [billing_address_id], references: [id])
+  customer            Customers    @relation(fields: [customer_id], references: [id])
+  shipping_address    Addresses    @relation("OrderShippingAddress", fields: [shipping_address_id], references: [id])
+  Payments            Payments[]
+
+  @@map("orders")
+}
+
+model OrderItems {
+  id                     Int              @id @default(autoincrement())
+  order_id               Int
+  variant_id             Int?
+  product_name_snapshot  String
+  variant_label_snapshot String
+  sku_snapshot           String
+  hsn_snapshot           String
+  gst_rate_snapshot      Decimal
+  unit_price_snapshot    Decimal
+  qty                    Int
+  tax_amount             Decimal
+  line_total             Decimal
+  order                  Orders           @relation(fields: [order_id], references: [id])
+  variant                ProductVariants? @relation(fields: [variant_id], references: [id])
+
+  @@map("order_items")
+}
+
+model Payments {
+  id                  Int      @id @default(autoincrement())
+  order_id            Int
+  provider            String   @default("RAZORPAY")
+  provider_payment_id String   @unique
+  amount              Decimal
+  status              String
+  method              String?  @default("HOSTED_CHECKOUT")
+  raw_payload         String?
+  created_at          DateTime
+  order               Orders   @relation(fields: [order_id], references: [id])
+
+  @@map("payments")
+}
+
+model CustomerSessions {
+  token       String    @id
+  customer_id Int
+  expires_at  BigInt
+  ip          String?   @default("")
+  user_agent  String?   @default("")
+  created_at  DateTime
+  customer    Customers @relation(fields: [customer_id], references: [id])
+
+  @@map("customer_sessions")
+}
+
+model Quotations {
+  id             Int              @id @default(autoincrement())
+  quote_number   String           @unique
+  customer_id    Int
+  enquiry_id     Int?
+  created_by     Int
+  status         String           @default("DRAFT")
+  subtotal       Decimal          @default(0)
+  discount_total Decimal          @default(0)
+  tax_total      Decimal          @default(0)
+  shipping_total Decimal          @default(0)
+  grand_total    Decimal          @default(0)
+  valid_until    DateTime
+  notes          String?          @default("")
+  created_at     DateTime
+  updated_at     DateTime
+  QuotationItems QuotationItems[]
+  creator        AdminUsers       @relation(fields: [created_by], references: [id])
+  customer       Customers        @relation(fields: [customer_id], references: [id])
+
+  @@map("quotations")
+}
+
+model QuotationItems {
+  id                     Int        @id @default(autoincrement())
+  quotation_id           Int
+  variant_id             Int
+  product_name_snapshot  String
+  variant_label_snapshot String
+  unit_price             Decimal
+  qty                    Int        @default(1)
+  discount               Decimal?   @default(0)
+  line_total             Decimal
+  quotation              Quotations @relation(fields: [quotation_id], references: [id])
+
+  @@map("quotation_items")
+}
+
+model ComboItems {
+  id                   Int             @id @default(autoincrement())
+  combo_variant_id     Int
+  component_variant_id Int
+  quantity             Int             @default(1)
+  created_at           DateTime
+  updated_at           DateTime
+  combo_variant        ProductVariants @relation("ComboVariant", fields: [combo_variant_id], references: [id])
+  component_variant    ProductVariants @relation("ComponentVariant", fields: [component_variant_id], references: [id])
+
+  @@map("combo_items")
+}

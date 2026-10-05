@@ -4,7 +4,7 @@ import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
 import { getCustomerFromSession } from '../lib/customerAuth';
 
-const customer = getCustomerFromSession(Astro.request);
+const customer = await getCustomerFromSession(Astro.request);
 const redirectUrl = Astro.url.searchParams.get('redirect') || '/account';
 
 if (customer) {

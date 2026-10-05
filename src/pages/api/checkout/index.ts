@@ -5,6 +5,7 @@ import { getCustomerFromSession } from '../../../lib/customerAuth.js';
 import { checkRateLimit, tooManyRequestsResponse, getClientIp, LIMITS } from '../../../lib/rateLimiter.js';
 import { prisma } from '../../../lib/db.js';
 import { getEnvConfig } from '../../../lib/env.js';
+import { defaultPaymentProvider } from '../../../lib/payments/provider.js';
 
 export const POST: APIRoute = async ({ request }) => {
   const ip = getClientIp(request);
@@ -60,7 +61,12 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response(JSON.stringify({ error: orderRes.error || 'Failed to create order.' }), { status: 400 });
     }
 
-    // Fire order confirmation emails (fire-and-forget — never blocks response)
+    // Initiate Razorpay checkout session
+    const paymentSession = await defaultPaymentProvider.initiateCheckoutSession(orderRes.order);
+    const envConfig = getEnvConfig();
+    const razorpayKeyId = envConfig.razorpayKeyId || process.env.PUBLIC_RAZORPAY_KEY_ID || '';
+
+    // Fire order notification emails (fire-and-forget — never blocks response)
     try {
       const customer = await prisma.customers.findUnique({
         where: { id: customerId },
@@ -72,6 +78,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     return new Response(JSON.stringify({
       success: true,
+      orderId: orderRes.order.id,
       orderNumber: orderRes.order.order_number,
       subtotal: orderRes.order.subtotal,
       discountTotal: orderRes.order.discount_total || 0,
@@ -79,7 +86,9 @@ export const POST: APIRoute = async ({ request }) => {
       taxTotal: orderRes.order.tax_total,
       shippingTotal: orderRes.order.shipping_total,
       grandTotal: orderRes.order.grand_total,
-      currency: orderRes.order.currency || 'INR'
+      currency: orderRes.order.currency || 'INR',
+      razorpayOrderId: paymentSession.razorpayOrderId,
+      razorpayKeyId
     }), { status: 200, headers: { 'Content-Type': 'application/json' } });
 
   } catch (err: any) {

@@ -10,13 +10,13 @@ export const GET: APIRoute = async ({ request, params }) => {
   }
 
   const variantId = parseInt(params.id || '0', 10);
-  const foundVariant = await prisma.product_variants.findFirst({
+  const foundVariant = await prisma.productVariants.findFirst({
     where: {
       id: variantId,
-      products: { deleted_at: null }
+      product: { deleted_at: null }
     },
     include: {
-      products: { select: { name: true } }
+      product: { select: { name: true } }
     }
   });
 
@@ -26,7 +26,7 @@ export const GET: APIRoute = async ({ request, params }) => {
 
   const variant = {
     ...foundVariant,
-    product_name: foundVariant.products?.name
+    product_name: foundVariant.product?.name
   };
 
   const availability = await getComboAvailability(variantId);
@@ -48,7 +48,7 @@ export const PUT: APIRoute = async ({ request, params }) => {
   }
 
   const variantId = parseInt(params.id || '0', 10);
-  const variant = await prisma.product_variants.findUnique({
+  const variant = await prisma.productVariants.findUnique({
     where: { id: variantId }
   });
 

@@ -28,7 +28,7 @@ const [
   prisma.enquiries.count(),
   prisma.enquiries.count({ where: { status: { notIn: ['Converted', 'Lost'] } } }),
   prisma.enquiries.count({ where: { status: 'Converted', closed_at: { gte: currentMonthStart.toISOString(), lt: nextMonthStart.toISOString() } } }),
-  prisma.follow_ups.count({ where: { status: 'PENDING', due_at: { lt: nowIso } } })
+  prisma.followUps.count({ where: { status: 'PENDING', due_at: { lt: nowIso } } })
 ]);
 
 // Enquiries by Product
@@ -56,28 +56,32 @@ const recentEnquiriesRaw = await prisma.enquiries.findMany({
   orderBy: { created_at: 'desc' },
   take: 10,
   include: {
-    customers: { select: { name: true, phone: true, email: true } },
-    products: { select: { name: true } }
+    customer: { select: { name: true, phone: true, email: true } }
   }
 });
-const recentEnquiries = recentEnquiriesRaw.map(e => ({
+
+const prodIds = recentEnquiriesRaw.map((e: any) => e.product_id).filter(Boolean);
+const dashProducts = await prisma.products.findMany({ where: { id: { in: prodIds as number[] } }, select: { id: true, name: true }});
+const dashProductsMap = new Map(dashProducts.map((p: any) => [p.id, p]));
+
+const recentEnquiries = recentEnquiriesRaw.map((e: any) => ({
   ...e,
-  customer_name: e.customers?.name || '',
-  phone: e.customers?.phone || '',
-  customer_email: e.customers?.email || '',
-  product_name: e.products?.name || null
+  customer_name: e.customer?.name || '',
+  phone: e.customer?.phone || '',
+  customer_email: e.customer?.email || '',
+  product_name: e.product_id ? dashProductsMap.get(e.product_id)?.name : null
 }));
 
 // Upcoming Follow-ups
-const upcomingFollowupsRaw = await prisma.follow_ups.findMany({
+const upcomingFollowupsRaw = await prisma.followUps.findMany({
   where: { status: 'PENDING' },
   orderBy: { due_at: 'asc' },
   take: 5,
-  include: { admin_users: { select: { name: true } } }
+  include: { assignee: { select: { name: true } } }
 });
-const upcomingFollowups = upcomingFollowupsRaw.map(f => ({
+const upcomingFollowups = upcomingFollowupsRaw.map((f: any) => ({
   ...f,
-  assignee_name: f.admin_users?.name || null
+  assignee_name: f.assignee?.name || null
 }));
 ---
 
@@ -215,7 +219,7 @@ const upcomingFollowups = upcomingFollowupsRaw.map(f => ({
   </div>
 </AdminLayout>
 
-<script inline>
+<script is:inline>
   async function updateEnquiryStatus(id) {
     const status = prompt('Enter new pipeline status (New, Contacted, Qualified, Quotation Sent, Negotiation, Converted, Lost):');
     if (!status) return;

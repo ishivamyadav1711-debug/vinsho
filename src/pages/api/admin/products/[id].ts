@@ -13,8 +13,8 @@ export const GET: APIRoute = async ({ request, params }) => {
   const foundProduct = await prisma.products.findUnique({
     where: { id },
     include: {
-      collections: { select: { name: true } },
-      subcategories: { select: { name: true } }
+      collection: { select: { name: true } },
+      subcategory: { select: { name: true } }
     }
   });
 
@@ -24,16 +24,16 @@ export const GET: APIRoute = async ({ request, params }) => {
 
   const product = {
     ...foundProduct,
-    collection_name: foundProduct.collections?.name,
-    subcategory_name: foundProduct.subcategories?.name
+    collection_name: foundProduct.collection?.name,
+    subcategory_name: foundProduct.subcategory?.name
   };
 
-  const images = await prisma.product_images.findMany({
+  const images = await prisma.productImages.findMany({
     where: { product_id: id },
     orderBy: { position: 'asc' }
   });
 
-  const variants = await prisma.product_variants.findMany({
+  const variants = await prisma.productVariants.findMany({
     where: { product_id: id },
     orderBy: { position: 'asc' }
   });
@@ -92,8 +92,8 @@ export const PUT: APIRoute = async ({ request, params }) => {
           material: material !== undefined ? material : existingProduct.material,
           shipping_class: shipping_class !== undefined ? shipping_class : existingProduct.shipping_class,
           launch_phase: launch_phase !== undefined ? launch_phase : existingProduct.launch_phase,
-          sellable_online: sellable_online !== undefined ? (sellable_online ? 1 : 0) : existingProduct.sellable_online,
-          returnable: returnable !== undefined ? (returnable ? 1 : 0) : existingProduct.returnable,
+          sellable_online: sellable_online !== undefined ? Boolean(sellable_online) : existingProduct.sellable_online,
+          returnable: returnable !== undefined ? Boolean(returnable) : existingProduct.returnable,
           country_of_origin: country_of_origin !== undefined ? country_of_origin : existingProduct.country_of_origin,
           manufacturer_or_packer: manufacturer_or_packer !== undefined ? manufacturer_or_packer : existingProduct.manufacturer_or_packer,
           consumer_care_contact: consumer_care_contact !== undefined ? consumer_care_contact : existingProduct.consumer_care_contact,
@@ -105,11 +105,11 @@ export const PUT: APIRoute = async ({ request, params }) => {
 
       // 2. Handle Variants update if provided
       if (Array.isArray(variants)) {
-        await tx.product_variants.deleteMany({ where: { product_id: id } });
+        await tx.productVariants.deleteMany({ where: { product_id: id } });
 
         for (let idx = 0; idx < variants.length; idx++) {
           const v = variants[idx];
-          await tx.product_variants.create({
+          await tx.productVariants.create({
             data: {
               product_id: id,
               sku: v.sku || null,
@@ -136,17 +136,17 @@ export const PUT: APIRoute = async ({ request, params }) => {
 
       // 3. Handle Images update if provided
       if (Array.isArray(images)) {
-        await tx.product_images.deleteMany({ where: { product_id: id } });
+        await tx.productImages.deleteMany({ where: { product_id: id } });
 
         for (let idx = 0; idx < images.length; idx++) {
           const img = images[idx];
-          await tx.product_images.create({
+          await tx.productImages.create({
             data: {
               product_id: id,
               url: img.url,
               alt: img.alt || name || existingProduct.name,
               position: idx + 1,
-              is_primary: idx === 0 ? 1 : 0,
+              is_primary: idx === 0,
               created_at: now,
               updated_at: now
             }
@@ -156,12 +156,12 @@ export const PUT: APIRoute = async ({ request, params }) => {
 
       // 4. Re-evaluate Purchasability & Update is_purchasable column
       const updatedProduct = await tx.products.findUnique({ where: { id } });
-      const updatedVariants = await tx.product_variants.findMany({ where: { product_id: id } });
+      const updatedVariants = await tx.productVariants.findMany({ where: { product_id: id } });
       const evalRes = evaluatePurchasability(updatedProduct, updatedVariants);
 
       await tx.products.update({
         where: { id },
-        data: { is_purchasable: evalRes.isPurchasable ? 1 : 0 }
+        data: { is_purchasable: Boolean(evalRes.isPurchasable) }
       });
     });
 

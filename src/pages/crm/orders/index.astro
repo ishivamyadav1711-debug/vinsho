@@ -1,0 +1,392 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro';
+import { prisma } from '../../../lib/db';
+import { getSessionUser } from '../../../lib/auth';
+
+const user = await getSessionUser(Astro.request);
+if (!user) {
+  return Astro.redirect('/crm/login');
+}
+
+const url = new URL(Astro.request.url);
+const statusFilter = url.searchParams.get('status') || 'ALL';
+const paymentFilter = url.searchParams.get('payment_status') || 'ALL';
+const searchQuery = url.searchParams.get('q') || '';
+
+const where: any = {};
+if (statusFilter !== 'ALL') {
+  where.status = statusFilter;
+}
+if (paymentFilter !== 'ALL') {
+  where.payment_status = paymentFilter;
+}
+if (searchQuery.trim()) {
+  const q = searchQuery.trim();
+  where.OR = [
+    { order_number: { contains: q, mode: 'insensitive' } },
+    { customer: { name: { contains: q, mode: 'insensitive' } } },
+    { customer: { phone: { contains: q, mode: 'insensitive' } } },
+    { customer: { email: { contains: q, mode: 'insensitive' } } }
+  ];
+}
+
+const [orders, totalOrdersCount, totalPaidCount, totalPendingCount, sumRevenue] = await Promise.all([
+  prisma.orders.findMany({
+    where,
+    include: {
+      customer: true,
+      OrderItems: true,
+      Payments: true
+    },
+    orderBy: { id: 'desc' }
+  }),
+  prisma.orders.count(),
+  prisma.orders.count({ where: { payment_status: 'paid' } }),
+  prisma.orders.count({ where: { status: 'Pending' } }),
+  prisma.orders.aggregate({ _sum: { grand_total: true } })
+]);
+
+const totalRevenue = Number(sumRevenue._sum.grand_total || 0);
+---
+
+<AdminLayout title="Orders Management" activeNav="orders">
+  <div class="orders-shell">
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">Orders Management</h1>
+        <p class="page-subtitle">Track, fulfill, and manage all customer purchases and payment statuses.</p>
+      </div>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <span class="metric-label">Total Orders</span>
+        <strong class="metric-value">{totalOrdersCount}</strong>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Total Revenue</span>
+        <strong class="metric-value">₹{totalRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Paid Orders</span>
+        <strong class="metric-value text-green">{totalPaidCount}</strong>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Pending Orders</span>
+        <strong class="metric-value text-amber">{totalPendingCount}</strong>
+      </div>
+    </div>
+
+    <!-- Filters & Search Toolbar -->
+    <div class="toolbar">
+      <div class="filter-tabs">
+        <a href="/crm/orders" class={`filter-tab ${statusFilter === 'ALL' ? 'active' : ''}`}>All</a>
+        <a href="/crm/orders?status=Pending" class={`filter-tab ${statusFilter === 'Pending' ? 'active' : ''}`}>Pending</a>
+        <a href="/crm/orders?status=Confirmed" class={`filter-tab ${statusFilter === 'Confirmed' ? 'active' : ''}`}>Confirmed</a>
+        <a href="/crm/orders?status=Processing" class={`filter-tab ${statusFilter === 'Processing' ? 'active' : ''}`}>Processing</a>
+        <a href="/crm/orders?status=Shipped" class={`filter-tab ${statusFilter === 'Shipped' ? 'active' : ''}`}>Shipped</a>
+        <a href="/crm/orders?status=Delivered" class={`filter-tab ${statusFilter === 'Delivered' ? 'active' : ''}`}>Delivered</a>
+        <a href="/crm/orders?status=Cancelled" class={`filter-tab ${statusFilter === 'Cancelled' ? 'active' : ''}`}>Cancelled</a>
+      </div>
+
+      <form method="GET" class="search-form">
+        <input 
+          type="text" 
+          name="q" 
+          placeholder="Search by order #, customer, phone..." 
+          value={searchQuery}
+          class="search-input"
+        />
+        {statusFilter !== 'ALL' && <input type="hidden" name="status" value={statusFilter} />}
+        <button type="submit" class="search-btn">Search</button>
+      </form>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="table-container">
+      <table class="orders-table">
+        <thead>
+          <tr>
+            <th>Order #</th>
+            <th>Date</th>
+            <th>Customer</th>
+            <th>Items</th>
+            <th>Total Amount</th>
+            <th>Order Status</th>
+            <th>Payment Status</th>
+            <th class="text-right">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {orders.length === 0 ? (
+            <tr>
+              <td colspan="8" class="empty-state">No orders found matching your criteria.</td>
+            </tr>
+          ) : (
+            orders.map((o) => {
+              const placedDate = new Date(o.placed_at).toLocaleDateString('en-IN', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+              });
+
+              const isPaid = (o.payment_status || '').toLowerCase() === 'paid';
+
+              return (
+                <tr>
+                  <td>
+                    <a href={`/crm/orders/${o.id}`} class="order-link">
+                      <strong>#{o.order_number}</strong>
+                    </a>
+                  </td>
+                  <td>{placedDate}</td>
+                  <td>
+                    <div class="cust-info">
+                      <strong>{o.customer.name}</strong>
+                      <span class="cust-sub">{o.customer.phone}</span>
+                    </div>
+                  </td>
+                  <td>{o.OrderItems.length} items</td>
+                  <td>
+                    <strong>₹{Number(o.grand_total).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</strong>
+                  </td>
+                  <td>
+                    <span class={`badge status-${(o.status || 'pending').toLowerCase()}`}>
+                      {o.status}
+                    </span>
+                  </td>
+                  <td>
+                    <span class={`badge payment-${isPaid ? 'paid' : 'pending'}`}>
+                      {o.payment_status}
+                    </span>
+                  </td>
+                  <td class="text-right">
+                    <a href={`/crm/orders/${o.id}`} class="btn-view">
+                      View Details &rarr;
+                    </a>
+                  </td>
+                </tr>
+              );
+            })
+          )}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</AdminLayout>
+
+<style>
+  .orders-shell {
+    padding: 2rem;
+    max-width: 1280px;
+    margin-inline: auto;
+  }
+
+  .page-header {
+    margin-bottom: 2rem;
+  }
+
+  .page-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.85rem;
+    color: #8A174B;
+    margin: 0 0 0.25rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.9rem;
+    color: #6b7280;
+    margin: 0;
+  }
+
+  .metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+  }
+
+  .metric-card {
+    background: #ffffff;
+    border: 1px solid rgba(138, 23, 75, 0.12);
+    border-radius: 8px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .metric-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b7280;
+  }
+
+  .metric-value {
+    font-size: 1.5rem;
+    color: #1f2937;
+    font-weight: 700;
+  }
+
+  .text-green { color: #059669; }
+  .text-amber { color: #d97706; }
+
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .filter-tabs {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+
+  .filter-tab {
+    padding: 0.45rem 0.9rem;
+    font-size: 0.825rem;
+    border-radius: 6px;
+    background: #f3f4f6;
+    color: #4b5563;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+
+  .filter-tab.active {
+    background: #8A174B;
+    color: #ffffff;
+  }
+
+  .search-form {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .search-input {
+    padding: 0.45rem 0.85rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    min-width: 260px;
+  }
+
+  .search-btn {
+    padding: 0.45rem 0.95rem;
+    background: #374151;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+
+  .table-container {
+    background: #ffffff;
+    border: 1px solid rgba(138, 23, 75, 0.12);
+    border-radius: 8px;
+    overflow-x: auto;
+  }
+
+  .orders-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    text-align: left;
+  }
+
+  .orders-table th {
+    background: #faf6f0;
+    padding: 0.85rem 1rem;
+    font-weight: 600;
+    color: #374151;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .orders-table td {
+    padding: 0.95rem 1rem;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: middle;
+  }
+
+  .order-link {
+    color: #8A174B;
+    text-decoration: none;
+  }
+
+  .cust-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .cust-sub {
+    font-size: 0.775rem;
+    color: #6b7280;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 0.25rem 0.6rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: capitalize;
+  }
+
+  .status-confirmed, .payment-paid {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  .status-pending, .payment-pending {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .status-shipped {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+
+  .status-delivered {
+    background: #e0e7ff;
+    color: #3730a3;
+  }
+
+  .status-cancelled {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .text-right { text-align: right; }
+
+  .btn-view {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    background: transparent;
+    color: #8A174B;
+    border: 1px solid #8A174B;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 0.775rem;
+    font-weight: 600;
+    transition: all 0.2s;
+  }
+
+  .btn-view:hover {
+    background: #8A174B;
+    color: #ffffff;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #6b7280;
+  }
+</style>

@@ -1,5 +1,5 @@
 ---
-export const prerender = true;
+export const prerender = false;
 
 import Base from '../../layouts/Base.astro';
 import Footer from '../../components/Footer.astro';
@@ -12,21 +12,14 @@ import { getAllProducts, getProductBySlug, getCollectionByKey, getSubcategoryByK
 import { getCommerceProductBySlug, evaluateProductPurchasability } from '../../lib/commerce';
 import { isProductPurchasable } from '../../lib/purchasability';
 
-export function getStaticPaths() {
-  const products = getAllProducts();
-  return products.map((product) => ({
-    params: { slug: product.slug }
-  }));
-}
-
 const { slug } = Astro.params;
-const baseProduct = getProductBySlug(slug);
+const baseProduct = slug ? await getProductBySlug(slug) : null;
 
 if (!baseProduct) {
-  throw new Error(`Product not found: ${slug}`);
+  return Astro.redirect('/404');
 }
 
-const commerceProduct = getCommerceProductBySlug(slug) || {
+const commerceProduct = (slug ? getCommerceProductBySlug(slug) : null) || {
   ...baseProduct,
   collectionKey: baseProduct.collectionKey || 'decor',
   subcategoryKey: baseProduct.subcategoryKey || 'general',
@@ -59,8 +52,8 @@ const isCandleProduct =
   baseProduct.slug.includes('candle') || 
   baseProduct.name.toLowerCase().includes('candle');
 
-const collection = getCollectionByKey(baseProduct.collectionKey);
-const subcategory = getSubcategoryByKey(baseProduct.collectionKey, baseProduct.subcategoryKey);
+const collection = await getCollectionByKey(baseProduct.collectionKey);
+const subcategory = await getSubcategoryByKey(baseProduct.collectionKey, baseProduct.subcategoryKey);
 
 const whatsappText = encodeURIComponent(`Hi VINSHO, I would like to enquire about "${baseProduct.name}" (${baseProduct.subcategory || baseProduct.subCategory || baseProduct.collection}).`);
 const whatsappUrl = `https://wa.me/${content.brand.whatsapp}?text=${whatsappText}`;
@@ -81,9 +74,9 @@ const watermarkWords = rawNameWords.length >= 2
   : [rawNameWords[0], (baseProduct.collection || baseProduct.mainCategory || 'VINSHO').toUpperCase()];
 
 // Related products
-const allProducts = getAllProducts();
+const allProducts = await getAllProducts();
 const relatedProducts = allProducts
-  .filter(p => p.slug !== slug && (p.collectionKey === baseProduct.collectionKey || p.subcategoryKey === baseProduct.subcategoryKey))
+  .filter((p: any) => p.slug !== slug && (p.collectionKey === baseProduct.collectionKey || p.subcategoryKey === baseProduct.subcategoryKey))
   .slice(0, 3);
 
 // Category label
@@ -373,7 +366,7 @@ const productImages = (baseProduct.images && baseProduct.images.length > 0)
             <a href={`/collections/${baseProduct.collectionKey}`} class="related-link">Explore Collection &rarr;</a>
           </div>
           <div class="related-grid">
-            {relatedProducts.map((rel) => (
+            {relatedProducts.map((rel: any) => (
               <a href={`/product/${rel.slug}`} class="rel-card">
                 <div class="rel-img-frame">
                   <img src={rel.image} alt={rel.name} class="rel-img" onerror="this.onerror=null; this.src='/images/candles/placeholder.svg';" />
@@ -534,7 +527,7 @@ const productImages = (baseProduct.images && baseProduct.images.length > 0)
       if (pdpCartBadge) {
         pdpCartBadge.textContent = String(getCartCount());
       }
-      const waUrl = createWhatsAppOrderUrl([{ name, price, quantity: qty }]);
+      const waUrl = createWhatsAppOrderUrl({ productName: name, price, quantity: qty });
       window.open(waUrl, '_blank');
     });
 
@@ -568,7 +561,7 @@ const productImages = (baseProduct.images && baseProduct.images.length > 0)
       if (pdpCartBadge) {
         pdpCartBadge.textContent = String(getCartCount());
       }
-      const waUrl = createWhatsAppOrderUrl([{ name, price, quantity: qty }]);
+      const waUrl = createWhatsAppOrderUrl({ productName: name, price, quantity: qty });
       window.open(waUrl, '_blank');
     });
   });

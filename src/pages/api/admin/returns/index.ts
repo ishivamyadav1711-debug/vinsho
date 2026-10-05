@@ -11,20 +11,32 @@ export const GET: APIRoute = async ({ request, url }) => {
 
   const status = url.searchParams.get('status');
 
-  const returnsList = await prisma.returns.findMany({
+  const returnsListRaw = await prisma.returns.findMany({
     where: status ? { status } : undefined,
-    include: {
-      orders: {
-        select: { order_number: true }
-      },
-      customers: {
-        select: { name: true, phone: true }
-      },
-      admin_users: {
-        select: { name: true }
-      }
-    },
     orderBy: { created_at: 'desc' }
+  });
+  
+  const orderIds = returnsListRaw.map((r: any) => r.order_id);
+  const customerIds = returnsListRaw.map((r: any) => r.customer_id);
+  const userIds = returnsListRaw.map((r: any) => r.inspected_by).filter(Boolean);
+
+  const [orders, customers, users] = await Promise.all([
+    prisma.orders.findMany({ where: { id: { in: orderIds } }, select: { id: true, order_number: true } }),
+    prisma.customers.findMany({ where: { id: { in: customerIds } }, select: { id: true, name: true, phone: true } }),
+    prisma.adminUsers.findMany({ where: { id: { in: userIds as number[] } }, select: { id: true, name: true } })
+  ]);
+
+  const ordersMap = new Map(orders.map((o: any) => [o.id, o]));
+  const customersMap = new Map(customers.map((c: any) => [c.id, c]));
+  const usersMap = new Map(users.map((u: any) => [u.id, u]));
+
+  const returnsList = returnsListRaw.map((r: any) => {
+    return {
+      ...r,
+      orders: ordersMap.get(r.order_id) || null,
+      customers: customersMap.get(r.customer_id) || null,
+      admin_users: r.inspected_by ? usersMap.get(r.inspected_by) || null : null
+    };
   });
 
   const formattedReturns = returnsList.map((r: any) => ({

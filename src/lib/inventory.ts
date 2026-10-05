@@ -3,8 +3,23 @@ import { getComboComponents } from './combos.js';
 
 export interface InventoryTxnParams {
   variantId: number;
-  delta: number; // Negative for sale/reservation, positive for restock/release
-  reason: 'INITIAL_STOCK' | 'SALE' | 'RESERVATION' | 'RESERVATION_RELEASE' | 'RESTOCK' | 'ADJUSTMENT' | 'WRITE_OFF_DAMAGED_RETURN';
+  delta: number; // Negative for sale/reservation/removal, positive for restock/addition/release
+  reason: 
+    | 'INITIAL_STOCK' 
+    | 'SALE' 
+    | 'RESERVATION' 
+    | 'RESERVATION_RELEASE' 
+    | 'RESTOCK' 
+    | 'ADJUSTMENT' 
+    | 'WRITE_OFF_DAMAGED_RETURN'
+    | 'STOCK_ADDED'
+    | 'STOCK_REMOVED'
+    | 'STOCK_SET'
+    | 'ORDER_DEDUCTION'
+    | 'ORDER_CANCELLATION_RESTORATION'
+    | 'REFUND_RESTORATION'
+    | 'MANUAL_OUT_OF_STOCK'
+    | 'MANUAL_IN_STOCK';
   orderId?: number | null;
   actorId?: number | null;
 }
@@ -174,4 +189,104 @@ export async function releaseExpiredReservations(): Promise<number> {
     });
   }
   return releasedCount;
+}
+
+/**
+ * Adjusts a variant's stock quantity directly (Add, Remove, Set, In/Out of Stock)
+ * Concurrency-safe via Prisma interactive transaction and creates an audit inventory transaction.
+ */
+export async function adjustVariantStock(params: {
+  variantId: number;
+  mode: 'ADD' | 'REMOVE' | 'SET' | 'MARK_OUT_OF_STOCK' | 'MARK_IN_STOCK';
+  quantity?: number;
+  actorId?: number | null;
+  reasonText?: string;
+}): Promise<{ success: boolean; previousStock: number; newStock: number; delta: number; error?: string }> {
+  return await prisma.$transaction(async (tx) => {
+    const variant = await tx.productVariants.findUnique({
+      where: { id: params.variantId },
+      include: { product: true }
+    });
+
+    if (!variant) {
+      return { success: false, previousStock: 0, newStock: 0, delta: 0, error: 'Product variant not found.' };
+    }
+
+    const currentStock = variant.stock ?? 0;
+    let targetStock = currentStock;
+    let delta = 0;
+    let reasonType: InventoryTxnParams['reason'] = 'ADJUSTMENT';
+
+    const qty = params.quantity !== undefined ? Math.floor(Number(params.quantity)) : 0;
+
+    if (params.mode === 'ADD') {
+      if (qty <= 0) {
+        return { success: false, previousStock: currentStock, newStock: currentStock, delta: 0, error: 'Quantity to add must be greater than zero.' };
+      }
+      targetStock = currentStock + qty;
+      delta = qty;
+      reasonType = 'STOCK_ADDED';
+    } else if (params.mode === 'REMOVE') {
+      if (qty <= 0) {
+        return { success: false, previousStock: currentStock, newStock: currentStock, delta: 0, error: 'Quantity to remove must be greater than zero.' };
+      }
+      if (qty > currentStock) {
+        return { success: false, previousStock: currentStock, newStock: currentStock, delta: 0, error: `Cannot remove ${qty} units. Only ${currentStock} available in stock.` };
+      }
+      targetStock = currentStock - qty;
+      delta = -qty;
+      reasonType = 'STOCK_REMOVED';
+    } else if (params.mode === 'SET') {
+      if (qty < 0) {
+        return { success: false, previousStock: currentStock, newStock: currentStock, delta: 0, error: 'Stock quantity cannot be negative.' };
+      }
+      targetStock = qty;
+      delta = targetStock - currentStock;
+      reasonType = 'STOCK_SET';
+    } else if (params.mode === 'MARK_OUT_OF_STOCK') {
+      targetStock = 0;
+      delta = -currentStock;
+      reasonType = 'MANUAL_OUT_OF_STOCK';
+    } else if (params.mode === 'MARK_IN_STOCK') {
+      if (qty <= 0) {
+        return { success: false, previousStock: currentStock, newStock: currentStock, delta: 0, error: 'Please specify an actual positive quantity when marking item in stock.' };
+      }
+      targetStock = qty;
+      delta = targetStock - currentStock;
+      reasonType = 'MANUAL_IN_STOCK';
+    }
+
+    if (targetStock < 0) {
+      return { success: false, previousStock: currentStock, newStock: currentStock, delta: 0, error: 'Resulting stock quantity cannot be negative.' };
+    }
+
+    // Update variant stock
+    await tx.productVariants.update({
+      where: { id: params.variantId },
+      data: {
+        stock: targetStock,
+        updated_at: new Date()
+      }
+    });
+
+    // Create immutable inventory transaction log
+    await tx.inventoryTxns.create({
+      data: {
+        variant_id: params.variantId,
+        delta: delta,
+        reason: reasonType,
+        order_id: null,
+        actor_id: params.actorId || null,
+        balance_after: targetStock,
+        created_at: new Date()
+      }
+    });
+
+    return {
+      success: true,
+      previousStock: currentStock,
+      newStock: targetStock,
+      delta
+    };
+  });
 }

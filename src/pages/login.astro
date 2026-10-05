@@ -5,7 +5,7 @@ import Footer from '../components/Footer.astro';
 import { getCustomerFromSession } from '../lib/customerAuth';
 
 // If already logged in, redirect to /account or redirect param
-const customer = getCustomerFromSession(Astro.request);
+const customer = await getCustomerFromSession(Astro.request);
 const redirectUrl = Astro.url.searchParams.get('redirect') || '/account';
 
 if (customer) {

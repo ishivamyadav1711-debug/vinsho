@@ -528,7 +528,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Display filtered cards
     filtered.forEach((item) => {
       item.card.style.display = '';
-      grid.appendChild(item.card);
+      if (grid) grid.appendChild(item.card);
     });
 
     if (empty) {
@@ -537,7 +537,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (cleanQ) {
           empty.innerHTML = `No products found matching "<strong>${cleanQ}</strong>".<br/><span style="font-size:0.875rem;color:var(--ink-soft);display:block;margin-top:0.35rem;">Try searching for another product or category, or check your spelling.</span><div style="margin-top:0.75rem;"><button id="empty-clear-btn" style="background:var(--maroon);color:#fff;border:none;padding:0.4rem 1rem;border-radius:999px;cursor:pointer;font-size:0.813rem;font-weight:600;">Clear Search</button></div>`;
         } else {
-          empty.innerHTML = `No products match those filter criteria. Try <button id="empty-clear-btn" style="background:none;border:none;color:var(--maroon);text-decoration:underline;cursor:pointer;font-size:inherit;">clearing your filters</button>, or <a href="https://wa.me/${taxonomyData.brand?.whatsapp || '919625515351'}?text=Hi%20VINSHO,%20I%20am%20looking%20for%20a%20custom%20product." target="_blank" rel="noopener noreferrer">ask us on WhatsApp &rarr;</a>`;
+          empty.innerHTML = `No products match those filter criteria. Try <button id="empty-clear-btn" style="background:none;border:none;color:var(--maroon);text-decoration:underline;cursor:pointer;font-size:inherit;">clearing your filters</button>, or <a href="https://wa.me/${(taxonomyData as any).brand?.whatsapp || '919625515351'}?text=Hi%20VINSHO,%20I%20am%20looking%20for%20a%20custom%20product." target="_blank" rel="noopener noreferrer">ask us on WhatsApp &rarr;</a>`;
         }
         document.getElementById('empty-clear-btn')?.addEventListener('click', clearAllFilters);
       } else {

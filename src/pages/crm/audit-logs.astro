@@ -8,19 +8,23 @@ if (!user || (user.role !== 'SUPER_ADMIN' && user.role !== 'ADMIN')) {
   return Astro.redirect('/crm/login');
 }
 
-const auditLogsRaw = await prisma.audit_logs.findMany({
+const auditLogsRaw = await prisma.auditLogs.findMany({
   orderBy: { created_at: 'desc' },
-  take: 100,
-  include: {
-    admin_users: { select: { name: true, email: true } }
-  }
+  take: 100
 });
 
-const auditLogs = auditLogsRaw.map(a => ({
-  ...a,
-  actor_name: a.admin_users?.name || null,
-  actor_email: a.admin_users?.email || null
-}));
+const actorIds = auditLogsRaw.map((a: any) => a.actor_id).filter(Boolean);
+const actors = await prisma.adminUsers.findMany({ where: { id: { in: actorIds as number[] } }, select: { id: true, name: true, email: true }});
+const actorsMap = new Map(actors.map((u: any) => [u.id, u]));
+
+const auditLogs = auditLogsRaw.map((a: any) => {
+  const actor = a.actor_id ? actorsMap.get(a.actor_id) : null;
+  return {
+    ...a,
+    actor_name: actor?.name || null,
+    actor_email: actor?.email || null
+  };
+});
 ---
 
 <AdminLayout title="System Audit Logs" activeNav="audit">
@@ -52,7 +56,7 @@ const auditLogs = auditLogsRaw.map(a => ({
             </tr>
           </thead>
           <tbody>
-            {auditLogs.map(log => (
+            {auditLogs.map((log: any) => (
               <tr class="audit-row" data-search={`${log.actor_name} ${log.action} ${log.entity} ${log.entity_id}`}>
                 <td>{new Date(log.created_at).toLocaleString()}</td>
                 <td>
@@ -92,7 +96,7 @@ const auditLogs = auditLogsRaw.map(a => ({
   </div>
 </AdminLayout>
 
-<script inline>
+<script is:inline>
   const searchInput = document.getElementById('audit-search');
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {

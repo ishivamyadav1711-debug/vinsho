@@ -18,7 +18,7 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    const result = addSubscriber(email, source || 'Website Footer');
+    const result = await addSubscriber(email, source || 'Website Footer');
 
     return new Response(JSON.stringify({
       success: true,

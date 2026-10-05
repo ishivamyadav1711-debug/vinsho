@@ -18,7 +18,7 @@ export const POST: APIRoute = async ({ request }) => {
     const now = new Date();
     const parsedEntityId = parseInt(entityId, 10);
 
-    const newNote = await prisma.crm_notes.create({
+    const newNote = await prisma.crmNotes.create({
       data: {
         entity_type: entityType,
         entity_id: parsedEntityId,
@@ -28,7 +28,7 @@ export const POST: APIRoute = async ({ request }) => {
         created_at: now
       },
       include: {
-        admin_users: {
+        author: {
           select: { name: true }
         }
       }
@@ -44,7 +44,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     const note = {
       ...newNote,
-      author_name: newNote.admin_users?.name || 'Admin'
+      author_name: newNote.author?.name || 'Admin'
     };
 
     return new Response(JSON.stringify({ success: true, note }), { status: 201 });

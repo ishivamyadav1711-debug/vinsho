@@ -10,7 +10,7 @@ export const GET: APIRoute = async () => {
         slug: true,
         name: true,
         gift_eligible: true,
-        collections: {
+        collection: {
           select: { name: true }
         }
       },
@@ -23,7 +23,7 @@ export const GET: APIRoute = async () => {
         id: p.id,
         slug: p.slug,
         name: p.name,
-        collection: p.collections?.name || null,
+        collection: p.collection?.name || null,
         giftEligible: Boolean(p.gift_eligible)
       }))
     }), {
@@ -44,7 +44,7 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response(JSON.stringify({ success: false, error: 'Product slug is required' }), { status: 400 });
     }
 
-    const isEligible = giftEligible ? 1 : 0;
+    const isEligible = Boolean(giftEligible);
     const now = new Date();
 
     const product = await prisma.products.findFirst({

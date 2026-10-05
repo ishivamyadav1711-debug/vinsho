@@ -1,5 +1,5 @@
 ---
-export const prerender = true;
+export const prerender = false;
 
 import Base from '../../../layouts/Base.astro';
 import Nav from '../../../components/Nav.astro';
@@ -11,38 +11,17 @@ import Modal from '../../../components/Modal.astro';
 import CandleCraftsmanship from '../../../components/CandleCraftsmanship.astro';
 import { getCollections, getCollectionByKey, getSubcategoryByKey, getProductsBySubcategory, getSubcategoryProductCount } from '../../../utils/taxonomy';
 
-export function getStaticPaths() {
-  const collections = getCollections();
-  const paths: { params: { collection: string; sub: string } }[] = [];
-
-  collections.forEach((col) => {
-    col.subcategories.forEach((sub) => {
-      paths.push({
-        params: { collection: col.key, sub: sub.key }
-      });
-      if (col.key === 'gifting-collection') {
-        paths.push({ params: { collection: 'gifting', sub: sub.key } });
-      }
-      if (col.key === 'home-furnishing') {
-        paths.push({ params: { collection: 'home-furnishings', sub: sub.key } });
-      }
-    });
-  });
-
-  return paths;
-}
-
 const { collection: collectionKey, sub: subKey } = Astro.params;
 
-const collection = getCollectionByKey(collectionKey);
-const subcategory = getSubcategoryByKey(collectionKey, subKey);
+const collection = collectionKey ? await getCollectionByKey(collectionKey) : null;
+const subcategory = (collectionKey && subKey) ? await getSubcategoryByKey(collectionKey, subKey) : null;
 
 if (!collection || !subcategory) {
-  throw new Error(`Subcategory not found: ${collectionKey}/${subKey}`);
+  return Astro.redirect('/collections');
 }
 
-const products = getProductsBySubcategory(collection.key, subcategory.key);
-const totalCount = getSubcategoryProductCount(collection.key, subcategory.key);
+const products = await getProductsBySubcategory(collection.key, subcategory.key);
+const totalCount = await getSubcategoryProductCount(collection.key, subcategory.key);
 
 const isCandleSub = subKey === 'candles' || collectionKey === 'candles' || subcategory.name.toLowerCase().includes('candle');
 

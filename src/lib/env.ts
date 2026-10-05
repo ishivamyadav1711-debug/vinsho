@@ -50,7 +50,7 @@ export interface EnvConfig {
 // These constants are NEVER evaluated in production. They are local to this
 // function and cannot escape into application logic.
 const _DEV_ADMIN_EMAIL = 'vinvks@gmail.com';
-const _DEV_ADMIN_PASSWORD = 'VinshoDevAdminPass2026!';
+const _DEV_ADMIN_PASSWORD = 'Vinsho@123';
 const _DEV_WEBHOOK_SECRET = 'vinsho_dev_webhook_secret_2026';
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -86,7 +86,7 @@ export function getEnvConfig(): EnvConfig {
   const smtpUser = process.env.SMTP_USER || undefined;
   const smtpPass = process.env.SMTP_PASS || undefined;
   const smtpFrom = process.env.SMTP_FROM || 'VINSHO <vinvks@gmail.com>';
-  const siteUrl = process.env.SITE_URL || (isProduction ? 'https://vinsho.com' : 'http://localhost:4321');
+  const siteUrl = process.env.SITE_URL || (isProduction ? 'https://vinsho.in' : 'http://localhost:4321');
 
   if (isProduction && (!smtpHost || !smtpUser || !smtpPass)) {
     console.warn(

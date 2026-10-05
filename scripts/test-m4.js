@@ -44,11 +44,26 @@ function redactCustomerPii(customer, userRole) {
 
 console.log('--- Running VINSHO Milestone 4 Automated Regression Suite ---');
 
-const dbPath = path.join(process.cwd(), 'data', 'vinsho.db');
-const db = new Database(dbPath);
+// Isolated in-memory database to prevent test pollution in physical databases
+const db = new Database(':memory:');
 
-// Ensure M4 Schema Tables Exist
+// Ensure M4 Schema Tables Exist in-memory
 db.exec(`
+  CREATE TABLE IF NOT EXISTS products (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    slug TEXT UNIQUE NOT NULL,
+    name TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS product_variants (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    product_id INTEGER NOT NULL,
+    sku TEXT NOT NULL,
+    stock INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS returns (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     order_id INTEGER NOT NULL,
@@ -76,6 +91,8 @@ db.exec(`
     line_total REAL NOT NULL
   );
 `);
+
+db.prepare("INSERT INTO products (slug, name) VALUES ('test-product', 'Test Product')").run();
 
 let totalPassed = 0;
 let totalFailed = 0;

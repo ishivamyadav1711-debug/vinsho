@@ -8,18 +8,22 @@ if (!user || (user.role !== 'SUPER_ADMIN' && user.role !== 'ADMIN')) {
   return Astro.redirect('/admin/login');
 }
 
-const auditLogsRaw = await prisma.audit_logs.findMany({
+const auditLogsRaw = await prisma.auditLogs.findMany({
   orderBy: { created_at: 'desc' },
-  take: 100,
-  include: {
-    admin_users: { select: { name: true, email: true } }
-  }
+  take: 100
 });
+
+const actorIds = Array.from(new Set(auditLogsRaw.map(a => a.actor_id).filter(Boolean)));
+const adminUsers = await prisma.adminUsers.findMany({
+  where: { id: { in: actorIds } },
+  select: { id: true, name: true, email: true }
+});
+const userMap = new Map(adminUsers.map(u => [u.id, u]));
 
 const auditLogs = auditLogsRaw.map(a => ({
   ...a,
-  actor_name: a.admin_users?.name || null,
-  actor_email: a.admin_users?.email || null
+  actor_name: userMap.get(a.actor_id)?.name || null,
+  actor_email: userMap.get(a.actor_id)?.email || null
 }));
 ---
 
@@ -92,7 +96,7 @@ const auditLogs = auditLogsRaw.map(a => ({
   </div>
 </AdminLayout>
 
-<script inline>
+<script is:inline>
   const searchInput = document.getElementById('audit-search');
   if (searchInput) {
     searchInput.addEventListener('input', (e) => {

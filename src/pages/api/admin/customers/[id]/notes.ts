@@ -1,10 +1,10 @@
 import type { APIRoute } from 'astro';
 import { getSessionUser } from '../../../../../lib/auth.js';
-import { db } from '../../../../../lib/db.js';
+import { prisma } from '../../../../../lib/db.js';
 import { logCrmActivity } from '../../../../../lib/crm.js';
 
 export const POST: APIRoute = async ({ request, params }) => {
-  const user = getSessionUser(request);
+  const user = await getSessionUser(request);
   if (!user) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
   }
@@ -23,22 +23,28 @@ export const POST: APIRoute = async ({ request, params }) => {
       return new Response(JSON.stringify({ error: 'Note content is required.' }), { status: 400 });
     }
 
-    const now = new Date().toISOString();
-    db.prepare(`
-      INSERT INTO crm_notes (entity_type, entity_id, author_id, body, created_at)
-      VALUES ('customer', ?, ?, ?, ?)
-    `).run(customerId, user.id, content, now);
+    const now = new Date();
 
-    logCrmActivity({
+    const createdNote = await prisma.crmNotes.create({
+      data: {
+        entity_type: 'customer',
+        entity_id: customerId,
+        author_id: user.id,
+        body: content,
+        created_at: now
+      }
+    });
+
+    await logCrmActivity({
       entityType: 'customer',
       entityId: customerId,
       actorId: user.id,
       type: 'NOTE_ADDED',
       summary: `Added CRM Note: "${content.slice(0, 100)}${content.length > 100 ? '...' : ''}"`,
-      meta: { content }
+      meta: { content, noteId: createdNote.id }
     });
 
-    return new Response(JSON.stringify({ success: true }), {
+    return new Response(JSON.stringify({ success: true, noteId: createdNote.id }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }
     });

@@ -337,3 +337,99 @@ export async function sendOrderNotifications(order: any, customer: { name: strin
     },
   });
 }
+
+export const VALID_ORDER_STATUSES = [
+  'Pending',
+  'Confirmed',
+  'Processing',
+  'Shipped',
+  'Delivered',
+  'Cancelled',
+  'Returned'
+] as const;
+
+export type OrderStatus = typeof VALID_ORDER_STATUSES[number];
+
+export const VALID_STATUS_TRANSITIONS: Record<string, string[]> = {
+  Pending: ['Confirmed', 'Cancelled'],
+  Confirmed: ['Processing', 'Cancelled'],
+  Processing: ['Shipped', 'Cancelled'],
+  Shipped: ['Delivered', 'Returned'],
+  Delivered: ['Returned'],
+  Cancelled: [],
+  Returned: []
+};
+
+export async function updateOrderStatus(params: {
+  orderId: number;
+  newStatus: string;
+  actorId?: number;
+  notes?: string;
+}): Promise<{ success: boolean; error?: string; order?: any }> {
+  const { orderId, newStatus, actorId } = params;
+
+  return await prisma.$transaction(async (tx) => {
+    const order = await tx.orders.findUnique({
+      where: { id: orderId }
+    });
+
+    if (!order) {
+      return { success: false, error: 'Order not found.' };
+    }
+
+    const currentStatus = order.status;
+    const allowedNext = VALID_STATUS_TRANSITIONS[currentStatus] || [];
+
+    if (!allowedNext.includes(newStatus)) {
+      return {
+        success: false,
+        error: `Invalid status transition from '${currentStatus}' to '${newStatus}'. Allowed: ${allowedNext.join(', ') || 'None'}`
+      };
+    }
+
+    // Cancellation: restore inventory if previously deducted
+    if (newStatus === 'Cancelled') {
+      const saleTxns = await tx.inventoryTxns.findMany({
+        where: { order_id: orderId, reason: 'SALE' }
+      });
+
+      for (const txn of saleTxns) {
+        if (txn.delta < 0) {
+          const qtyToRestore = Math.abs(txn.delta);
+          await tx.productVariants.update({
+            where: { id: txn.variant_id },
+            data: { stock: { increment: qtyToRestore } }
+          });
+
+          const v = await tx.productVariants.findUnique({
+            where: { id: txn.variant_id },
+            select: { stock: true }
+          });
+
+          await tx.inventoryTxns.create({
+            data: {
+              variant_id: txn.variant_id,
+              delta: qtyToRestore,
+              reason: 'ORDER_CANCELLATION_RESTORATION',
+              order_id: orderId,
+              actor_id: actorId || null,
+              balance_after: v?.stock ?? 0,
+              created_at: new Date()
+            }
+          });
+        }
+      }
+    }
+
+    const updated = await tx.orders.update({
+      where: { id: orderId },
+      data: {
+        status: newStatus,
+        updated_at: new Date()
+      }
+    });
+
+    return { success: true, order: updated };
+  });
+}
+

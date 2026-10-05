@@ -50,6 +50,7 @@ export interface ProductItem {
   moved?: boolean;
   mergedTo?: string;
   image: string;
+  images?: string[];
   material: string;
   description: string;
   tagline?: string;
@@ -129,7 +130,7 @@ export function getTaxonomy() {
 export async function getCollections(): Promise<Collection[]> {
   try {
     const dbCols = await prisma.collections.findMany({
-      where: { deleted_at: null },
+      where: { deleted_at: null, NOT: { key: 'dummy_collection' } },
       orderBy: { order_index: 'asc' }
     });
 
@@ -158,7 +159,10 @@ export async function getCollections(): Promise<Collection[]> {
   } catch (err) {
     console.warn('DB taxonomy read fallback to JSON:', err);
   }
-  return taxonomyData.collections as Collection[];
+  // Fallback: exclude dummy_collection from static JSON too
+  return (taxonomyData.collections as Collection[]).filter(
+    (c) => c.key !== 'dummy_collection'
+  );
 }
 
 /** Async: Fetch all products from PostgreSQL, fallback to JSON seed. */
@@ -167,10 +171,10 @@ export async function getAllProducts(): Promise<ProductItem[]> {
     const dbProducts = await prisma.products.findMany({
       where: { deleted_at: null },
       include: {
-        collections: true,
-        subcategories: true,
-        product_images: { orderBy: [{ position: 'asc' }, { id: 'asc' }] },
-        product_variants: { orderBy: [{ position: 'asc' }, { id: 'asc' }] }
+        collection: true,
+        subcategory: true,
+        ProductImages: { orderBy: [{ position: 'asc' }, { id: 'asc' }] },
+        ProductVariants: { orderBy: [{ position: 'asc' }, { id: 'asc' }] }
       },
       orderBy: { name: 'asc' }
     });
@@ -186,11 +190,11 @@ export async function getAllProducts(): Promise<ProductItem[]> {
           }
         }
 
-        const imageList = p.product_images.map((img) => img.url).filter(Boolean);
+        const imageList = p.ProductImages.map((img: any) => img.url).filter(Boolean);
         const primaryImage = imageList[0] || '';
         const allImages = imageList.length > 0 ? imageList : (primaryImage ? [primaryImage] : []);
 
-        const variants: ProductVariant[] = p.product_variants.map((v) => {
+        const variants: ProductVariant[] = p.ProductVariants.map((v: any) => {
           const label = [v.size, v.colour].filter(Boolean).join(' / ') || 'Standard Variant';
           return {
             id: v.id,
@@ -205,16 +209,16 @@ export async function getAllProducts(): Promise<ProductItem[]> {
           };
         });
 
-        const normColKey = normalizeCollectionKey(p.collections?.key || '');
+        const normColKey = normalizeCollectionKey(p.collection?.key || '');
         const firstPrice = variants[0]?.sellingPrice || null;
 
         const isPurchasable = isProductPurchasable({
           slug: p.slug,
           name: p.name,
           collectionKey: normColKey,
-          collection: p.collections?.name || '',
-          subcategoryKey: p.subcategories?.key || '',
-          subcategory: p.subcategories?.name || '',
+          collection: p.collection?.name || '',
+          subcategoryKey: p.subcategory?.key || '',
+          subcategory: p.subcategory?.name || '',
           isPurchasable: Boolean(p.is_purchasable)
         });
         const finalPrice = isPurchasable ? (firstPrice || 499) : null;
@@ -224,11 +228,11 @@ export async function getAllProducts(): Promise<ProductItem[]> {
           slug: p.slug,
           name: p.name,
           collectionKey: normColKey,
-          collection: p.collections?.name || '',
-          subcategoryKey: normalizeSubcategoryKey(p.subcategories?.key || ''),
-          subcategory: p.subcategories?.name || '',
-          mainCategory: p.collections?.name || '',
-          subCategory: p.subcategories?.name || '',
+          collection: p.collection?.name || '',
+          subcategoryKey: normalizeSubcategoryKey(p.subcategory?.key || ''),
+          subcategory: p.subcategory?.name || '',
+          mainCategory: p.collection?.name || '',
+          subCategory: p.subcategory?.name || '',
           isPurchasable,
           giftEligible: Boolean(p.gift_eligible),
           price: finalPrice,
@@ -290,7 +294,11 @@ export async function getAllProducts(): Promise<ProductItem[]> {
 
 export async function getActiveProducts(): Promise<ProductItem[]> {
   const all = await getAllProducts();
-  return all.filter(p => !p.mergedTo);
+  return all.filter(p =>
+    !p.mergedTo &&
+    p.collectionKey !== 'dummy_collection' &&
+    p.slug !== 'dummy-product'
+  );
 }
 
 export async function getCollectionByKey(key: string): Promise<Collection | undefined> {

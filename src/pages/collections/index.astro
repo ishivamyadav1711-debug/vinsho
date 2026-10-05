@@ -1,5 +1,5 @@
 ---
-export const prerender = true;
+export const prerender = false;
 
 import Base from '../../layouts/Base.astro';
 import Nav from '../../components/Nav.astro';
@@ -9,8 +9,8 @@ import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import ProductCard from '../../components/ProductCard.astro';
 import { getCollections, getActiveProducts, getCollectionProductCount, getSubcategoryProductCount } from '../../utils/taxonomy';
 
-const collections = getCollections();
-const activeProducts = getActiveProducts();
+const collections = await getCollections();
+const activeProducts = await getActiveProducts();
 
 const breadcrumbItems = [
   { label: 'Home', url: '/' },

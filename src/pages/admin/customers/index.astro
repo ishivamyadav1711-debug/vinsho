@@ -16,8 +16,7 @@ const customers = await prisma.customers.findMany({
     OR: [
       { name: { contains: q, mode: 'insensitive' } },
       { email: { contains: q, mode: 'insensitive' } },
-      { phone: { contains: q, mode: 'insensitive' } },
-      { company: { contains: q, mode: 'insensitive' } }
+      { phone: { contains: q, mode: 'insensitive' } }
     ]
   } : undefined,
   orderBy: { created_at: 'desc' }
@@ -61,7 +60,7 @@ const customers = await prisma.customers.findMany({
               <th>Address / Location</th>
               <th>Lead Source</th>
               <th>Converted Date</th>
-              <th>Lead Reference</th>
+              <th>Customer Profile</th>
             </tr>
           </thead>
           <tbody>
@@ -75,18 +74,14 @@ const customers = await prisma.customers.findMany({
                   <td>
                     <span class="cust-name">{cust.name}</span>
                   </td>
-                  <td>{cust.company || <span class="muted">&mdash;</span>}</td>
+                  <td><span class="muted">&mdash;</span></td>
                   <td><a href={`tel:${cust.phone}`} class="link">{cust.phone}</a></td>
                   <td><a href={`mailto:${cust.email}`} class="link">{cust.email || '&mdash;'}</a></td>
-                  <td>{cust.address || <span class="muted">&mdash;</span>}</td>
+                  <td>{cust.city || <span class="muted">&mdash;</span>}</td>
                   <td><span class="source-tag">{cust.source || 'Website'}</span></td>
-                  <td>{new Date(cust.converted_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                  <td>{new Date(cust.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
                   <td>
-                    {cust.lead_id ? (
-                      <a href={`/admin/leads/${cust.lead_id}`} class="lead-ref-link">View Lead #{cust.lead_id} &rarr;</a>
-                    ) : (
-                      <span class="muted">&mdash;</span>
-                    )}
+                    <a href={`/crm/leads/${cust.id}`} class="lead-ref-link">View Profile #{cust.id} &rarr;</a>
                   </td>
                 </tr>
               ))

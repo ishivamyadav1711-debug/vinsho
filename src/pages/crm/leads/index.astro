@@ -44,7 +44,7 @@ const orderByMap: Record<string, any> = {
 const orderBy = orderByMap[sortFilter] || { created_at: 'desc' };
 
 const [leads, users] = await Promise.all([
-  prisma.leads.findMany({ where, orderBy }),
+  prisma.customers.findMany({ where, orderBy }),
   prisma.adminUsers.findMany({ select: { id: true, name: true }, orderBy: { name: 'asc' } })
 ]);
 
@@ -103,7 +103,7 @@ const collections = taxonomyData.collections;
 
         <select name="assignedTo" class="filter-select">
           <option value="">All Team Members</option>
-          {users.map(u => (
+          {users.map((u: any) => (
             <option value={u.name} selected={assignedFilter === u.name}>{u.name}</option>
           ))}
         </select>
@@ -166,7 +166,7 @@ const collections = taxonomyData.collections;
                 <td colspan="12" class="empty-cell">No leads match the selected criteria.</td>
               </tr>
             ) : (
-              leads.map((lead) => (
+              leads.map((lead: any) => (
                 <tr>
                   <td>
                     <a href={`/crm/leads/${lead.id}`} class="lead-link">{lead.name}</a>
@@ -265,7 +265,7 @@ const collections = taxonomyData.collections;
             <label>Assign To</label>
             <select name="assignedTo">
               <option value={user.name}>Myself ({user.name})</option>
-              {users.map(u => (
+              {users.map((u: any) => (
                 <option value={u.name}>{u.name}</option>
               ))}
             </select>

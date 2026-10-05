@@ -1,8 +1,8 @@
 ---
 import { getCollections, getActiveProducts } from '../utils/taxonomy';
 
-const collections = getCollections();
-const activeProducts = getActiveProducts();
+const collections = await getCollections();
+const activeProducts = await getActiveProducts();
 const totalCount = activeProducts.length;
 
 
@@ -47,7 +47,7 @@ const totalCount = activeProducts.length;
         <span class="fp-group-icon">&minus;</span>
       </button>
       <div class="fp-group-content">
-        {collections.map((col) => (
+        {collections.map((col: any) => (
           <label class="custom-checkbox-label">
             <input type="checkbox" name="col" value={col.key} class="custom-checkbox-input" />
             <span class="checkbox-box">

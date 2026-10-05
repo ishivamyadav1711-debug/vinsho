@@ -231,7 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
         addLocalCartItem({
           slug,
           name,
-          price,
+          price: price ?? undefined,
           image,
           quantity: currentQty || 1
         });
@@ -259,7 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
         addLocalCartItem({
           slug,
           name,
-          price,
+          price: price ?? undefined,
           image,
           quantity: 1
         });

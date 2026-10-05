@@ -38,15 +38,15 @@ if (order.customer_id !== customer.id) {
 }
 
 // Query Order Items with variant, product, and primary image
-const rawItems = await prisma.order_items.findMany({
+const rawItems = await prisma.orderItems.findMany({
   where: { order_id: order.id },
   include: {
-    product_variants: {
+    variant: {
       include: {
-        products: {
+        product: {
           include: {
-            product_images: {
-              where: { is_primary: 1 },
+            ProductImages: {
+              where: { is_primary: true },
               take: 1
             }
           }
@@ -56,10 +56,10 @@ const rawItems = await prisma.order_items.findMany({
   }
 });
 
-const items = rawItems.map((oi: any) => ({
+const items = rawItems.map((oi) => ({
   ...oi,
-  image_url: oi.product_variants?.products?.product_images?.[0]?.url || null,
-  product_slug: oi.product_variants?.products?.slug || null
+  image_url: oi.variant?.product?.ProductImages?.[0]?.url || null,
+  product_slug: oi.variant?.product?.slug || null
 }));
 
 // Query Shipping Address
@@ -135,10 +135,10 @@ const formattedDate = order.placed_at ? new Date(order.placed_at).toLocaleDateSt
                       )}
                     </h3>
                     <p class="item-variant">Variant: {item.variant_label_snapshot}</p>
-                    <p class="item-qty-rate">₹{item.unit_price_snapshot.toLocaleString('en-IN')} &times; {item.qty}</p>
+                    <p class="item-qty-rate">₹{Number(item.unit_price_snapshot).toLocaleString('en-IN')} &times; {item.qty}</p>
                   </div>
                   <div class="item-total-box">
-                    <span class="item-total-val">₹{item.line_total.toLocaleString('en-IN')}</span>
+                    <span class="item-total-val">₹{Number(item.line_total).toLocaleString('en-IN')}</span>
                   </div>
                 </div>
               ))}
@@ -170,26 +170,26 @@ const formattedDate = order.placed_at ? new Date(order.placed_at).toLocaleDateSt
               <div class="cost-lines">
                 <div class="cost-row">
                   <span>Subtotal:</span>
-                  <strong>₹{order.subtotal.toLocaleString('en-IN')}</strong>
+                  <strong>₹{Number(order.subtotal).toLocaleString('en-IN')}</strong>
                 </div>
                 <div class="cost-row">
                   <span>Estimated Tax (GST):</span>
-                  <strong>₹{order.tax_total.toLocaleString('en-IN')}</strong>
+                  <strong>₹{Number(order.tax_total).toLocaleString('en-IN')}</strong>
                 </div>
                 <div class="cost-row">
                   <span>Shipping Fee:</span>
-                  <strong class="free-text">{order.shipping_total === 0 ? 'FREE' : `₹${order.shipping_total}`}</strong>
+                  <strong class="free-text">{Number(order.shipping_total) === 0 ? 'FREE' : `₹${order.shipping_total}`}</strong>
                 </div>
-                {order.discount_total > 0 && (
+                {Number(order.discount_total) > 0 && (
                   <div class="cost-row discount">
                     <span>Discount:</span>
-                    <strong>- ₹{order.discount_total.toLocaleString('en-IN')}</strong>
+                    <strong>- ₹{Number(order.discount_total).toLocaleString('en-IN')}</strong>
                   </div>
                 )}
                 <div class="cost-divider"></div>
                 <div class="cost-row total-line">
                   <span>Grand Total:</span>
-                  <span class="grand-val">₹{order.grand_total.toLocaleString('en-IN')}</span>
+                  <span class="grand-val">₹{Number(order.grand_total).toLocaleString('en-IN')}</span>
                 </div>
               </div>
             </div>

@@ -7,6 +7,7 @@ import { HamperSummary } from './HamperSummary';
 import { HamperPersonalization } from './HamperPersonalization';
 import { HamperPreview } from './HamperPreview';
 import { CurateHamperWizard } from './curate/CurateHamperWizard';
+import { getLocalCartState, type LocalCartItem } from '../../scripts/cart-store';
 
 interface HamperBuilderProps {
   products: GiftProduct[];
@@ -83,7 +84,7 @@ export const HamperBuilder: React.FC<HamperBuilderProps> = ({ products }) => {
 
           // Reconstruct selected items by matching products & variants
           const restoredItems: SelectedHamperItem[] = [];
-          hData.items.forEach(hItem => {
+          hData.items.forEach((hItem: any) => {
             const foundProd = products.find(p => p.slug === hItem.productSlug);
             if (foundProd) {
               const foundVariant = (foundProd.variants && foundProd.variants.length > 0)

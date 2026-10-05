@@ -250,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
     ScrollTrigger.create({
       start: 80,
       onUpdate: (self) => {
-        const currentScroll = self.scroll;
+        const currentScroll = self.scroll();
         if (currentScroll > 80) {
           mainNav.classList.add('scrolled');
         } else {

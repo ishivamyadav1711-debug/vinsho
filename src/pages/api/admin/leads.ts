@@ -1,9 +1,10 @@
 import type { APIRoute } from 'astro';
-import { db } from '../../../lib/db';
-import { getSessionUser, logAuditAction } from '../../../lib/auth';
+import { prisma } from '../../../lib/db';
+import { getSessionUser } from '../../../lib/auth';
+import { logCrmActivity } from '../../../lib/crm';
 
-export const GET: APIRoute = async ({ request }) => {
-  const user = getSessionUser(request);
+export const GET: APIRoute = async ({ request, url }) => {
+  const user = await getSessionUser(request);
   if (!user) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
       status: 401,
@@ -11,57 +12,42 @@ export const GET: APIRoute = async ({ request }) => {
     });
   }
 
-  const url = new URL(request.url);
   const q = (url.searchParams.get('q') || '').trim().toLowerCase();
   const status = url.searchParams.get('status') || '';
   const source = url.searchParams.get('source') || '';
-  const collectionKey = url.searchParams.get('collectionKey') || '';
   const assignedTo = url.searchParams.get('assignedTo') || '';
   const sort = url.searchParams.get('sort') || 'newest';
 
-  let sql = 'SELECT * FROM leads WHERE 1=1';
-  const params: any[] = [];
+  const whereClause: any = {
+    status: status || 'Lead',
+    deleted_at: null
+  };
 
   if (q) {
-    sql += ' AND (LOWER(name) LIKE ? OR LOWER(email) LIKE ? OR LOWER(phone) LIKE ? OR LOWER(company) LIKE ? OR LOWER(product_slug) LIKE ?)';
-    const term = `%${q}%`;
-    params.push(term, term, term, term, term);
-  }
-
-  if (status) {
-    sql += ' AND status = ?';
-    params.push(status);
+    whereClause.OR = [
+      { name: { contains: q, mode: 'insensitive' } },
+      { email: { contains: q, mode: 'insensitive' } },
+      { phone: { contains: q, mode: 'insensitive' } },
+      { city: { contains: q, mode: 'insensitive' } }
+    ];
   }
 
   if (source) {
-    sql += ' AND source = ?';
-    params.push(source);
+    whereClause.source = source;
   }
 
-  if (collectionKey) {
-    sql += ' AND collection_key = ?';
-    params.push(collectionKey);
-  }
+  const orderByMap: Record<string, any> = {
+    'oldest': { created_at: 'asc' },
+    'name': { name: 'asc' },
+    'last_contact': { updated_at: 'desc' },
+    'newest': { created_at: 'desc' }
+  };
+  const orderBy = orderByMap[sort] || { created_at: 'desc' };
 
-  if (assignedTo) {
-    sql += ' AND assigned_to = ?';
-    params.push(assignedTo);
-  }
-
-  // Sorting
-  if (sort === 'oldest') {
-    sql += ' ORDER BY created_at ASC';
-  } else if (sort === 'name') {
-    sql += ' ORDER BY name ASC';
-  } else if (sort === 'last_contact') {
-    sql += ' ORDER BY last_contact_at DESC';
-  } else if (sort === 'next_follow_up') {
-    sql += ' ORDER BY next_follow_up_at ASC';
-  } else {
-    sql += ' ORDER BY created_at DESC';
-  }
-
-  const leads = db.prepare(sql).all(...params);
+  const leads = await prisma.customers.findMany({
+    where: whereClause,
+    orderBy
+  });
 
   return new Response(JSON.stringify({ leads, total: leads.length }), {
     status: 200,
@@ -70,7 +56,7 @@ export const GET: APIRoute = async ({ request }) => {
 };
 
 export const POST: APIRoute = async ({ request }) => {
-  const user = getSessionUser(request);
+  const user = await getSessionUser(request);
   if (!user) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
       status: 401,
@@ -89,48 +75,66 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    const now = new Date().toISOString();
-    const leadId = 'ld-' + Date.now() + '-' + Math.random().toString(36).substr(2, 4);
+    const now = new Date();
+    const cleanPhone = (phone || '').trim();
+    const cleanEmail = (email || '').trim().toLowerCase() || null;
 
-    db.prepare(`
-      INSERT INTO leads (id, name, email, phone, company, location, source, status, assigned_to, collection_key, subcategory_key, product_slug, budget, requirement, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      leadId,
-      name.trim(),
-      (email || '').trim().toLowerCase(),
-      (phone || '').trim(),
-      (company || '').trim(),
-      (location || '').trim(),
-      source || 'Manual Entry',
-      status || 'NEW',
-      assignedTo || user.name,
-      collectionKey || '',
-      subcategoryKey || '',
-      productSlug || '',
-      budget || '',
-      requirement || '',
-      now,
-      now
-    );
+    // Create lead customer profile in PostgreSQL
+    const customer = await prisma.customers.create({
+      data: {
+        name: name.trim(),
+        email: cleanEmail,
+        phone: cleanPhone || 'Not Provided',
+        city: (location || '').trim(),
+        source: source || 'Manual Entry',
+        status: 'Lead',
+        consent_at: now,
+        consent_purpose: 'Manual lead registration under DPDP Act 2023',
+        created_at: now,
+        updated_at: now
+      }
+    });
 
-    logAuditAction(user.id, user.name, 'CREATE_LEAD', `leads:${leadId}`, `Created new lead for ${name}`);
+    // Create initial Enquiry record if requirement or product details supplied
+    let productId: number | null = null;
+    if (productSlug) {
+      const prod = await prisma.products.findFirst({
+        where: { slug: productSlug, deleted_at: null },
+        select: { id: true }
+      });
+      if (prod) productId = prod.id;
+    }
 
-    // Initial activity
-    db.prepare(`
-      INSERT INTO lead_activities (id, lead_id, user_id, user_name, type, notes, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `).run(
-      'act-' + Date.now(),
-      leadId,
-      user.id,
-      user.name,
-      'NOTE',
-      `Lead created manually by ${user.name}`,
-      now
-    );
+    const message = [
+      company ? `Company: ${company}` : '',
+      budget ? `Budget: ${budget}` : '',
+      requirement ? `Requirement: ${requirement}` : ''
+    ].filter(Boolean).join('\n\n');
 
-    return new Response(JSON.stringify({ success: true, leadId }), {
+    const enquiry = await prisma.enquiries.create({
+      data: {
+        customer_id: customer.id,
+        product_id: productId,
+        name: name.trim(),
+        phone: cleanPhone || 'Not Provided',
+        email: cleanEmail,
+        message,
+        source: source || 'Manual Entry',
+        status: 'New',
+        created_at: now,
+        updated_at: now
+      }
+    });
+
+    await logCrmActivity({
+      entityType: 'customer',
+      entityId: customer.id,
+      actorId: user.id,
+      type: 'LEAD_CREATED',
+      summary: `Lead created manually by ${user.name} (${customer.name})`
+    });
+
+    return new Response(JSON.stringify({ success: true, leadId: customer.id, customerId: customer.id, enquiryId: enquiry.id }), {
       status: 201,
       headers: { 'Content-Type': 'application/json' }
     });

@@ -15,6 +15,14 @@ interface GiftProductGridProps {
 export const MIN_HAMPER_ITEMS = 2;
 export const MAX_HAMPER_ITEMS = 8;
 
+export const BUDGET_OPTIONS: BudgetOption[] = [
+  { id: 'all', label: 'All Budgets', minPrice: 0, maxPrice: null },
+  { id: 'under_1000', label: 'Under ₹1,000', minPrice: 0, maxPrice: 1000 },
+  { id: '1000_2500', label: '₹1,000 – ₹2,500', minPrice: 1000, maxPrice: 2500 },
+  { id: '2500_5000', label: '₹2,500 – ₹5,000', minPrice: 2500, maxPrice: 5000 },
+  { id: 'above_5000', label: 'Above ₹5,000', minPrice: 5000, maxPrice: null }
+];
+
 export const GiftProductGrid: React.FC<GiftProductGridProps> = ({
   products,
   selectedItemsMap,

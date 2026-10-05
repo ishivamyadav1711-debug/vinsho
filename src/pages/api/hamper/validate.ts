@@ -57,16 +57,16 @@ export const POST: APIRoute = async ({ request }) => {
 
       const numVariantId = Number(item.variantId);
       if (item.variantId && !isNaN(numVariantId) && numVariantId !== 0) {
-        const found = await prisma.product_variants.findFirst({
+        const found = await prisma.productVariants.findFirst({
           where: {
             id: numVariantId,
-            products: { deleted_at: null }
+            product: { deleted_at: null }
           },
           include: {
-            products: {
+            product: {
               include: {
-                product_images: {
-                  where: { is_primary: 1 },
+                ProductImages: {
+                  where: { is_primary: true },
                   take: 1
                 }
               }
@@ -77,17 +77,17 @@ export const POST: APIRoute = async ({ request }) => {
         if (found) {
           variantRow = {
             ...found,
-            prod_slug: found.products?.slug,
-            prod_name: found.products?.name,
-            primary_image: found.products?.product_images?.[0]?.url || null
+            prod_slug: found.product?.slug,
+            prod_name: found.product?.name,
+            primary_image: found.product?.ProductImages?.[0]?.url || null
           };
         }
       }
 
       if (!variantRow && item.productSlug) {
-        const found = await prisma.product_variants.findFirst({
+        const found = await prisma.productVariants.findFirst({
           where: {
-            products: {
+            product: {
               slug: item.productSlug,
               deleted_at: null
             }
@@ -97,10 +97,10 @@ export const POST: APIRoute = async ({ request }) => {
             { id: 'asc' }
           ],
           include: {
-            products: {
+            product: {
               include: {
-                product_images: {
-                  where: { is_primary: 1 },
+                ProductImages: {
+                  where: { is_primary: true },
                   take: 1
                 }
               }
@@ -111,9 +111,9 @@ export const POST: APIRoute = async ({ request }) => {
         if (found) {
           variantRow = {
             ...found,
-            prod_slug: found.products?.slug,
-            prod_name: found.products?.name,
-            primary_image: found.products?.product_images?.[0]?.url || null
+            prod_slug: found.product?.slug,
+            prod_name: found.product?.name,
+            primary_image: found.product?.ProductImages?.[0]?.url || null
           };
         }
       }
@@ -153,7 +153,8 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // Server-side packaging cost calculation
-    const pkgChoice = PACKAGING_PRICES[payload.packaging?.id] || { name: 'Signature Cork Box', price: 350 };
+    const pkgId = payload.packaging?.id || 'box_signature_cork';
+    const pkgChoice = PACKAGING_PRICES[pkgId as keyof typeof PACKAGING_PRICES] || { name: 'Signature Cork Box', price: 350 };
     const packagingCost = pkgChoice.price;
     const serverTotal = serverSubtotal + packagingCost;
 

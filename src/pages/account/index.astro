@@ -27,7 +27,7 @@ const ordersRaw = await prisma.orders.findMany({
     currency: true,
     placed_at: true,
     created_at: true,
-    order_items: {
+    OrderItems: {
       select: {
         id: true,
         product_name_snapshot: true,
@@ -35,12 +35,16 @@ const ordersRaw = await prisma.orders.findMany({
         unit_price_snapshot: true,
         qty: true,
         line_total: true,
-        product_variants: {
+        variant: {
           select: {
-            product_images: {
-              where: { is_primary: true },
-              take: 1,
-              select: { url: true }
+            product: {
+              select: {
+                ProductImages: {
+                  where: { is_primary: true },
+                  take: 1,
+                  select: { url: true }
+                }
+              }
             }
           }
         }
@@ -56,11 +60,11 @@ const enrichedOrders = ordersRaw.map((o) => ({
   tax_total: Number(o.tax_total ?? 0),
   shipping_total: Number(o.shipping_total ?? 0),
   discount_total: Number(o.discount_total ?? 0),
-  items: o.order_items.map(oi => ({
+  items: o.OrderItems.map(oi => ({
     ...oi,
     unit_price_snapshot: Number(oi.unit_price_snapshot ?? 0),
     line_total: Number(oi.line_total ?? 0),
-    image_url: oi.product_variants?.product_images?.[0]?.url || null
+    image_url: oi.variant?.product?.ProductImages?.[0]?.url || null
   }))
 }));
 

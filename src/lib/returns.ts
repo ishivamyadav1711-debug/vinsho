@@ -34,10 +34,10 @@ export async function requestReturn(params: RequestReturnParams): Promise<{ succ
     return { success: false, error: 'Order line item not found.' };
   }
 
-  const p = orderItem.variant.product;
+  const p = orderItem.variant?.product;
 
   // 2. Made-to-order and bulky products are non-returnable. Enforced at request time!
-  if (p.shipping_class === 'made-to-order' || p.shipping_class === 'bulky' || !p.returnable) {
+  if (p && (p.shipping_class === 'made-to-order' || p.shipping_class === 'bulky' || !p.returnable)) {
     return {
       success: false,
       error: `Return rejected: Items with shipping class '${p.shipping_class}' are non-returnable.`
@@ -85,7 +85,7 @@ export async function requestReturn(params: RequestReturnParams): Promise<{ succ
       data: {
         return_id: returnId,
         order_item_id: params.orderItemId,
-        variant_id: orderItem.variant_id,
+        variant_id: orderItem.variant_id ?? 0,
         qty: params.qty,
         unit_price: unitPrice,
         tax_amount: unitTax * params.qty,

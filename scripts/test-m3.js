@@ -24,11 +24,42 @@ function calculateShipping(items, pincode, subtotal) {
 
 console.log('--- Running VINSHO Milestone 3 Automated Test Suite ---');
 
-const dbPath = path.join(process.cwd(), 'data', 'vinsho.db');
-const db = new Database(dbPath);
+// Isolated in-memory database to prevent test pollution in physical databases
+const db = new Database(':memory:');
 
-// Ensure M3 Schema Tables Exist
+// Ensure M3 Schema Tables Exist in-memory
 db.exec(`
+  CREATE TABLE IF NOT EXISTS customers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    phone TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS addresses (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    customer_id INTEGER NOT NULL,
+    type TEXT NOT NULL,
+    name TEXT NOT NULL,
+    phone TEXT NOT NULL,
+    line1 TEXT NOT NULL,
+    city TEXT NOT NULL,
+    state TEXT NOT NULL,
+    pincode TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS products (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    slug TEXT UNIQUE NOT NULL,
+    name TEXT NOT NULL,
+    collection_id INTEGER DEFAULT 1,
+    subcategory_id INTEGER DEFAULT 1,
+    shipping_class TEXT DEFAULT 'standard',
+    is_purchasable INTEGER DEFAULT 1
+  );
+
   CREATE TABLE IF NOT EXISTS product_variants (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     product_id INTEGER NOT NULL,
@@ -37,7 +68,9 @@ db.exec(`
     selling_price REAL,
     hsn_code TEXT,
     gst_rate REAL,
-    stock INTEGER NOT NULL DEFAULT 0
+    stock INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
   );
 
   CREATE TABLE IF NOT EXISTS inventory_txns (
@@ -80,6 +113,9 @@ db.exec(`
     tax_total REAL NOT NULL,
     shipping_total REAL NOT NULL,
     grand_total REAL NOT NULL,
+    shipping_address_id INTEGER DEFAULT NULL,
+    billing_address_id INTEGER DEFAULT NULL,
+    placed_at TEXT DEFAULT NULL,
     idempotency_key TEXT UNIQUE NOT NULL,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
@@ -100,6 +136,8 @@ db.exec(`
     line_total REAL NOT NULL
   );
 `);
+
+db.prepare("INSERT INTO products (slug, name) VALUES ('test-m3-item', 'Test M3 Item')").run();
 
 let totalPassed = 0;
 let totalFailed = 0;

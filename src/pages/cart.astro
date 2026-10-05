@@ -6,7 +6,7 @@ import Modal from '../components/Modal.astro';
 import CustomCursor from '../components/motion/CustomCursor.astro';
 import { getProductsByCollection } from '../utils/taxonomy';
 
-const upsellProducts = getProductsByCollection('gifting-collection').slice(0, 4);
+const upsellProducts = (await getProductsByCollection('gifting-collection')).slice(0, 4);
 ---
 
 <Base 

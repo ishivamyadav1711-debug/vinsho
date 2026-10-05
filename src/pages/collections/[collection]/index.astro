@@ -1,5 +1,5 @@
 ---
-export const prerender = true;
+export const prerender = false;
 
 import Base from '../../../layouts/Base.astro';
 import Nav from '../../../components/Nav.astro';
@@ -10,35 +10,15 @@ import ProductCard from '../../../components/ProductCard.astro';
 import Modal from '../../../components/Modal.astro';
 import { getCollections, getCollectionByKey, getProductsByCollection, getCollectionProductCount, getSubcategoryProductCount } from '../../../utils/taxonomy';
 
-export function getStaticPaths() {
-  const collections = getCollections();
-  const paths: Array<{ params: { collection: string } }> = [];
-
-  collections.forEach((col) => {
-    paths.push({ params: { collection: col.key } });
-    if (col.key === 'gifting-collection') {
-      paths.push({ params: { collection: 'gifting' } });
-    }
-    if (col.key === 'home-furnishing') {
-      paths.push({ params: { collection: 'home-furnishings' } });
-    }
-    if (col.key === 'home-decor') {
-      paths.push({ params: { collection: 'decor' } });
-    }
-  });
-
-  return paths;
-}
-
 const { collection: collectionKey } = Astro.params;
-const collection = getCollectionByKey(collectionKey);
+const collection = collectionKey ? await getCollectionByKey(collectionKey) : null;
 
 if (!collection) {
-  throw new Error(`Collection not found: ${collectionKey}`);
+  return Astro.redirect('/collections');
 }
 
-const totalCount = getCollectionProductCount(collection.key);
-const products = getProductsByCollection(collection.key);
+const totalCount = await getCollectionProductCount(collection.key);
+const products = await getProductsByCollection(collection.key);
 
 const breadcrumbItems = [
   { label: 'Home', url: '/' },

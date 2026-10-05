@@ -1,26 +1,30 @@
 import type { APIRoute } from 'astro';
-import { db } from '../../../../../lib/db.js';
+import { prisma } from '../../../../../lib/db.js';
 import { getSessionUser } from '../../../../../lib/auth.js';
 import { logCrmActivity } from '../../../../../lib/crm.js';
 
 export const GET: APIRoute = async ({ request, params }) => {
-  const user = getSessionUser(request);
+  const user = await getSessionUser(request);
   if (!user) {
     return new Response(JSON.stringify({ error: 'Unauthorized admin access.' }), { status: 401 });
   }
 
   const id = parseInt(params.id || '0', 10);
-  const customer = db.prepare('SELECT * FROM customers WHERE id = ?').get(id) as any;
+  const customer = await prisma.customers.findUnique({
+    where: { id }
+  });
 
   if (!customer) {
     return new Response(JSON.stringify({ error: 'Customer not found.' }), { status: 404 });
   }
 
-  const enquiries = db.prepare('SELECT * FROM enquiries WHERE customer_id = ?').all(id);
-  const notes = db.prepare('SELECT * FROM crm_notes WHERE entity_type = ? AND entity_id = ?').all('customer', id);
-  const activities = db.prepare('SELECT * FROM crm_activities WHERE entity_type = ? AND entity_id = ?').all('customer', id);
+  const [enquiries, notes, activities] = await Promise.all([
+    prisma.enquiries.findMany({ where: { customer_id: id } }),
+    prisma.crmNotes.findMany({ where: { entity_type: 'customer', entity_id: id } }),
+    prisma.crmActivities.findMany({ where: { entity_type: 'customer', entity_id: id } })
+  ]);
 
-  logCrmActivity({
+  await logCrmActivity({
     entityType: 'customer',
     entityId: id,
     actorId: user.id,

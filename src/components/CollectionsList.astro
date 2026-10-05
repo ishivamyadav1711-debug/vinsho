@@ -2,17 +2,17 @@
 import TextReveal from './motion/TextReveal.astro';
 import { getCollections, getCollectionProductCount, getActiveProducts } from '../utils/taxonomy';
 
-const collections = getCollections();
-const activeProducts = getActiveProducts();
+const collections = await getCollections();
+const activeProducts = await getActiveProducts();
 
-const collectionItems = collections.map((col, idx) => {
-  const colProducts = activeProducts.filter(p => p.collectionKey === col.key);
-  const images = colProducts.map(p => ({
+const collectionItems = collections.map((col: any, idx: any) => {
+  const colProducts = activeProducts.filter((p: any) => p.collectionKey === col.key);
+  const images = colProducts.map((p: any) => ({
     url: p.image || '/placeholder.png',
     title: p.name,
     price: p.sellingPrice || p.price || 0,
     slug: p.slug
-  })).filter(i => i.url);
+  })).filter((i: any) => i.url);
 
   const primaryImage = images[0]?.url || '/placeholder.png';
 
@@ -40,7 +40,7 @@ const collectionItems = collections.map((col, idx) => {
   <div class="collections-split-layout">
     <!-- Left Column: Editorial Directory Rows -->
     <div class="collections-rows-list">
-      {collectionItems.map((item) => (
+      {collectionItems.map((item: any) => (
         <div class="collection-row-item" data-col-target={item.key}>
           <a href={`/collections/${item.key}`} class="row-header-link">
             <div class="row-left">
@@ -67,10 +67,10 @@ const collectionItems = collections.map((col, idx) => {
     <!-- Right Column: Desktop Dynamic Product Image Showcase -->
     <div class="collections-right-showcase" aria-hidden="true">
       <div class="showcase-frame">
-        {collectionItems.map((item, idx) => (
+        {collectionItems.map((item: any, idx: any) => (
           <div class={`showcase-slide ${idx === 0 ? 'active' : ''}`} data-col-slide={item.key}>
             <div class="showcase-grid-preview">
-              {item.productImages.slice(0, 4).map((prod, pIdx) => (
+              {item.productImages.slice(0, 4).map((prod: any, pIdx: any) => (
                 <div class={`showcase-img-box img-box-${pIdx + 1}`}>
                   <img src={prod.url} alt={prod.title} loading="lazy" />
                   <div class="img-box-overlay">

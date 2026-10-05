@@ -3,7 +3,7 @@ import { getSessionUser } from '../../../../../lib/auth.js';
 import { convertQuotationToOrder } from '../../../../../lib/quotations.js';
 
 export const POST: APIRoute = async ({ request, params }) => {
-  const user = getSessionUser(request);
+  const user = await getSessionUser(request);
   if (!user) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
   }
@@ -14,7 +14,7 @@ export const POST: APIRoute = async ({ request, params }) => {
   }
 
   try {
-    const order = convertQuotationToOrder(quoteId, user.id);
+    const order = await convertQuotationToOrder(quoteId, user.id);
     return new Response(JSON.stringify({ success: true, order }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' }

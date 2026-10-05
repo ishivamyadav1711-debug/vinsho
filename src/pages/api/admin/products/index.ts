@@ -44,7 +44,7 @@ export const GET: APIRoute = async ({ request, url }) => {
   const products = await prisma.products.findMany({
     where: whereClause,
     include: {
-      collections: {
+      collection: {
         select: { name: true, key: true }
       },
       subcategories: {
@@ -117,14 +117,14 @@ export const POST: APIRoute = async ({ request }) => {
         material: material || '',
         shipping_class: shipping_class || 'standard',
         launch_phase: launch_phase !== undefined ? Number(launch_phase) : 1,
-        sellable_online: sellable_online ? 1 : 0,
-        returnable: returnable ? 1 : 0,
+        sellable_online: Boolean(sellable_online),
+        returnable: Boolean(returnable),
         country_of_origin: country_of_origin || 'India',
         manufacturer_or_packer: manufacturer_or_packer || null,
         consumer_care_contact: consumer_care_contact || null,
         lead_time_days: lead_time_days ? Number(lead_time_days) : null,
         care_instructions: care_instructions || null,
-        is_purchasable: 0,
+        is_purchasable: false,
         created_at: now,
         updated_at: now,
         ...(image_url ? {

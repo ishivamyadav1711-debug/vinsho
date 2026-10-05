@@ -142,13 +142,13 @@ export function curateHamper(
     const pseudoRandom = ((idx * 17 + seedOffset * 31) % 23) - 11;
     score += pseudoRandom;
 
-    const variant = (product.variants && product.variants.length > 0)
-      ? product.variants.find(v => v.stock === null || v.stock === undefined || v.stock > 0) || product.variants[0]
+    const variant: ProductVariant = (product.variants && product.variants.length > 0)
+      ? (product.variants.find(v => v.stock === null || v.stock === undefined || v.stock > 0) || product.variants[0])
       : {
           id: 0,
-          productId: product.id,
+          productId: product.id ?? 0,
           sku: `SKU-${product.slug}`,
-          sellingPrice: product.price,
+          sellingPrice: product.price ?? 0,
           mrp: null,
           stock: 100,
           label: 'Standard Option'
@@ -266,13 +266,13 @@ export function getReplacementOptions(
     .filter(p => p.slug !== targetProductSlug && p.isPurchasable !== false)
     .slice(0, 3)
     .map(product => {
-      const variant = (product.variants && product.variants.length > 0)
+      const variant: ProductVariant = (product.variants && product.variants.length > 0)
         ? product.variants[0]
         : {
             id: 0,
-            productId: product.id,
+            productId: product.id ?? 0,
             sku: `SKU-${product.slug}`,
-            sellingPrice: product.price,
+            sellingPrice: product.price ?? 0,
             mrp: null,
             stock: 100,
             label: 'Standard Option'
