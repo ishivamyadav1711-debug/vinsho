@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.0.1",
   "engines": {
-    "node": ">=22.12.0"
+    "node": "22.x"
   },
   "scripts": {
     "dev": "astro dev",
@@ -20,7 +20,7 @@
     "test:m3": "node scripts/test-m3.js",
     "test:m4": "node scripts/test-m4.js",
     "validate:corporate-images": "node tools/validate-corporate-gifting-images.mjs",
-    "postinstall": "prisma skills sync || exit 0"
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@astrojs/react": "^6.0.4",
@@ -28,7 +28,6 @@
     "@astrojs/vercel": "^11.0.11",
     "@prisma/client": "^5.22.0",
     "@prisma/orm-postgres": "^8.0.0-rc.14",
-    "@studio-freight/lenis": "^1.0.42",
     "@supabase/server": "^1.9.0",
     "@supabase/supabase-js": "^2.117.2",
     "@types/react": "^19.2.18",
