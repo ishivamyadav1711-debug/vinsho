@@ -131,30 +131,27 @@ export async function getCollections(): Promise<Collection[]> {
   try {
     const dbCols = await prisma.collections.findMany({
       where: { deleted_at: null, NOT: { key: 'dummy_collection' } },
+      include: {
+        Subcategories: {
+          where: { deleted_at: null },
+          orderBy: { order_index: 'asc' }
+        }
+      },
       orderBy: { order_index: 'asc' }
     });
 
     if (dbCols && dbCols.length > 0) {
-      const result: Collection[] = await Promise.all(
-        dbCols.map(async (c) => {
-          const subRows = await prisma.subcategories.findMany({
-            where: { collection_id: c.id, deleted_at: null },
-            orderBy: { order_index: 'asc' }
-          });
-          return {
-            key: c.key,
-            name: c.name,
-            blurb: c.blurb || '',
-            order: c.order_index ?? undefined,
-            subcategories: subRows.map((s) => ({
-              key: s.key,
-              name: s.name,
-              blurb: s.blurb || ''
-            }))
-          };
-        })
-      );
-      return result;
+      return dbCols.map((c) => ({
+        key: c.key,
+        name: c.name,
+        blurb: c.blurb || '',
+        order: c.order_index ?? undefined,
+        subcategories: (c.Subcategories || []).map((s) => ({
+          key: s.key,
+          name: s.name,
+          blurb: s.blurb || ''
+        }))
+      }));
     }
   } catch (err) {
     console.warn('DB taxonomy read fallback to JSON:', err);
