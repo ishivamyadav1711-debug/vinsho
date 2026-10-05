@@ -3,96 +3,14 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 import { prisma } from '../../lib/db';
 import { getSessionUser } from '../../lib/auth';
 
+const userStart = Date.now();
 const user = await getSessionUser(Astro.request);
+console.log(`[PERF] getSessionUser: ${Date.now() - userStart}ms`);
 if (!user) {
   return Astro.redirect('/crm/login');
 }
 
-const now = new Date();
-const nowIso = now.toISOString();
-const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
-
-// Dynamic Metrics from Database via Prisma
-const [
-  totalCustomers,
-  newCustomersMonth,
-  totalEnquiries,
-  openEnquiries,
-  convertedMonth,
-  overdueFollowups
-] = await Promise.all([
-  prisma.customers.count({ where: { deleted_at: null } }),
-  prisma.customers.count({ where: { deleted_at: null, created_at: { gte: currentMonthStart, lt: nextMonthStart } } }),
-  prisma.enquiries.count(),
-  prisma.enquiries.count({ where: { status: { notIn: ['Converted', 'Lost'] } } }),
-  prisma.enquiries.count({ where: { status: 'Converted', closed_at: { gte: currentMonthStart.toISOString(), lt: nextMonthStart.toISOString() } } }),
-  prisma.followUps.count({ where: { status: 'PENDING', due_at: { lt: nowIso } } })
-]);
-
-// Enquiries by Product (Client Pricing Priority Indicator §6)
-const productDemandRaw = await prisma.enquiries.groupBy({
-  by: ['product_id'],
-  _count: { id: true },
-  orderBy: { _count: { id: 'desc' } },
-  take: 5,
-  where: { product_id: { not: null } }
-});
-
-const productDemand = await Promise.all(
-  productDemandRaw.map(async (pd) => {
-    const product = await prisma.products.findUnique({ where: { id: pd.product_id! } });
-    return {
-      name: product?.name || 'Unknown',
-      slug: product?.slug || '',
-      shipping_class: product?.shipping_class || '',
-      enquiry_count: pd._count.id
-    };
-  })
-);
-
-// Recent Enquiries Pipeline List
-const recentEnquiriesRaw = await prisma.enquiries.findMany({
-  orderBy: { created_at: 'desc' },
-  take: 10,
-  include: {
-    customer: { select: { name: true, phone: true, email: true } }
-  }
-});
-
-const prodIds = recentEnquiriesRaw.map((e: any) => e.product_id).filter(Boolean);
-const dashProducts = await prisma.products.findMany({ where: { id: { in: prodIds as number[] } }, select: { id: true, name: true }});
-const dashProductsMap = new Map(dashProducts.map((p: any) => [p.id, p]));
-
-const recentEnquiries = recentEnquiriesRaw.map((e: any) => ({
-  ...e,
-  customer_name: e.customer?.name || '',
-  customer_phone: e.customer?.phone || '',
-  customer_email: e.customer?.email || '',
-  product_name: e.product_id ? dashProductsMap.get(e.product_id)?.name : null
-}));
-
-// Overdue & Upcoming Follow-ups
-const upcomingFollowupsRaw = await prisma.followUps.findMany({
-  where: { status: 'PENDING' },
-  orderBy: { due_at: 'asc' },
-  take: 5,
-  include: { assignee: { select: { name: true } } }
-});
-const upcomingFollowups = upcomingFollowupsRaw.map((f: any) => ({
-  ...f,
-  assignee_name: f.assignee?.name || null
-}));
-
-// Recent Activity Timeline
-const recentActivitiesRaw = await prisma.crmActivities.findMany({
-  orderBy: { created_at: 'desc' },
-  take: 8
-});
-const recentActivities = recentActivitiesRaw.map((a: any) => ({
-  ...a,
-  actor_name: 'System'
-}));
+import DashboardMetrics from '../../components/crm/DashboardMetrics.astro';
 ---
 
 <AdminLayout title="CRM Lead & Enquiry Dashboard" activeNav="crm">
@@ -104,130 +22,14 @@ const recentActivities = recentActivitiesRaw.map((a: any) => ({
       </div>
     </div>
 
-    <!-- 1. Real Data Metric Summary Cards Grid -->
-    <div class="metrics-grid">
-      <div class="metric-card">
-        <span class="m-label">TOTAL CUSTOMERS</span>
-        <span class="m-val">{totalCustomers > 0 ? totalCustomers : '0'}</span>
-        <span class="m-sub">{totalCustomers === 0 ? 'No data available yet' : 'Deduplicated lead profiles'}</span>
+    <DashboardMetrics server:defer>
+      <div slot="fallback" class="dashboard-loading">
+        <svg class="spinner" viewBox="0 0 50 50">
+          <circle cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="4" stroke-dasharray="90, 150" stroke-dashoffset="0"></circle>
+        </svg>
+        <p>Loading dashboard metrics...</p>
       </div>
-
-      <div class="metric-card highlight-new">
-        <span class="m-label">OPEN ENQUIRIES</span>
-        <span class="m-val">{openEnquiries > 0 ? openEnquiries : '0'}</span>
-        <span class="m-sub">{openEnquiries === 0 ? 'No data available yet' : 'Requires sales response'}</span>
-      </div>
-
-      <div class="metric-card">
-        <span class="m-label">NEW THIS MONTH</span>
-        <span class="m-val">{newCustomersMonth > 0 ? newCustomersMonth : '0'}</span>
-        <span class="m-sub">{newCustomersMonth === 0 ? 'No data available yet' : `Captured this month`}</span>
-      </div>
-
-      <div class="metric-card">
-        <span class="m-label">CONVERTED (THIS MONTH)</span>
-        <span class="m-val">{convertedMonth > 0 ? convertedMonth : '0'}</span>
-        <span class="m-sub">{convertedMonth === 0 ? 'No data available yet' : 'Closed opportunities'}</span>
-      </div>
-
-      <div class={`metric-card ${overdueFollowups > 0 ? 'highlight-alert' : ''}`}>
-        <span class="m-label">OVERDUE FOLLOW-UPS</span>
-        <span class="m-val">{overdueFollowups > 0 ? overdueFollowups : '0'}</span>
-        <span class="m-sub">{overdueFollowups === 0 ? 'No data available yet' : 'Action required urgently'}</span>
-      </div>
-    </div>
-
-    <!-- 2. Section: Product Demand Ranking (Client Homework Priority §6) -->
-    <div class="demand-section-card">
-      <div class="card-head">
-        <h2>🔥 Enquiries by Product (Client Pricing Priority Ranking)</h2>
-        <p>Highlights which products customers are actively requesting quotes for — directly informs pricing priority!</p>
-      </div>
-      {productDemand.length > 0 ? (
-        <div class="demand-list">
-          {productDemand.map((pd, idx) => (
-            <div class="demand-item">
-              <span class="demand-rank">#{idx + 1}</span>
-              <div class="demand-info">
-                <strong>{pd.name}</strong>
-                <small>/{pd.slug} &middot; Class: {pd.shipping_class}</small>
-              </div>
-              <span class="demand-count">{pd.enquiry_count} Enquiries</span>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <p class="empty-state-msg">No data available yet. Product demand rankings will appear as customers submit enquiries.</p>
-      )}
-    </div>
-
-    <!-- 3. Section: Pipeline & Follow-ups Layout -->
-    <div class="dash-grid-2">
-      <!-- Enquiries Pipeline Table -->
-      <div class="content-card">
-        <div class="card-head">
-          <h2>Recent Enquiries Pipeline</h2>
-        </div>
-        {recentEnquiries.length > 0 ? (
-          <div class="table-scroll-container">
-            <table class="crm-table">
-              <thead>
-                <tr>
-                  <th>Customer</th>
-                  <th>Product</th>
-                  <th>Source</th>
-                  <th>Status</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentEnquiries.map(e => (
-                  <tr>
-                    <td>
-                      <strong>{e.customer_name}</strong>
-                      <small>{e.phone}</small>
-                    </td>
-                    <td>{e.product_name || 'General Inquiry'}</td>
-                    <td><span class="source-pill">{e.source}</span></td>
-                    <td><span class="status-badge" data-status={e.status}>{e.status}</span></td>
-                    <td>
-                      <button class="btn-sm-action" data-enquiry-id={e.id} onclick={`updateEnquiryStatus(${e.id})`}>
-                        Update &rarr;
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <p class="empty-state-msg">No data available yet. Public quote requests will populate here automatically.</p>
-        )}
-      </div>
-
-      <!-- Pending Follow-ups -->
-      <div class="content-card">
-        <div class="card-head">
-          <h2>Pending &amp; Overdue Follow-ups</h2>
-        </div>
-        {upcomingFollowups.length > 0 ? (
-          <div class="followup-list">
-            {upcomingFollowups.map(f => (
-              <div class="followup-item">
-                <div class="fu-info">
-                  <strong>Priority: {f.priority}</strong>
-                  <p>{f.outcome || 'Follow-up with lead regarding quote proposal.'}</p>
-                  <small>Due: {new Date(f.due_at).toLocaleString()}</small>
-                </div>
-                <button class="btn-complete-fu" onclick={`completeFollowup(${f.id})`}>Done</button>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p class="empty-state-msg">No data available yet. No pending follow-up reminders.</p>
-        )}
-      </div>
-    </div>
+    </DashboardMetrics>
   </div>
 </AdminLayout>
 
@@ -261,71 +63,63 @@ const recentActivities = recentActivitiesRaw.map((a: any) => ({
   }
 </script>
 
-<style>
-  .crm-dashboard-container { padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-  .dash-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1.5rem; }
-  .dash-title { font-size: 1.6rem; font-weight: 700; color: #0f172a; margin: 0 0 0.25rem 0; }
-  .dash-sub { font-size: 0.88rem; color: #64748b; margin: 0; }
-
-  .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
-  .metric-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 1.1rem; display: flex; flex-direction: column; }
-  .metric-card.highlight-new { border-left: 4px solid #0284c7; }
-  .metric-card.highlight-alert { border-left: 4px solid #ef4444; background: #fef2f2; }
-  .m-label { font-size: 0.72rem; font-weight: 700; color: #64748b; letter-spacing: 0.05em; }
-  .m-val { font-size: 1.8rem; font-weight: 800; color: #0f172a; margin-block: 0.25rem; }
-  .m-sub { font-size: 0.75rem; color: #94a3b8; }
-
-  .demand-section-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 1.25rem; margin-bottom: 1.5rem; }
-  .card-head h2 { font-size: 1.1rem; font-weight: 700; color: #0f172a; margin: 0 0 0.25rem 0; }
-  .card-head p { font-size: 0.813rem; color: #64748b; margin: 0 0 1rem 0; }
-
-  .demand-list { display: flex; flex-direction: column; gap: 0.6rem; }
-  .demand-item { display: flex; align-items: center; justify-content: space-between; background: #f8fafc; padding: 0.65rem 1rem; border-radius: 4px; border: 1px solid #f1f5f9; }
-  .demand-rank { font-weight: 800; font-size: 1.1rem; color: #8A174B; margin-right: 1rem; }
-  .demand-info { flex: 1; }
-  .demand-info strong { display: block; font-size: 0.88rem; color: #0f172a; }
-  .demand-info small { font-size: 0.75rem; color: #64748b; }
-  .demand-count { background: #8A174B; color: #fff; font-size: 0.781rem; font-weight: 600; padding: 0.25rem 0.65rem; border-radius: 999px; }
-
-  .dash-grid-2 { display: grid; grid-template-columns: 1fr 380px; gap: 1.5rem; }
-  .content-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 1.25rem; }
-
-  .empty-state-msg { text-align: center; color: #64748b; font-size: 0.88rem; padding: 2rem; background: #f8fafc; border-radius: 4px; border: 1px dashed #cbd5e1; }
-
-  .crm-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-top: 0.75rem; }
-  .crm-table th { text-align: left; padding: 0.6rem 0.75rem; background: #f8fafc; color: #475569; border-bottom: 1px solid #e2e8f0; font-weight: 600; }
-  .crm-table td { padding: 0.65rem 0.75rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
-  .crm-table td strong { display: block; }
-  .crm-table td small { font-size: 0.75rem; color: #64748b; }
-
-  .source-pill { font-size: 0.72rem; background: #f1f5f9; color: #475569; padding: 0.2rem 0.5rem; border-radius: 3px; }
-  .status-badge { font-size: 0.72rem; font-weight: 600; padding: 0.2rem 0.5rem; border-radius: 3px; background: #e0f2fe; color: #0369a1; }
-  .status-badge[data-status="Converted"] { background: #dcfce7; color: #15803d; }
-  .status-badge[data-status="Lost"] { background: #fee2e2; color: #b91c1c; }
-
-  .btn-sm-action { background: #0f172a; color: #fff; border: none; font-size: 0.75rem; padding: 0.25rem 0.6rem; border-radius: 3px; cursor: pointer; }
-  .btn-sm-action:hover { background: #334155; }
-
-  /* Tablet */
-  @media (max-width: 1023px) {
-    .dash-grid-2 { grid-template-columns: 1fr; }
-    .metrics-grid { grid-template-columns: repeat(3, 1fr); }
+<style is:global>
+  /* Global Dashboard Shell Overrides */
+  .crm-dashboard-container { 
+    padding: 24px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #1e293b;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  
+  .dash-head { 
+    margin-bottom: 24px;
+  }
+  
+  .dash-title { 
+    font-size: 24px; 
+    font-weight: 600; 
+    color: #0f172a; 
+    margin: 0 0 4px 0; 
+    letter-spacing: -0.01em;
+  }
+  
+  .dash-sub { 
+    font-size: 14px; 
+    color: #64748b; 
+    margin: 0; 
   }
 
-  /* Mobile */
+  /* Loading State */
+  .dashboard-loading {
+    padding: 40px;
+    text-align: center;
+    color: #94a3b8;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+  }
+  .spinner {
+    width: 32px;
+    height: 32px;
+    animation: rotate 2s linear infinite;
+    color: #cbd5e1;
+  }
+  .spinner circle {
+    stroke-linecap: round;
+    animation: dash 1.5s ease-in-out infinite;
+  }
+  @keyframes rotate { 100% { transform: rotate(360deg); } }
+  @keyframes dash {
+    0% { stroke-dasharray: 1, 150; stroke-dashoffset: 0; }
+    50% { stroke-dasharray: 90, 150; stroke-dashoffset: -35; }
+    100% { stroke-dasharray: 90, 150; stroke-dashoffset: -124; }
+  }
+
   @media (max-width: 767px) {
-    .dash-head { flex-direction: column; gap: 0.35rem; }
-    .dash-title { font-size: 1.5rem; }
-    .metrics-grid { grid-template-columns: repeat(2, 1fr); gap: 0.65rem; }
-    .metric-card { padding: 0.85rem; }
-    .m-val { font-size: 1.5rem; }
-    .content-card, .demand-section-card { padding: 1rem; }
-    .demand-item { flex-wrap: wrap; gap: 0.5rem; }
-    .demand-rank { font-size: 0.95rem; margin-right: 0.5rem; }
-    .crm-table { min-width: 650px; }
-  }
-
-  @media (max-width: 440px) {
-    .metrics-grid { grid-template-columns: 1fr; }
+    .crm-dashboard-container { padding: 16px; }
+    .dash-head { margin-bottom: 16px; }
   }
 </style>

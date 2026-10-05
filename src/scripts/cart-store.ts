@@ -213,58 +213,6 @@ export async function syncCartWithBackend(state: LocalCartState) {
   }
 }
 
-export function buildWhatsAppOrderUrl(
-  items: LocalCartItem[],
-  cartTotal: number
-): string {
-  const phone = '919625515351';
-  let message = '';
-
-  if (items.length === 1) {
-    const item = items[0];
-    const rawName = (item.name && item.name !== item.slug)
-      ? item.name
-      : (item.slug ? item.slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Item');
-    const productName = (item.variantTitle && item.variantTitle !== 'Standard Variant' && item.variantTitle !== 'Default')
-      ? `${rawName} (${item.variantTitle})`
-      : rawName;
-
-    const itemPriceFormatted = Math.round(item.price).toLocaleString('en-IN');
-    const totalFormatted = Math.round(cartTotal).toLocaleString('en-IN');
-
-    message = `Hey, I want to buy this item.
-
-Product: ${productName}
-Price: ₹${itemPriceFormatted}
-Quantity: ${item.quantity}
-Total: ₹${totalFormatted}
-
-Is this available?`;
-  } else {
-    const productLines = items.map(item => {
-      const rawName = (item.name && item.name !== item.slug)
-        ? item.name
-        : (item.slug ? item.slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Item');
-      const productName = (item.variantTitle && item.variantTitle !== 'Standard Variant' && item.variantTitle !== 'Default')
-        ? `${rawName} (${item.variantTitle})`
-        : rawName;
-      const itemPriceFormatted = Math.round(item.price).toLocaleString('en-IN');
-      return `${productName} - ₹${itemPriceFormatted} x ${item.quantity}`;
-    }).join('\n');
-
-    const totalFormatted = Math.round(cartTotal).toLocaleString('en-IN');
-
-    message = `Hey, I want to place an order.
-
-${productLines}
-
-Total: ₹${totalFormatted}
-
-Is everything available?`;
-  }
-
-  return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-}
 
 export function initCartStore() {
   if (typeof window === 'undefined') return;

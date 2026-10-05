@@ -2,6 +2,7 @@
 import AdminLayout from '../../../layouts/AdminLayout.astro';
 import { prisma } from '../../../lib/db';
 import { getSessionUser } from '../../../lib/auth';
+import type { Prisma } from '@prisma/client';
 
 const user = await getSessionUser(Astro.request);
 if (!user) {
@@ -11,15 +12,26 @@ if (!user) {
 const url = new URL(Astro.request.url);
 const q = (url.searchParams.get('q') || '').trim().toLowerCase();
 
+const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10));
+const pageSize = 20;
+
+const where: Prisma.CustomersWhereInput | undefined = q ? {
+  OR: [
+    { name: { contains: q, mode: 'insensitive' } },
+    { email: { contains: q, mode: 'insensitive' } },
+    { phone: { contains: q, mode: 'insensitive' } }
+  ]
+} : undefined;
+
+const totalCustomers = await prisma.customers.count({ where });
+const totalPages = Math.max(1, Math.ceil(totalCustomers / pageSize));
+const currentPage = Math.min(page, totalPages);
+
 const customers = await prisma.customers.findMany({
-  where: q ? {
-    OR: [
-      { name: { contains: q, mode: 'insensitive' } },
-      { email: { contains: q, mode: 'insensitive' } },
-      { phone: { contains: q, mode: 'insensitive' } }
-    ]
-  } : undefined,
-  orderBy: { created_at: 'desc' }
+  where,
+  orderBy: { created_at: 'desc' },
+  skip: (currentPage - 1) * pageSize,
+  take: pageSize
 });
 ---
 
@@ -30,8 +42,15 @@ const customers = await prisma.customers.findMany({
         <h1 class="cust-page-title">Customer Database</h1>
         <p class="cust-page-sub">Converted clients, order histories and billing profiles.</p>
       </div>
-      <span class="total-cust-tag">{customers.length} Converted Clients</span>
+      <span class="total-cust-tag">Showing <b>{customers.length}</b> of <b>{totalCustomers}</b> Clients (Page {currentPage}/{totalPages})</span>
     </div>
+
+    {totalPages > 1 && (
+      <div class="pagination-controls" style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+        {currentPage > 1 && <a href={`?page=${currentPage - 1}&q=${q}`} class="btn btn-sm">Prev</a>}
+        {currentPage < totalPages && <a href={`?page=${currentPage + 1}&q=${q}`} class="btn btn-sm">Next</a>}
+      </div>
+    )}
 
     <!-- Controls -->
     <div class="controls-card">

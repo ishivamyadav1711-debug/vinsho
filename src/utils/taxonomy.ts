@@ -325,6 +325,33 @@ export async function getAllProducts(forceFresh = false): Promise<ProductItem[]>
   return fallback;
 }
 
+export async function getBasicActiveProducts(forceFresh = false): Promise<Partial<ProductItem>[]> {
+  try {
+    const dbProducts = await prisma.products.findMany({
+      where: { deleted_at: null, slug: { not: 'dummy-product' } },
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        collection: { select: { key: true } },
+        ProductImages: { where: { is_primary: true }, take: 1, select: { url: true } },
+        ProductVariants: { take: 1, orderBy: { position: 'asc' }, select: { selling_price: true } }
+      }
+    });
+    return dbProducts.map(p => ({
+      id: p.id,
+      slug: p.slug,
+      name: p.name,
+      collectionKey: normalizeCollectionKey(p.collection?.key || ''),
+      image: p.ProductImages[0]?.url || '',
+      price: p.ProductVariants[0]?.selling_price ? Number(p.ProductVariants[0].selling_price) : 0
+    }));
+  } catch (err) {
+    const all = await getActiveProducts(forceFresh);
+    return all.map(p => ({ id: p.id, slug: p.slug, name: p.name, collectionKey: p.collectionKey, image: p.image, price: p.price }));
+  }
+}
+
 export async function getActiveProducts(forceFresh = false): Promise<ProductItem[]> {
   const all = await getAllProducts(forceFresh);
   return all.filter(p =>

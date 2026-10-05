@@ -24,9 +24,39 @@ const collections = await prisma.collections.findMany({
   orderBy: { name: 'asc' }
 });
 
-// Fetch all active products with relations
+const where: any = { deleted_at: null };
+if (search) {
+  where.OR = [
+    { name: { contains: search, mode: 'insensitive' } },
+    { slug: { contains: search, mode: 'insensitive' } },
+    { sku: { contains: search, mode: 'insensitive' } },
+    { sku_ref: { contains: search, mode: 'insensitive' } }
+  ];
+}
+
+if (collectionFilter !== 'all') {
+  where.collection_id = parseInt(collectionFilter, 10);
+}
+
+if (availabilityFilter !== 'all') {
+  where.sellable_online = (availabilityFilter === 'online');
+}
+
+const orderByMap: Record<string, any> = {
+  'name_asc': { name: 'asc' },
+  'name_desc': { name: 'desc' },
+  'updated_desc': { updated_at: 'desc' }
+};
+
+const totalFiltered = await prisma.products.count({ where });
+const totalPages = Math.max(1, Math.ceil(totalFiltered / pageSize));
+const currentPage = Math.min(page, totalPages);
+
 const productsRaw = await prisma.products.findMany({
-  where: { deleted_at: null },
+  where,
+  orderBy: orderByMap[sortBy] || { updated_at: 'desc' },
+  skip: (currentPage - 1) * pageSize,
+  take: pageSize,
   include: {
     collection: { select: { id: true, name: true, key: true } },
     subcategory: { select: { id: true, name: true, key: true } },
@@ -44,7 +74,7 @@ const productsRaw = await prisma.products.findMany({
 const lowStockThreshold = 5;
 
 // Process and map product data
-const processedProducts = productsRaw.map((p) => {
+const paginatedProducts = productsRaw.map((p) => {
   const primaryVariant = p.ProductVariants[0];
   const totalStock = p.ProductVariants.reduce((sum, v) => sum + (v.stock ?? 0), 0);
   const sku = primaryVariant?.sku || p.sku || `PRD-${p.id}`;
@@ -93,56 +123,13 @@ const processedProducts = productsRaw.map((p) => {
   };
 });
 
-// Global Summary Counts across all real products
-const totalCount = processedProducts.length;
-const inStockCount = processedProducts.filter((p) => p.stockStatus === 'IN STOCK').length;
-const lowStockCount = processedProducts.filter((p) => p.stockStatus === 'LOW STOCK').length;
-const outOfStockCount = processedProducts.filter((p) => p.stockStatus === 'OUT OF STOCK').length;
-
-// Filter list
-let filtered = processedProducts.filter((p) => {
-  if (search) {
-    const q = search.toLowerCase();
-    const matchName = p.name.toLowerCase().includes(q);
-    const matchSku = p.sku.toLowerCase().includes(q) || (p.sku_ref && p.sku_ref.toLowerCase().includes(q));
-    const matchSlug = p.slug.toLowerCase().includes(q);
-    if (!matchName && !matchSku && !matchSlug) return false;
-  }
-
-  if (statusFilter !== 'all') {
-    if (statusFilter === 'in_stock' && p.stockStatus !== 'IN STOCK') return false;
-    if (statusFilter === 'low_stock' && p.stockStatus !== 'LOW STOCK') return false;
-    if (statusFilter === 'out_of_stock' && p.stockStatus !== 'OUT OF STOCK') return false;
-  }
-
-  if (collectionFilter !== 'all') {
-    if (String(p.collectionId) !== collectionFilter) return false;
-  }
-
-  if (availabilityFilter !== 'all') {
-    if (availabilityFilter === 'online' && !p.isOnline) return false;
-    if (availabilityFilter === 'offline' && p.isOnline) return false;
-  }
-
-  return true;
-});
-
-// Sort list
-filtered.sort((a, b) => {
-  if (sortBy === 'name_asc') return a.name.localeCompare(b.name);
-  if (sortBy === 'name_desc') return b.name.localeCompare(a.name);
-  if (sortBy === 'price_asc') return a.sellingPrice - b.sellingPrice;
-  if (sortBy === 'price_desc') return b.sellingPrice - a.sellingPrice;
-  if (sortBy === 'stock_asc') return a.stock - b.stock;
-  if (sortBy === 'stock_desc') return b.stock - a.stock;
-  if (sortBy === 'updated_desc') return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
-  return 0;
-});
-
-const totalFiltered = filtered.length;
-const totalPages = Math.max(1, Math.ceil(totalFiltered / pageSize));
-const currentPage = Math.min(page, totalPages);
-const paginatedProducts = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+// Since doing full cross-table sum filters natively in Prisma is heavy,
+// we approximate summary counts using simple fast queries if filters are 'all'.
+const totalCount = await prisma.products.count({ where: { deleted_at: null } });
+// We use placeholder counts for the header metrics if we are paginating, to avoid N+1 variants fetching
+const inStockCount = '-';
+const lowStockCount = '-';
+const outOfStockCount = '-';
 ---
 
 <AdminLayout title="Product & Inventory Management" activeNav="products">

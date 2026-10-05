@@ -43,8 +43,19 @@ const orderByMap: Record<string, any> = {
 };
 const orderBy = orderByMap[sortFilter] || { created_at: 'desc' };
 
+const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10));
+const pageSize = 20;
+const totalLeads = await prisma.customers.count({ where });
+const totalPages = Math.max(1, Math.ceil(totalLeads / pageSize));
+const currentPage = Math.min(page, totalPages);
+
 const [leads, users] = await Promise.all([
-  prisma.customers.findMany({ where, orderBy }),
+  prisma.customers.findMany({ 
+    where, 
+    orderBy,
+    skip: (currentPage - 1) * pageSize,
+    take: pageSize
+  }),
   prisma.adminUsers.findMany({ select: { id: true, name: true }, orderBy: { name: 'asc' } })
 ]);
 
@@ -105,7 +116,7 @@ const collections = taxonomyData.collections;
           <select name="assignedTo" class="filter-select">
             <option value="">All Team Members</option>
             {users.map((u: any) => (
-              <option value={u.name} selected={assignedFilter === u.name}>{u.name}</option>
+              <option value={u.id.toString()} selected={assignedFilter === u.id.toString()}>{u.name}</option>
             ))}
           </select>
 
@@ -143,7 +154,11 @@ const collections = taxonomyData.collections;
     <!-- Table -->
     <div class="table-card">
       <div class="table-meta-bar">
-        <span>Showing <b>{leads.length}</b> leads</span>
+        <span>Showing <b>{leads.length}</b> of <b>{totalLeads}</b> leads (Page {currentPage} of {totalPages})</span>
+        <div class="pagination-controls">
+          {currentPage > 1 && <a href={`?page=${currentPage - 1}&q=${q}&status=${statusFilter}&source=${sourceFilter}&collectionKey=${colFilter}&assignedTo=${assignedFilter}&sort=${sortFilter}`} class="btn btn-sm">Prev</a>}
+          {currentPage < totalPages && <a href={`?page=${currentPage + 1}&q=${q}&status=${statusFilter}&source=${sourceFilter}&collectionKey=${colFilter}&assignedTo=${assignedFilter}&sort=${sortFilter}`} class="btn btn-sm">Next</a>}
+        </div>
       </div>
 
       <div class="table-scroll-container">

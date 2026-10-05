@@ -129,9 +129,9 @@ const upsellProducts = (await getProductsByCollection('gifting-collection')).sli
             </div>
 
             <button type="button" id="v-checkout-btn" class="v-checkout-btn" style="width: 100%; border: none; cursor: pointer;">
-              Order on WhatsApp &rarr;
+              PROCEED TO CHECKOUT &rarr;
             </button>
-            <p class="v-whatsapp-support-text" style="font-size: 0.813rem; color: #6b7280; text-align: center; margin-top: 0.5rem; margin-bottom: 0;">Complete your order directly with us on WhatsApp.</p>
+            <p class="v-checkout-support-text" style="font-size: 0.813rem; color: #6b7280; text-align: center; margin-top: 0.5rem; margin-bottom: 0;">Secure checkout &amp; fast delivery across India.</p>
 
             <div class="v-summary-trust-perks">
               <div class="perk-item">
@@ -179,8 +179,7 @@ const upsellProducts = (await getProductsByCollection('gifting-collection')).sli
     updateLocalCartItemQty, 
     removeLocalCartItem, 
     addLocalCartItem,
-    initCartStore,
-    buildWhatsAppOrderUrl
+    initCartStore
   } from '../scripts/cart-store';
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -316,11 +315,7 @@ const upsellProducts = (await getProductsByCollection('gifting-collection')).sli
       const state = getLocalCartState();
       if (!state.items || state.items.length === 0) return;
 
-      const whatsappUrl = buildWhatsAppOrderUrl(state.items, state.subtotal);
-      const win = window.open(whatsappUrl, '_blank');
-      if (!win || win.closed || typeof win.closed === 'undefined') {
-        window.location.href = whatsappUrl;
-      }
+      window.location.href = '/checkout/address';
     });
 
     window.addEventListener('vinsho:cart-updated', renderCart);

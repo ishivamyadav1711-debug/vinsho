@@ -34,12 +34,18 @@ export function parseCookies(cookieHeader: string | null): Record<string, string
 /**
  * Seed default super admin user if empty
  */
+let defaultAdminEnsured = false;
 export async function ensureDefaultAdminUser(): Promise<AdminUser> {
+  if (defaultAdminEnsured) {
+    return {} as AdminUser; // We only need the side-effect to have occurred
+  }
+
   const existing = await prisma.adminUsers.findFirst({
     where: { role: 'SUPER_ADMIN' }
   });
 
   if (existing) {
+    defaultAdminEnsured = true;
     return {
       id: existing.id,
       name: existing.name,
@@ -67,6 +73,7 @@ export async function ensureDefaultAdminUser(): Promise<AdminUser> {
     }
   });
 
+  defaultAdminEnsured = true;
   return {
     id: created.id,
     name: created.name,

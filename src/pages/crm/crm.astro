@@ -14,31 +14,52 @@ const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
 const currentMonth = nowIso.substring(0, 7); // Keep for template display
 
-// Dynamic Metrics from Database via Prisma
+// Parallelize all main CRM data fetching
+const metricsStart = Date.now();
 const [
-  totalCustomers,
-  newCustomersMonth,
-  totalEnquiries,
-  openEnquiries,
-  convertedMonth,
-  overdueFollowups
+  [
+    totalCustomers,
+    newCustomersMonth,
+    totalEnquiries,
+    openEnquiries,
+    convertedMonth,
+    overdueFollowups
+  ],
+  productDemandRaw,
+  recentEnquiriesRaw,
+  upcomingFollowupsRaw
 ] = await Promise.all([
-  prisma.customers.count({ where: { deleted_at: null } }),
-  prisma.customers.count({ where: { deleted_at: null, created_at: { gte: currentMonthStart, lt: nextMonthStart } } }),
-  prisma.enquiries.count(),
-  prisma.enquiries.count({ where: { status: { notIn: ['Converted', 'Lost'] } } }),
-  prisma.enquiries.count({ where: { status: 'Converted', closed_at: { gte: currentMonthStart.toISOString(), lt: nextMonthStart.toISOString() } } }),
-  prisma.followUps.count({ where: { status: 'PENDING', due_at: { lt: nowIso } } })
+  Promise.all([
+    prisma.customers.count({ where: { deleted_at: null } }),
+    prisma.customers.count({ where: { deleted_at: null, created_at: { gte: currentMonthStart, lt: nextMonthStart } } }),
+    prisma.enquiries.count(),
+    prisma.enquiries.count({ where: { status: { notIn: ['Converted', 'Lost'] } } }),
+    prisma.enquiries.count({ where: { status: 'Converted', closed_at: { gte: currentMonthStart.toISOString(), lt: nextMonthStart.toISOString() } } }),
+    prisma.followUps.count({ where: { status: 'PENDING', due_at: { lt: nowIso } } })
+  ]),
+  prisma.enquiries.groupBy({
+    by: ['product_id'],
+    _count: { id: true },
+    orderBy: { _count: { id: 'desc' } },
+    take: 5,
+    where: { product_id: { not: null } }
+  }),
+  prisma.enquiries.findMany({
+    orderBy: { created_at: 'desc' },
+    take: 10,
+    include: {
+      customer: { select: { name: true, phone: true, email: true } }
+    }
+  }),
+  prisma.followUps.findMany({
+    where: { status: 'PENDING' },
+    orderBy: { due_at: 'asc' },
+    take: 5,
+    include: { assignee: { select: { name: true } } }
+  })
 ]);
+console.log(`[PERF-CRM] main queries: ${Date.now() - metricsStart}ms`);
 
-// Enquiries by Product
-const productDemandRaw = await prisma.enquiries.groupBy({
-  by: ['product_id'],
-  _count: { id: true },
-  orderBy: { _count: { id: 'desc' } },
-  take: 5,
-  where: { product_id: { not: null } }
-});
 const productDemand = await Promise.all(
   productDemandRaw.map(async (pd) => {
     const product = await prisma.products.findUnique({ where: { id: pd.product_id! } });
@@ -50,15 +71,6 @@ const productDemand = await Promise.all(
     };
   })
 );
-
-// Recent Enquiries Pipeline List
-const recentEnquiriesRaw = await prisma.enquiries.findMany({
-  orderBy: { created_at: 'desc' },
-  take: 10,
-  include: {
-    customer: { select: { name: true, phone: true, email: true } }
-  }
-});
 
 const prodIds = recentEnquiriesRaw.map((e: any) => e.product_id).filter(Boolean);
 const dashProducts = await prisma.products.findMany({ where: { id: { in: prodIds as number[] } }, select: { id: true, name: true }});
@@ -72,13 +84,6 @@ const recentEnquiries = recentEnquiriesRaw.map((e: any) => ({
   product_name: e.product_id ? dashProductsMap.get(e.product_id)?.name : null
 }));
 
-// Upcoming Follow-ups
-const upcomingFollowupsRaw = await prisma.followUps.findMany({
-  where: { status: 'PENDING' },
-  orderBy: { due_at: 'asc' },
-  take: 5,
-  include: { assignee: { select: { name: true } } }
-});
 const upcomingFollowups = upcomingFollowupsRaw.map((f: any) => ({
   ...f,
   assignee_name: f.assignee?.name || null

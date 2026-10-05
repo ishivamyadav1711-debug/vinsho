@@ -30,6 +30,13 @@ if (searchQuery.trim()) {
   ];
 }
 
+const page = Math.max(1, parseInt(url.searchParams.get('page') || '1', 10));
+const pageSize = 20;
+
+const totalFilteredOrders = await prisma.orders.count({ where });
+const totalPages = Math.max(1, Math.ceil(totalFilteredOrders / pageSize));
+const currentPage = Math.min(page, totalPages);
+
 const [orders, totalOrdersCount, totalPaidCount, totalPendingCount, sumRevenue] = await Promise.all([
   prisma.orders.findMany({
     where,
@@ -38,7 +45,9 @@ const [orders, totalOrdersCount, totalPaidCount, totalPendingCount, sumRevenue] 
       OrderItems: true,
       Payments: true
     },
-    orderBy: { id: 'desc' }
+    orderBy: { id: 'desc' },
+    skip: (currentPage - 1) * pageSize,
+    take: pageSize
   }),
   prisma.orders.count(),
   prisma.orders.count({ where: { payment_status: 'paid' } }),
@@ -104,6 +113,15 @@ const totalRevenue = Number(sumRevenue._sum.grand_total || 0);
     </div>
 
     <!-- Orders Table -->
+    <div class="table-meta-bar" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; font-size: 0.85rem; color: var(--ink-soft);">
+      <span>Showing <b>{orders.length}</b> of <b>{totalFilteredOrders}</b> orders (Page {currentPage}/{totalPages})</span>
+      {totalPages > 1 && (
+        <div class="pagination-controls" style="display: flex; gap: 0.5rem;">
+          {currentPage > 1 && <a href={`?page=${currentPage - 1}&q=${searchQuery}&status=${statusFilter}&payment_status=${paymentFilter}`} class="btn btn-sm">Prev</a>}
+          {currentPage < totalPages && <a href={`?page=${currentPage + 1}&q=${searchQuery}&status=${statusFilter}&payment_status=${paymentFilter}`} class="btn btn-sm">Next</a>}
+        </div>
+      )}
+    </div>
     <div class="table-container">
       <table class="orders-table">
         <thead>

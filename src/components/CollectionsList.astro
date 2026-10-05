@@ -1,9 +1,9 @@
 ---
 import TextReveal from './motion/TextReveal.astro';
-import { getCollections, getActiveProducts } from '../utils/taxonomy';
+import { getCollections, getBasicActiveProducts } from '../utils/taxonomy';
 
 const collections = await getCollections();
-const activeProducts = await getActiveProducts();
+const activeProducts = await getBasicActiveProducts();
 
 const collectionItems = collections.map((col: any, idx: any) => {
   const colProducts = activeProducts.filter((p: any) => p.collectionKey === col.key);

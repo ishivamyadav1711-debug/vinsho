@@ -416,7 +416,7 @@ const productImages = (baseProduct.images && baseProduct.images.length > 0)
 <script>
   import { trackViewItem, trackAddToCart } from '../../lib/analytics';
   import { addLocalCartItem, openCartDrawer, getCartCount } from '../../scripts/cart-store';
-  import { createWhatsAppOrderUrl } from '../../utils/whatsapp-order';
+
 
   document.addEventListener('DOMContentLoaded', () => {
     const slug = window.location.pathname.split('/').pop() || '';
@@ -527,8 +527,7 @@ const productImages = (baseProduct.images && baseProduct.images.length > 0)
       if (pdpCartBadge) {
         pdpCartBadge.textContent = String(getCartCount());
       }
-      const waUrl = createWhatsAppOrderUrl({ productName: name, price, quantity: qty });
-      window.open(waUrl, '_blank');
+      window.location.href = '/checkout/address';
     });
 
     // Mobile Sticky Add To Cart
@@ -561,8 +560,7 @@ const productImages = (baseProduct.images && baseProduct.images.length > 0)
       if (pdpCartBadge) {
         pdpCartBadge.textContent = String(getCartCount());
       }
-      const waUrl = createWhatsAppOrderUrl({ productName: name, price, quantity: qty });
-      window.open(waUrl, '_blank');
+      window.location.href = '/checkout/address';
     });
   });
 </script>
