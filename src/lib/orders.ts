@@ -38,22 +38,31 @@ export async function createOrder(params: CreateOrderParams): Promise<OrderCreat
     const cleanIdempotencyKey = params.idempotencyKey.trim();
 
   // Idempotency check: Double-submitted checkout must produce 1 order, not 2
+  console.log(`[ORDERS API] Checking idempotency key: ${cleanIdempotencyKey}`);
   const existingOrder = await prisma.orders.findUnique({
     where: { idempotency_key: cleanIdempotencyKey },
     include: { OrderItems: true }
   });
   if (existingOrder) {
+    console.log(`[ORDERS API] Idempotency match found. Returning existing order ${existingOrder.order_number}`);
     return { success: true, order: existingOrder };
   }
 
   const rawItems = params.items || [];
   if (rawItems.length === 0) {
-    return { success: false, error: 'No items provided for order creation.' };
+    console.error(`[ORDERS API] No items provided.`);
+    return { success: false, code: 'NO_ITEMS', error: 'No items provided for order creation.' };
   }
+
+  console.log(`[ORDERS API] Processing ${rawItems.length} raw items:`);
+  rawItems.forEach((i, idx) => {
+    console.log(`  Item ${idx}: variantId=${i.variantId}, qty=${i.qty}, slug=${(i as any).slug}`);
+  });
 
   // Load variant details directly from DB
   const cartItems: any[] = [];
   for (const raw of rawItems) {
+    console.log(`[ORDERS API] Looking up variant ID ${raw.variantId}...`);
     const v = await prisma.productVariants.findFirst({
       where: {
         id: raw.variantId,
@@ -68,8 +77,12 @@ export async function createOrder(params: CreateOrderParams): Promise<OrderCreat
     });
 
     if (!v) {
-      return { success: false, error: `Variant ID ${raw.variantId} not found in database.` };
+      console.error(`[ORDERS API] Lookup failed: Variant ID ${raw.variantId} not found or deleted.`);
+      return { success: false, code: 'VARIANT_NOT_FOUND', error: `Variant ID ${raw.variantId} not found in database.` };
     }
+    
+    console.log(`[ORDERS API] Found variant: ${v.product.name} (SKU: ${v.sku}), stock: ${v.stock}, price: ${v.selling_price}`);
+
     cartItems.push({
       variantId: v.id,
       productSlug: v.product.slug,
@@ -92,19 +105,23 @@ export async function createOrder(params: CreateOrderParams): Promise<OrderCreat
   }
 
   // Re-verify purchasability gate & live stock (including combo component availability)
+  console.log(`[ORDERS API] Verifying stock and purchasability...`);
   for (const item of cartItems) {
     if (!item.isPurchasable) {
-      return { success: false, error: `Checkout blocked: Item '${item.productName}' fails Legal Metrology purchasability gate or is Made-to-Order.` };
+      console.error(`[ORDERS API] Item ${item.variantId} is not purchasable.`);
+      return { success: false, code: 'NOT_PURCHASABLE', error: `Checkout blocked: Item '${item.productName}' fails Legal Metrology purchasability gate or is Made-to-Order.` };
     }
 
     const comboAvail = await getComboAvailability(item.variantId);
     if (comboAvail.isBundle) {
       if (comboAvail.maxSellableCombos < item.qty) {
-        return { success: false, error: `Checkout blocked: Item '${item.productName}' has insufficient component stock balance (Requested: ${item.qty}, Available: ${comboAvail.maxSellableCombos}).` };
+        console.error(`[ORDERS API] Item ${item.variantId} (Bundle) insufficient stock: requested ${item.qty}, available ${comboAvail.maxSellableCombos}`);
+        return { success: false, code: 'INSUFFICIENT_STOCK_BUNDLE', error: `Checkout blocked: Item '${item.productName}' has insufficient component stock balance (Requested: ${item.qty}, Available: ${comboAvail.maxSellableCombos}).` };
       }
     } else {
       if (item.stock < item.qty) {
-        return { success: false, error: `Checkout blocked: Item '${item.productName}' has insufficient stock (Requested: ${item.qty}, Available: ${item.stock}).` };
+        console.error(`[ORDERS API] Item ${item.variantId} insufficient stock: requested ${item.qty}, available ${item.stock}`);
+        return { success: false, code: 'INSUFFICIENT_STOCK', error: `Checkout blocked: Item '${item.productName}' has insufficient stock (Requested: ${item.qty}, Available: ${item.stock}).` };
       }
     }
   }

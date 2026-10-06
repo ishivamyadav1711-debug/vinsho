@@ -31,45 +31,106 @@ import DashboardMetrics from '../../components/crm/DashboardMetrics.astro';
       </div>
     </DashboardMetrics>
   </div>
-</AdminLayout>
 
-<script is:inline>
-  async function updateEnquiryStatus(id) {
-    const status = prompt('Enter new pipeline status (New, Contacted, Qualified, Quotation Sent, Negotiation, Converted, Lost):');
-    if (!status) return;
-    
-    let lostReason = null;
-    if (status === 'Lost') {
-      lostReason = prompt('Lost Reason is mandatory when marking Lost:');
-      if (!lostReason) {
-        alert('Transition to Lost cancelled: lost_reason is mandatory.');
-        return;
+  <dialog id="status-dialog" class="crm-dialog">
+    <div class="dialog-content">
+      <h3 class="dialog-title">Update Pipeline Status</h3>
+      <p class="dialog-desc">Select the new status for this enquiry.</p>
+      
+      <div class="form-group">
+        <label for="new-status-select">Status</label>
+        <select id="new-status-select" class="crm-select">
+          <option value="New">New</option>
+          <option value="Contacted">Contacted</option>
+          <option value="Qualified">Qualified</option>
+          <option value="Quotation Sent">Quotation Sent</option>
+          <option value="Negotiation">Negotiation</option>
+          <option value="Converted">Converted</option>
+          <option value="Lost">Lost</option>
+        </select>
+      </div>
+      
+      <div class="form-group" id="lost-reason-group" style="display: none;">
+        <label for="lost-reason-input">Lost Reason <span class="req">*</span></label>
+        <input type="text" id="lost-reason-input" class="crm-input" placeholder="Why was this lost?" />
+      </div>
+
+      <div class="dialog-actions">
+        <button type="button" id="btn-cancel-status" class="btn-cancel">Cancel</button>
+        <button type="button" id="btn-save-status" class="btn-save">Save Status</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script is:inline>
+    let currentEnquiryId = null;
+    const dialog = document.getElementById('status-dialog');
+    const select = document.getElementById('new-status-select');
+    const lostGroup = document.getElementById('lost-reason-group');
+    const lostInput = document.getElementById('lost-reason-input');
+
+    select?.addEventListener('change', (e) => {
+      if (e.target.value === 'Lost') {
+        lostGroup.style.display = 'block';
+      } else {
+        lostGroup.style.display = 'none';
       }
-    }
-
-    const res = await fetch(`/api/admin/enquiries/${id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status, lostReason })
     });
 
-    const json = await res.json();
-    if (json.success) {
-      alert('Status updated successfully!');
-      window.location.reload();
-    } else {
-      alert(`Error: ${json.error}`);
-    }
-  }
-</script>
+    window.updateEnquiryStatus = function(id) {
+      currentEnquiryId = id;
+      select.value = 'New';
+      lostGroup.style.display = 'none';
+      lostInput.value = '';
+      dialog?.showModal();
+    };
+
+    document.getElementById('btn-cancel-status')?.addEventListener('click', () => {
+      dialog?.close();
+      currentEnquiryId = null;
+    });
+
+    document.getElementById('btn-save-status')?.addEventListener('click', async () => {
+      if (!currentEnquiryId) return;
+      const status = select.value;
+      let lostReason = null;
+      
+      if (status === 'Lost') {
+        lostReason = lostInput.value.trim();
+        if (!lostReason) {
+          alert('Transition to Lost cancelled: lost_reason is mandatory.');
+          return;
+        }
+      }
+
+      try {
+        const res = await fetch(`/api/admin/enquiries/${currentEnquiryId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status, lostReason })
+        });
+
+        const json = await res.json();
+        if (json.success) {
+          dialog?.close();
+          window.location.reload();
+        } else {
+          alert(`Error: ${json.error}`);
+        }
+      } catch (err) {
+        alert('Network error occurred.');
+      }
+    });
+  </script>
+</AdminLayout>
 
 <style is:global>
   /* Global Dashboard Shell Overrides */
   .crm-dashboard-container { 
     padding: 24px;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    color: #1e293b;
-    max-width: 1400px;
+    font-family: var(--sans);
+    color: var(--ink);
+    max-width: var(--max-w);
     margin: 0 auto;
     width: 100%;
   }
@@ -79,16 +140,17 @@ import DashboardMetrics from '../../components/crm/DashboardMetrics.astro';
   }
   
   .dash-title { 
-    font-size: 24px; 
-    font-weight: 600; 
-    color: #0f172a; 
+    font-family: var(--display);
+    font-size: 28px; 
+    font-weight: 700; 
+    color: var(--maroon-2); 
     margin: 0 0 4px 0; 
     letter-spacing: -0.01em;
   }
   
   .dash-sub { 
     font-size: 14px; 
-    color: #64748b; 
+    color: var(--ink-soft); 
     margin: 0; 
   }
 
@@ -96,16 +158,97 @@ import DashboardMetrics from '../../components/crm/DashboardMetrics.astro';
   .dashboard-loading {
     padding: 40px;
     text-align: center;
-    color: #94a3b8;
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+    color: var(--ink-soft);
+    background: var(--paper-2);
+    border: 1px solid var(--line);
     border-radius: 12px;
   }
+  
+  /* Dialog Styles */
+  .crm-dialog {
+    border: none;
+    border-radius: 12px;
+    padding: 24px;
+    width: 90%;
+    max-width: 400px;
+    background: var(--paper-2);
+    color: var(--ink);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  }
+  .crm-dialog::backdrop {
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(2px);
+  }
+  .dialog-title {
+    font-family: var(--display);
+    font-size: 20px;
+    margin: 0 0 8px 0;
+    color: var(--maroon-2);
+  }
+  .dialog-desc {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin: 0 0 20px 0;
+  }
+  .form-group {
+    margin-bottom: 16px;
+  }
+  .form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--ink);
+  }
+  .crm-select, .crm-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 14px;
+  }
+  .crm-select:focus, .crm-input:focus {
+    outline: 2px solid var(--maroon);
+    border-color: transparent;
+  }
+  .dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+  }
+  .btn-cancel {
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+  .btn-cancel:hover {
+    background: var(--paper-3);
+    color: var(--ink);
+  }
+  .btn-save {
+    padding: 8px 16px;
+    background: var(--maroon);
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    font-weight: 500;
+  }
+  .btn-save:hover {
+    background: var(--maroon-2);
+  }
+  .req { color: var(--pink); }
   .spinner {
     width: 32px;
     height: 32px;
     animation: rotate 2s linear infinite;
-    color: #cbd5e1;
+    color: var(--maroon-2);
   }
   .spinner circle {
     stroke-linecap: round;

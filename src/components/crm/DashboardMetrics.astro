@@ -263,28 +263,28 @@ const normalizeSource = (src: string) => {
   }
   
   .metric-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
     border-radius: 12px;
     padding: 20px;
     display: flex;
     flex-direction: column;
   }
   
-  .metric-card.highlight-new { border-left: 4px solid #3b82f6; }
-  .metric-card.highlight-alert { border-left: 4px solid #ef4444; background: #fffafb; }
+  .metric-card.highlight-new { border-left: 4px solid var(--maroon); }
+  .metric-card.highlight-alert { border-left: 4px solid var(--pink); background: var(--paper-3); }
   
   .m-label {
     font-size: 13px;
     font-weight: 600;
-    color: #64748b;
+    color: var(--ink-soft);
     margin-bottom: 8px;
   }
   
   .m-val {
     font-size: 28px;
     font-weight: 600;
-    color: #0f172a;
+    color: var(--maroon-2);
     line-height: 1.2;
     margin-bottom: 4px;
     letter-spacing: -0.02em;
@@ -292,7 +292,7 @@ const normalizeSource = (src: string) => {
   
   .m-sub {
     font-size: 12px;
-    color: #94a3b8;
+    color: var(--ink-soft);
   }
 
   .dash-grid-2 {
@@ -314,8 +314,8 @@ const normalizeSource = (src: string) => {
   }
 
   .content-card {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
     border-radius: 12px;
     padding: 0;
     overflow: hidden;
@@ -330,7 +330,7 @@ const normalizeSource = (src: string) => {
     justify-content: space-between;
     align-items: flex-start;
     padding: 20px 24px;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--line);
   }
   
   .side-column .card-head {
@@ -340,20 +340,20 @@ const normalizeSource = (src: string) => {
   .section-title {
     font-size: 16px;
     font-weight: 600;
-    color: #0f172a;
+    color: var(--maroon-2);
     margin: 0;
   }
 
   .section-subtitle {
     font-size: 13px;
-    color: #64748b;
+    color: var(--ink-soft);
     margin: 4px 0 0 0;
   }
 
   .view-all-link {
     font-size: 13px;
     font-weight: 500;
-    color: #3b82f6;
+    color: var(--maroon);
     text-decoration: none;
   }
   
@@ -375,16 +375,16 @@ const normalizeSource = (src: string) => {
   .crm-table th {
     text-align: left;
     padding: 12px 24px;
-    color: #64748b;
+    color: var(--ink-soft);
     font-weight: 500;
     font-size: 12px;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--line);
     white-space: nowrap;
   }
 
   .crm-table td {
     padding: 12px 24px;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--line);
     vertical-align: middle;
     height: 64px;
   }
@@ -393,25 +393,25 @@ const normalizeSource = (src: string) => {
     transition: background-color 0.15s ease;
   }
   .interactive-row:hover {
-    background-color: #f8fafc;
+    background-color: var(--paper-3);
   }
 
   .cell-primary {
     display: block;
     font-size: 14px;
     font-weight: 500;
-    color: #1e293b;
+    color: var(--ink);
     margin-bottom: 2px;
   }
 
   .cell-secondary {
     display: block;
     font-size: 12px;
-    color: #64748b;
+    color: var(--ink-soft);
   }
   
   .muted-text {
-    color: #94a3b8;
+    color: var(--ink-soft);
     font-style: italic;
     font-weight: 400;
   }
@@ -420,8 +420,8 @@ const normalizeSource = (src: string) => {
   .badge-source {
     display: inline-block;
     padding: 4px 8px;
-    background: #f1f5f9;
-    color: #475569;
+    background: var(--paper-3);
+    color: var(--ink);
     border-radius: 6px;
     font-size: 12px;
     font-weight: 500;
@@ -433,21 +433,21 @@ const normalizeSource = (src: string) => {
     border-radius: 6px;
     font-size: 12px;
     font-weight: 500;
-    background: #f1f5f9;
-    color: #475569;
+    background: var(--paper-3);
+    color: var(--ink);
   }
-  .badge-status[data-status="New"] { background: #eff6ff; color: #2563eb; }
-  .badge-status[data-status="In Progress"] { background: #fffbeb; color: #d97706; }
-  .badge-status[data-status="Contacted"] { background: #f5f3ff; color: #7c3aed; }
-  .badge-status[data-status="Qualified"] { background: #f0fdf4; color: #16a34a; }
-  .badge-status[data-status="Converted"] { background: #dcfce7; color: #15803d; font-weight: 600; }
-  .badge-status[data-status="Closed"] { background: #f1f5f9; color: #475569; }
-  .badge-status[data-status="Lost"] { background: #fef2f2; color: #dc2626; }
+  .badge-status[data-status="New"] { background: var(--maroon-3); color: #fff; }
+  .badge-status[data-status="In Progress"] { background: var(--pink-soft); color: var(--maroon-2); }
+  .badge-status[data-status="Contacted"] { background: var(--pink-soft); color: var(--maroon-2); }
+  .badge-status[data-status="Qualified"] { background: var(--paper-3); color: var(--maroon-2); }
+  .badge-status[data-status="Converted"] { background: var(--maroon); color: #fff; font-weight: 600; }
+  .badge-status[data-status="Closed"] { background: var(--paper-3); color: var(--ink-soft); }
+  .badge-status[data-status="Lost"] { background: var(--pink); color: #fff; }
 
   /* Buttons */
   .btn-action-ghost {
     background: transparent;
-    color: #3b82f6;
+    color: var(--maroon);
     border: none;
     font-size: 13px;
     font-weight: 500;
@@ -457,7 +457,7 @@ const normalizeSource = (src: string) => {
     transition: background 0.15s;
   }
   .btn-action-ghost:hover {
-    background: #eff6ff;
+    background: var(--paper-3);
   }
 
   /* Demand List */
@@ -471,14 +471,14 @@ const normalizeSource = (src: string) => {
     display: flex;
     align-items: center;
     padding: 12px 0;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--line);
   }
   .demand-item:last-child {
     border-bottom: none;
   }
   .demand-rank {
     font-weight: 600;
-    color: #94a3b8;
+    color: var(--ink-soft);
     width: 32px;
     font-size: 14px;
   }
@@ -486,8 +486,8 @@ const normalizeSource = (src: string) => {
     flex: 1;
   }
   .demand-count {
-    background: #f1f5f9;
-    color: #475569;
+    background: var(--paper-3);
+    color: var(--ink);
     padding: 4px 10px;
     border-radius: 12px;
     font-size: 12px;
@@ -505,7 +505,7 @@ const normalizeSource = (src: string) => {
     justify-content: space-between;
     align-items: flex-start;
     padding: 16px 0;
-    border-bottom: 1px solid #f1f5f9;
+    border-bottom: 1px solid var(--line);
   }
   .followup-item:last-child {
     border-bottom: none;
@@ -516,18 +516,18 @@ const normalizeSource = (src: string) => {
   }
   .fu-task {
     font-size: 13px;
-    color: #334155;
+    color: var(--ink);
     margin: 4px 0;
     line-height: 1.4;
   }
   .fu-meta {
     font-size: 12px;
-    color: #64748b;
+    color: var(--ink-soft);
   }
   .btn-complete-icon {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    color: #64748b;
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    color: var(--ink-soft);
     border-radius: 6px;
     width: 28px;
     height: 28px;
@@ -539,16 +539,16 @@ const normalizeSource = (src: string) => {
     flex-shrink: 0;
   }
   .btn-complete-icon:hover {
-    background: #10b981;
+    background: var(--maroon);
     color: #ffffff;
-    border-color: #10b981;
+    border-color: var(--maroon);
   }
 
   /* Empty States */
   .empty-state-msg {
     padding: 40px 24px;
     text-align: center;
-    color: #64748b;
+    color: var(--ink-soft);
     font-size: 14px;
   }
   .empty-state-msg.compact {
@@ -558,7 +558,7 @@ const normalizeSource = (src: string) => {
     display: inline-block;
     margin-top: 8px;
     font-size: 13px;
-    color: #3b82f6;
+    color: var(--maroon);
     text-decoration: none;
     font-weight: 500;
   }

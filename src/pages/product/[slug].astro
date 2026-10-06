@@ -49,15 +49,26 @@ const commerceProduct = (slug ? getCommerceProductBySlug(slug) : null) || {
 
 let defaultVariantId: number | null = null;
 let dbVariants: any[] = [];
+let totalStock = 0;
+let isOutOfStock = false;
+
 try {
   const dbProd = await prisma.products.findUnique({ where: { slug } });
   if (dbProd) {
     dbVariants = await prisma.productVariants.findMany({
       where: { product_id: dbProd.id },
       orderBy: [{ position: 'asc' }, { id: 'asc' }],
-      select: { id: true, sku: true }
+      select: { id: true, sku: true, stock: true }
     });
-    if (dbVariants.length > 0) defaultVariantId = dbVariants[0].id;
+    if (dbVariants.length > 0) {
+      defaultVariantId = dbVariants[0].id;
+      totalStock = dbVariants.reduce((sum, v) => sum + (v.stock || 0), 0);
+      if (totalStock <= 0) isOutOfStock = true;
+    } else {
+      isOutOfStock = true;
+    }
+  } else {
+    isOutOfStock = true;
   }
 } catch(e) {
   console.warn('Failed to fetch DB variants for', slug);
@@ -188,22 +199,32 @@ const productImages = (baseProduct.images && baseProduct.images.length > 0)
 
             <!-- Purchase / Quantity Controls -->
             {isPurchasable ? (
-              <div class="pdp-buy-controls">
-                <div class="pdp-qty-stepper">
-                  <button type="button" class="qty-btn" id="pdp-qty-minus" aria-label="Decrease quantity">&minus;</button>
-                  <span class="qty-val" id="pdp-qty-val">1</span>
-                  <button type="button" class="qty-btn" id="pdp-qty-plus" aria-label="Increase quantity">+</button>
+              isOutOfStock ? (
+                <div class="pdp-buy-controls">
+                  <div class="pdp-btn-stack">
+                    <button class="pdp-btn-out-of-stock" disabled>
+                      OUT OF STOCK
+                    </button>
+                  </div>
                 </div>
+              ) : (
+                <div class="pdp-buy-controls">
+                  <div class="pdp-qty-stepper">
+                    <button type="button" class="qty-btn" id="pdp-qty-minus" aria-label="Decrease quantity">&minus;</button>
+                    <span class="qty-val" id="pdp-qty-val">1</span>
+                    <button type="button" class="qty-btn" id="pdp-qty-plus" aria-label="Increase quantity">+</button>
+                  </div>
 
-                <div class="pdp-btn-stack">
-                  <button class="pdp-btn-primary" id="pdp-add-cart-btn" data-slug={baseProduct.slug} data-variant-id={defaultVariantId}>
-                    ADD TO CART
-                  </button>
-                  <button class="pdp-btn-secondary" id="pdp-buy-now-btn" data-slug={baseProduct.slug} data-variant-id={defaultVariantId}>
-                    BUY NOW
-                  </button>
+                  <div class="pdp-btn-stack">
+                    <button class="pdp-btn-primary" id="pdp-add-cart-btn" data-slug={baseProduct.slug} data-variant-id={defaultVariantId}>
+                      ADD TO CART
+                    </button>
+                    <button class="pdp-btn-secondary" id="pdp-buy-now-btn" data-slug={baseProduct.slug} data-variant-id={defaultVariantId}>
+                      BUY NOW
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )
             ) : (
               <div class="pdp-enquiry-controls">
                 <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" class="pdp-btn-whatsapp">
@@ -380,12 +401,20 @@ const productImages = (baseProduct.images && baseProduct.images.length > 0)
   <!-- Mobile Fixed Bottom Action Bar (<= 767px) -->
   {isPurchasable ? (
     <div class="pdp-mobile-sticky-bar" id="pdp-mobile-sticky-bar">
-      <button type="button" class="pdp-mobile-btn-primary" id="pdp-mobile-add-cart-btn" data-slug={baseProduct.slug}>
-        ADD TO CART
-      </button>
-      <button type="button" class="pdp-mobile-btn-secondary" id="pdp-mobile-buy-now-btn" data-slug={baseProduct.slug}>
-        BUY NOW
-      </button>
+      {isOutOfStock ? (
+        <button type="button" class="pdp-mobile-btn-out-of-stock" disabled>
+          OUT OF STOCK
+        </button>
+      ) : (
+        <>
+          <button type="button" class="pdp-mobile-btn-primary" id="pdp-mobile-add-cart-btn" data-slug={baseProduct.slug} data-variant-id={defaultVariantId}>
+            ADD TO CART
+          </button>
+          <button type="button" class="pdp-mobile-btn-secondary" id="pdp-mobile-buy-now-btn" data-slug={baseProduct.slug} data-variant-id={defaultVariantId}>
+            BUY NOW
+          </button>
+        </>
+      )}
     </div>
   ) : (
     <div class="pdp-mobile-sticky-bar pdp-mobile-sticky-bar-enquiry" id="pdp-mobile-sticky-bar">
@@ -925,6 +954,36 @@ const productImages = (baseProduct.images && baseProduct.images.length > 0)
   .pdp-btn-secondary:hover {
     background: #8A174B;
     color: #fff;
+  }
+
+  .pdp-btn-out-of-stock {
+    background: #f3f4f6;
+    color: #9ca3af;
+    border: 1.5px solid #e5e7eb;
+    padding: 0.85rem 1.5rem;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    cursor: not-allowed;
+    width: 100%;
+    text-transform: uppercase;
+  }
+
+  .pdp-mobile-btn-out-of-stock {
+    background: #f3f4f6;
+    color: #9ca3af;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: not-allowed;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    min-height: 44px;
+    text-transform: uppercase;
   }
 
   .pdp-enquiry-controls {

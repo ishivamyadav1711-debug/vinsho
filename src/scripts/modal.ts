@@ -221,6 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const datasetName = addBtn.dataset.name;
         const datasetPrice = addBtn.dataset.price ? parseFloat(addBtn.dataset.price) : null;
         const datasetImage = addBtn.dataset.image;
+        const datasetVariantId = addBtn.dataset.variantId ? parseInt(addBtn.dataset.variantId, 10) : undefined;
 
         const formattedSlugName = slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
@@ -233,7 +234,8 @@ document.addEventListener('DOMContentLoaded', () => {
           name,
           price: price ?? undefined,
           image,
-          quantity: currentQty || 1
+          quantity: currentQty || 1,
+          variantId: datasetVariantId
         });
       }
       return;
@@ -248,6 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const datasetName = buyNowBtn.dataset.name;
         const datasetPrice = buyNowBtn.dataset.price ? parseFloat(buyNowBtn.dataset.price) : null;
         const datasetImage = buyNowBtn.dataset.image;
+        const datasetVariantId = buyNowBtn.dataset.variantId ? parseInt(buyNowBtn.dataset.variantId, 10) : undefined;
 
         const formattedSlugName = slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
@@ -260,7 +263,8 @@ document.addEventListener('DOMContentLoaded', () => {
           name,
           price: price ?? undefined,
           image,
-          quantity: 1
+          quantity: 1,
+          variantId: datasetVariantId
         });
         window.location.href = '/cart';
       }

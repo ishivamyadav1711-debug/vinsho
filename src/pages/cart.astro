@@ -6,8 +6,26 @@ import Modal from '../components/Modal.astro';
 import CustomCursor from '../components/motion/CustomCursor.astro';
 import { getProductsByCollection } from '../utils/taxonomy';
 import { getCustomerFromSession } from '../lib/customerAuth';
+import { prisma } from '../lib/db.js';
 
-const upsellProducts = (await getProductsByCollection('gifting-collection')).slice(0, 4);
+const rawUpsellProducts = (await getProductsByCollection('gifting-collection')).slice(0, 4);
+
+// Resolve variant IDs for upsells
+const upsellProducts = await Promise.all(rawUpsellProducts.map(async (p) => {
+  let defaultVariantId = null;
+  if (p.isPurchasable !== false) {
+    const dbProd = await prisma.products.findUnique({ where: { slug: p.slug } });
+    if (dbProd) {
+      const v = await prisma.productVariants.findFirst({
+        where: { product_id: dbProd.id },
+        orderBy: [{ position: 'asc' }, { id: 'asc' }]
+      });
+      if (v) defaultVariantId = v.id;
+    }
+  }
+  return { ...p, defaultVariantId };
+}));
+
 const isLoggedIn = !!(await getCustomerFromSession(Astro.request));
 ---
 
@@ -150,6 +168,7 @@ const isLoggedIn = !!(await getCustomerFromSession(Astro.request));
                     data-upsell-name={p.name}
                     data-upsell-price={p.price || 499}
                     data-upsell-image={p.image}
+                    data-upsell-variant-id={p.defaultVariantId}
                   >
                     + Add
                   </button>
@@ -300,8 +319,9 @@ const isLoggedIn = !!(await getCustomerFromSession(Astro.request));
         const name = target.dataset.upsellName || '';
         const price = parseFloat(target.dataset.upsellPrice || '499');
         const image = target.dataset.upsellImage || '/placeholder.png';
+        const variantId = target.dataset.upsellVariantId ? parseInt(target.dataset.upsellVariantId, 10) : undefined;
 
-        addLocalCartItem({ slug, name, price, image, quantity: 1 });
+        addLocalCartItem({ slug, name, price, image, quantity: 1, variantId });
       });
     });
 

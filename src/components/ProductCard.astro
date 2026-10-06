@@ -46,6 +46,35 @@ const searchTerms = [
   product.material || '',
   product.sku_ref || ''
 ].filter(Boolean).join(' ').toLowerCase();
+
+import { prisma } from '../lib/db.js';
+let defaultVariantId: number | null = null;
+let isOutOfStock = false;
+if (isPurchasable) {
+  try {
+    const dbProd = await prisma.products.findUnique({ where: { slug: product.slug } });
+    if (dbProd) {
+      const variants = await prisma.productVariants.findMany({
+        where: { product_id: dbProd.id },
+        orderBy: [{ position: 'asc' }, { id: 'asc' }],
+        select: { id: true, stock: true }
+      });
+      if (variants.length > 0) {
+        defaultVariantId = variants[0].id;
+        const totalStock = variants.reduce((sum, v) => sum + (v.stock || 0), 0);
+        if (totalStock <= 0) {
+          isOutOfStock = true;
+        }
+      } else {
+        isOutOfStock = true; // No variants means no stock
+      }
+    } else {
+      isOutOfStock = true;
+    }
+  } catch(e) {
+    console.warn('Failed to fetch DB variant for ProductCard', product.slug);
+  }
+}
 ---
 
 <article 
@@ -78,26 +107,32 @@ const searchTerms = [
       <span class="pc-price">{formattedPrice}</span>
       <div class="pc-actions">
         {isPurchasable ? (
-          <>
-            <button 
-              class="pc-btn-secondary" 
-              data-add={product.slug} 
-              data-name={product.name}
-              data-price={product.price || 499}
-              data-image={product.image}
-            >
-              Add
-            </button>
-            <button 
-              class="pc-btn-primary" 
-              data-buy-now={product.slug} 
-              data-name={product.name}
-              data-price={product.price || 499}
-              data-image={product.image}
-            >
-              Buy Now
-            </button>
-          </>
+          isOutOfStock ? (
+            <span class="pc-out-of-stock-badge">OUT OF STOCK</span>
+          ) : (
+            <>
+              <button 
+                class="pc-btn-secondary" 
+                data-add={product.slug} 
+                data-name={product.name}
+                data-price={product.price || 499}
+                data-image={product.image}
+                data-variant-id={defaultVariantId}
+              >
+                Add
+              </button>
+              <button 
+                class="pc-btn-primary" 
+                data-buy-now={product.slug} 
+                data-name={product.name}
+                data-price={product.price || 499}
+                data-image={product.image}
+                data-variant-id={defaultVariantId}
+              >
+                Buy Now
+              </button>
+            </>
+          )
         ) : (
           <button class="pc-btn-link" data-open={product.slug}>
             Get Quote
@@ -244,6 +279,17 @@ const searchTerms = [
   }
   .pc-btn-link:hover {
     color: var(--maroon, #8A174B);
+  }
+  .pc-out-of-stock-badge {
+    font-family: var(--sans, sans-serif);
+    font-size: clamp(0.7rem, 1.1vw, 0.75rem);
+    font-weight: 700;
+    color: #b91c1c;
+    background: #fef2f2;
+    padding: 0.35rem 0.65rem;
+    border-radius: 4px;
+    display: inline-block;
+    border: 1px solid #f87171;
   }
 
   @media (max-width: 640px) {

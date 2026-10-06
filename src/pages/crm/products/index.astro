@@ -78,9 +78,14 @@ const paginatedProducts = productsRaw.map((p) => {
   const primaryVariant = p.ProductVariants[0];
   const totalStock = p.ProductVariants.reduce((sum, v) => sum + (v.stock ?? 0), 0);
   const sku = primaryVariant?.sku || p.sku || `PRD-${p.id}`;
-  const price = primaryVariant?.selling_price ? Number(primaryVariant.selling_price) : 0;
   const collectionKey = p.collection?.key || p.collection?.name || '';
   const subcategoryKey = p.subcategory?.key || p.subcategory?.name || '';
+  
+  let price = primaryVariant?.selling_price ? Number(primaryVariant.selling_price) : 0;
+  let showPrice = true;
+  if (collectionKey.includes('home-decor') || collectionKey.includes('home-furnishing') || collectionKey.includes('Home Decor') || collectionKey.includes('Home Furnishing')) {
+    showPrice = false;
+  }
   const isOnline = Boolean(p.sellable_online && isProductPurchasable({
     slug: p.slug,
     name: p.name,
@@ -105,6 +110,7 @@ const paginatedProducts = productsRaw.map((p) => {
     collectionName: p.collection?.name || 'Uncategorized',
     subcategoryName: p.subcategory?.name || '',
     sellingPrice: price,
+    showPrice,
     stock: totalStock,
     stockStatus,
     isOnline,
@@ -126,10 +132,35 @@ const paginatedProducts = productsRaw.map((p) => {
 // Since doing full cross-table sum filters natively in Prisma is heavy,
 // we approximate summary counts using simple fast queries if filters are 'all'.
 const totalCount = await prisma.products.count({ where: { deleted_at: null } });
-// We use placeholder counts for the header metrics if we are paginating, to avoid N+1 variants fetching
-const inStockCount = '-';
-const lowStockCount = '-';
-const outOfStockCount = '-';
+
+// We use database-level aggregation for correct KPI metrics without N+1 overhead
+let inStockCount: number | string = '-';
+let lowStockCount: number | string = '-';
+let outOfStockCount: number | string = '-';
+
+try {
+  const stockMetrics = await prisma.$queryRaw<Array<{ in_stock: number; low_stock: number; out_of_stock: number }>>`
+    SELECT
+      COUNT(*) FILTER (WHERE total_stock > ${lowStockThreshold})::int AS in_stock,
+      COUNT(*) FILTER (WHERE total_stock > 0 AND total_stock <= ${lowStockThreshold})::int AS low_stock,
+      COUNT(*) FILTER (WHERE total_stock <= 0 OR total_stock IS NULL)::int AS out_of_stock
+    FROM (
+      SELECT p.id, COALESCE(SUM(v.stock), 0) AS total_stock
+      FROM products p
+      LEFT JOIN product_variants v ON p.id = v.product_id
+      WHERE p.deleted_at IS NULL
+      GROUP BY p.id
+    ) AS stock_totals;
+  `;
+
+  if (stockMetrics && stockMetrics.length > 0) {
+    inStockCount = stockMetrics[0].in_stock;
+    lowStockCount = stockMetrics[0].low_stock;
+    outOfStockCount = stockMetrics[0].out_of_stock;
+  }
+} catch (error) {
+  console.error('[CRM Products] Failed to calculate inventory KPI metrics:', error);
+}
 ---
 
 <AdminLayout title="Product & Inventory Management" activeNav="products">
@@ -282,7 +313,9 @@ const outOfStockCount = '-';
                     {p.subcategoryName && <small class="subcat-text">{p.subcategoryName}</small>}
                   </td>
                   <td>
-                    <span class="price-val">{p.sellingPrice > 0 ? `₹${p.sellingPrice.toLocaleString('en-IN')}` : 'Price on Request'}</span>
+                    <span class="price-val">
+                      {!p.showPrice ? '-' : p.sellingPrice > 0 ? `₹${p.sellingPrice.toLocaleString('en-IN')}` : 'Price on Request'}
+                    </span>
                   </td>
                   <td>
                     <div class="stock-display">
@@ -315,9 +348,6 @@ const outOfStockCount = '-';
                       >
                         Manage Stock
                       </button>
-                      <a href={`/crm/products/${p.id}`} class="btn-edit-link" title="Full Product Editor">
-                        Edit
-                      </a>
                     </div>
                   </td>
                 </tr>

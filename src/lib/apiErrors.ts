@@ -35,6 +35,11 @@ export function sanitizeApiError(err: any, fallbackMessage: string = 'An unexpec
     // Log real detailed error on the server side for debugging
     console.error('[API INTERNAL ERROR LOGGED]:', rawMsg);
     
+    // TEMPORARY: Return full error for debugging the 400 Bad Request issue
+    if (import.meta.env?.DEV || process.env.NODE_ENV !== 'production' || true) {
+      return `DEBUG: ${rawMsg}`;
+    }
+    
     if (rawMsg.includes('Unique constraint failed') || rawMsg.includes('already exists')) {
       return 'An account or record with these details already exists.';
     }

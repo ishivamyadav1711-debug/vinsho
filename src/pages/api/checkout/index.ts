@@ -19,27 +19,50 @@ export const POST: APIRoute = async ({ request }) => {
       sessionToken, name, phone, email, line1, line2, city, state, pincode, country, idempotencyKey, couponCode, items: rawItems
     } = body;
 
-    // Check for authenticated customer session (§8, §10)
+    console.log('[CHECKOUT API] Request received with payload:', JSON.stringify({ ...body, items: rawItems }, null, 2));
+
     const authenticatedCustomer = await getCustomerFromSession(request);
 
+    console.log('[CHECKOUT API] Validating required fields...');
     if (!name || !phone || !line1 || !city || !state || !pincode || !idempotencyKey) {
-      return new Response(JSON.stringify({ error: 'Name, Phone, Shipping Address, and Idempotency Key are required.' }), { status: 400 });
+      const missing = [];
+      if (!name) missing.push('name');
+      if (!phone) missing.push('phone');
+      if (!line1) missing.push('line1');
+      if (!city) missing.push('city');
+      if (!state) missing.push('state');
+      if (!pincode) missing.push('pincode');
+      if (!idempotencyKey) missing.push('idempotencyKey');
+      
+      console.error(`[CHECKOUT API] 400 - Missing required fields: ${missing.join(', ')}`);
+      return new Response(JSON.stringify({ 
+        success: false, stage: 'VALIDATE_REQUIRED_FIELDS', code: 'MISSING_FIELDS', message: `Missing required fields: ${missing.join(', ')}` 
+      }), { status: 400, headers: { 'Content-Type': 'application/json' } });
     }
 
+    console.log('[CHECKOUT API] Validating phone number format...');
     const cleanPhone = (phone || '').toString().trim();
     if (!/^\d{10}$/.test(cleanPhone)) {
-      return new Response(JSON.stringify({ error: 'Valid 10-digit mobile phone number is required.' }), { status: 400 });
+      console.error(`[CHECKOUT API] 400 - Invalid phone: ${cleanPhone}`);
+      return new Response(JSON.stringify({ 
+        success: false, stage: 'VALIDATE_PHONE', code: 'INVALID_PHONE', message: `Phone '${cleanPhone}' is not a valid 10-digit number.` 
+      }), { status: 400, headers: { 'Content-Type': 'application/json' } });
     }
 
+    console.log('[CHECKOUT API] Validating pincode format...');
     const cleanPincode = (pincode || '').toString().trim();
     if (!/^\d{6}$/.test(cleanPincode)) {
-      return new Response(JSON.stringify({ error: 'Valid 6-digit Indian PIN code is required.' }), { status: 400 });
+      console.error(`[CHECKOUT API] 400 - Invalid pincode: ${cleanPincode}`);
+      return new Response(JSON.stringify({ 
+        success: false, stage: 'VALIDATE_PINCODE', code: 'INVALID_PINCODE', message: `Pincode '${cleanPincode}' is not a valid 6-digit number.` 
+      }), { status: 400, headers: { 'Content-Type': 'application/json' } });
     }
 
     let customerId: number;
     if (authenticatedCustomer) {
       customerId = authenticatedCustomer.id;
     } else {
+      console.log('[CHECKOUT API] Resolving guest customer record...');
       const { customer } = await findOrCreateCustomer({
         name,
         phone: cleanPhone,
@@ -49,6 +72,23 @@ export const POST: APIRoute = async ({ request }) => {
       customerId = customer.id;
     }
 
+    console.log('[CHECKOUT API] Validating cart items structure...');
+    if (!Array.isArray(rawItems) || rawItems.length === 0) {
+      console.error('[CHECKOUT API] 400 - Cart is empty or invalid structure.');
+      return new Response(JSON.stringify({ 
+        success: false, stage: 'VALIDATE_CART_STRUCTURE', code: 'EMPTY_CART', message: 'Cart is empty.' 
+      }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    }
+
+    const invalidItems = rawItems.filter(i => typeof i.variantId !== 'number' || isNaN(i.variantId) || i.variantId === null);
+    if (invalidItems.length > 0) {
+      console.error('[CHECKOUT API] 400 - Invalid variant ID found in cart items:', invalidItems);
+      return new Response(JSON.stringify({ 
+        success: false, stage: 'VALIDATE_CART_VARIANTS', code: 'INVALID_VARIANT_ID', message: 'Some items in your cart are missing a valid variant ID (this can happen if your cart is from an older version of the site). Please clear your cart and add the items again.' 
+      }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    }
+
+    console.log('[CHECKOUT API] Initiating order creation sequence...');
     const orderRes = await createOrder({
       sessionToken,
       customerId,
@@ -59,8 +99,10 @@ export const POST: APIRoute = async ({ request }) => {
     });
 
     if (!orderRes.success || !orderRes.order) {
-      const safeError = sanitizeApiError(orderRes.error, orderRes.error || 'Failed to create order.');
-      return new Response(JSON.stringify({ error: safeError }), { status: 400 });
+      console.error('[CHECKOUT API] 400 - createOrder returned success: false', orderRes);
+      return new Response(JSON.stringify({ 
+        success: false, stage: 'CREATE_ORDER', code: 'ORDER_CREATION_FAILED', message: orderRes.error || 'Failed to create order.' 
+      }), { status: 400, headers: { 'Content-Type': 'application/json' } });
     }
 
     // Initiate Razorpay checkout session
@@ -95,8 +137,12 @@ export const POST: APIRoute = async ({ request }) => {
     }), { status: 200, headers: { 'Content-Type': 'application/json' } });
 
   } catch (err: any) {
-    console.error('Checkout Error:', err);
-    const safeError = sanitizeApiError(err, 'Checkout failed. Please try again.');
-    return new Response(JSON.stringify({ error: safeError }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    console.error('Checkout Error [Top Level Catch]:', err);
+    return new Response(JSON.stringify({ 
+      success: false,
+      stage: 'TOP_LEVEL_CATCH',
+      code: 'INTERNAL_ERROR',
+      message: err.message || 'Checkout failed due to an internal error.'
+    }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
 };
