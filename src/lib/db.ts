@@ -64,21 +64,17 @@ if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'production') {
  * Generates gapless sequence numbers for Orders (VIN-2026-000001) and Invoices (INV-2026-000001)
  * atomically using PostgreSQL row-level locking or UPSERT.
  */
-export async function getNextSequenceNumber(sequenceName: string, prefix: string): Promise<string> {
-  const result = await prisma.$transaction(async (tx) => {
-    // Atomically upsert sequence row in PostgreSQL
-    const seq = await tx.gaplessSequences.upsert({
-      where: { sequence_name: sequenceName },
-      update: { current_val: { increment: 1 } },
-      create: { sequence_name: sequenceName, current_val: 1 }
-    });
-
-    const currentVal = seq.current_val ?? 1;
-    const seqPadded = String(currentVal).padStart(6, '0');
-    return `${prefix}-${new Date().getFullYear()}-${seqPadded}`;
+export async function getNextSequenceNumber(sequenceName: string, prefix: string, txClient?: any): Promise<string> {
+  const client = txClient || prisma;
+  const seq = await client.gaplessSequences.upsert({
+    where: { sequence_name: sequenceName },
+    update: { current_val: { increment: 1 } },
+    create: { sequence_name: sequenceName, current_val: 1 }
   });
 
-  return result;
+  const currentVal = seq.current_val ?? 1;
+  const seqPadded = String(currentVal).padStart(6, '0');
+  return `${prefix}-${new Date().getFullYear()}-${seqPadded}`;
 }
 
 export async function getAllSubscribers() {

@@ -20,8 +20,9 @@ export interface ComboAvailability {
 /**
  * Retrieves the raw component rows for a combo variant.
  */
-export async function getComboComponents(comboVariantId: number): Promise<any[]> {
-  const items = await prisma.comboItems.findMany({
+export async function getComboComponents(comboVariantId: number, txClient?: any): Promise<any[]> {
+  const client = txClient || prisma;
+  const items = await client.comboItems.findMany({
     where: {
       combo_variant_id: comboVariantId,
       component_variant: {
@@ -39,7 +40,7 @@ export async function getComboComponents(comboVariantId: number): Promise<any[]>
     }
   });
 
-  return items.map((ci) => ({
+  return items.map((ci: any) => ({
     mapping_id: ci.id,
     combo_variant_id: ci.combo_variant_id,
     component_variant_id: ci.component_variant_id,
@@ -57,11 +58,12 @@ export async function getComboComponents(comboVariantId: number): Promise<any[]>
  * If combo has components: maxSellable = min_i floor(stock(C_i) / qty_i)
  * If combo has NO components: returns standalone variant stock balance.
  */
-export async function getComboAvailability(comboVariantId: number): Promise<ComboAvailability> {
-  const components = await getComboComponents(comboVariantId);
+export async function getComboAvailability(comboVariantId: number, txClient?: any): Promise<ComboAvailability> {
+  const client = txClient || prisma;
+  const components = await getComboComponents(comboVariantId, client);
 
   if (components.length === 0) {
-    const variant = await prisma.productVariants.findUnique({
+    const variant = await client.productVariants.findUnique({
       where: { id: comboVariantId }
     });
     const standaloneStock = variant && variant.stock !== null && variant.stock !== undefined ? variant.stock : 100;

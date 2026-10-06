@@ -59,7 +59,8 @@ export const POST: APIRoute = async ({ request }) => {
     });
 
     if (!orderRes.success || !orderRes.order) {
-      return new Response(JSON.stringify({ error: orderRes.error || 'Failed to create order.' }), { status: 400 });
+      const safeError = sanitizeApiError(orderRes.error, orderRes.error || 'Failed to create order.');
+      return new Response(JSON.stringify({ error: safeError }), { status: 400 });
     }
 
     // Initiate Razorpay checkout session
@@ -89,7 +90,8 @@ export const POST: APIRoute = async ({ request }) => {
       grandTotal: orderRes.order.grand_total,
       currency: orderRes.order.currency || 'INR',
       razorpayOrderId: paymentSession.razorpayOrderId,
-      razorpayKeyId
+      razorpayKeyId,
+      keyId: razorpayKeyId
     }), { status: 200, headers: { 'Content-Type': 'application/json' } });
 
   } catch (err: any) {

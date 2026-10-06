@@ -15,7 +15,7 @@ export const POST: APIRoute = async ({ request }) => {
     const { orderId, orderNumber, razorpay_order_id, razorpay_payment_id, razorpay_signature } = body;
 
     // 1. Parameter Validation
-    if (!orderId || !razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+    if ((!orderId && !orderNumber) || !razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
       return new Response(JSON.stringify({
         error: 'Missing required payment verification parameters.'
       }), { status: 400, headers: { 'Content-Type': 'application/json' } });
@@ -33,17 +33,19 @@ export const POST: APIRoute = async ({ request }) => {
       }), { status: 400, headers: { 'Content-Type': 'application/json' } });
     }
 
-    const numericOrderId = Number(orderId);
-    if (!numericOrderId || isNaN(numericOrderId)) {
-      return new Response(JSON.stringify({
-        error: 'Invalid order ID format.'
-      }), { status: 400, headers: { 'Content-Type': 'application/json' } });
-    }
-
     // 2. Fetch Order from Database
-    const order = await prisma.orders.findUnique({
-      where: { id: numericOrderId }
-    });
+    let order: any = null;
+    let numericOrderId = Number(orderId);
+    if (numericOrderId && !isNaN(numericOrderId)) {
+      order = await prisma.orders.findUnique({
+        where: { id: numericOrderId }
+      });
+    } else if (orderNumber) {
+      order = await prisma.orders.findUnique({
+        where: { order_number: String(orderNumber) }
+      });
+      if (order) numericOrderId = order.id;
+    }
 
     if (!order) {
       return new Response(JSON.stringify({

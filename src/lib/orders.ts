@@ -34,7 +34,8 @@ export interface OrderCreationResult {
 }
 
 export async function createOrder(params: CreateOrderParams): Promise<OrderCreationResult> {
-  const cleanIdempotencyKey = params.idempotencyKey.trim();
+  try {
+    const cleanIdempotencyKey = params.idempotencyKey.trim();
 
   // Idempotency check: Double-submitted checkout must produce 1 order, not 2
   const existingOrder = await prisma.orders.findUnique({
@@ -196,14 +197,13 @@ export async function createOrder(params: CreateOrderParams): Promise<OrderCreat
   discountTotal = Math.max(0, Math.min(discountTotal, subtotal));
 
   const shippingTotal = shipResult.shippingFee;
-  const grandTotal = Number(Math.max(0, subtotal - discountTotal + taxTotal + shippingTotal).toFixed(2));
+  const grandTotal = Number(Math.max(0, subtotal - discountTotal + shippingTotal).toFixed(2));
   const isInterstate = shipResult.serviceable ? (buyerState.toLowerCase() !== 'haryana') : false;
 
   // Generate Gapless Order Number (VIN-2026-000001)
   const orderNumber = await getNextSequenceNumber('ORDER', 'VIN');
 
-  try {
-    const result = await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
       // Insert Order Record
       const createdOrder = await tx.orders.create({
         data: {
@@ -248,7 +248,7 @@ export async function createOrder(params: CreateOrderParams): Promise<OrderCreat
           }
         });
 
-        const comboComponents = await getComboComponents(oi.variantId);
+        const comboComponents = await getComboComponents(oi.variantId, tx);
         if (comboComponents.length > 0) {
           // Atomic component stock deduction for bundles
           for (const comp of comboComponents) {
@@ -283,11 +283,14 @@ export async function createOrder(params: CreateOrderParams): Promise<OrderCreat
       });
 
       return fullOrder;
+    }, {
+      maxWait: 10000,
+      timeout: 30000
     });
 
     return { success: true, order: result };
   } catch (err: any) {
-    console.error('createOrder transaction error:', err);
+    console.error('createOrder error:', err);
     return { success: false, error: err.message || 'Order creation failed' };
   }
 }

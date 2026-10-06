@@ -279,7 +279,7 @@ export class RazorpayProvider implements PaymentProvider {
           ? await tx.addresses.findUnique({ where: { id: order.shipping_address_id } })
           : null;
 
-        const invRecord = await generateInvoiceRecord(order, orderItems, shippingAddress);
+        const invRecord = await generateInvoiceRecord(order, orderItems, shippingAddress, tx);
 
         await tx.invoices.create({
           data: {
@@ -308,6 +308,9 @@ export class RazorpayProvider implements PaymentProvider {
           }
         });
       }
+    }, {
+      maxWait: 10000,
+      timeout: 30000
     });
 
     return { success: true, orderId, orderNumber: order.order_number };

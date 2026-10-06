@@ -230,8 +230,8 @@ if (!customer) {
         
         if (data.success) {
           const options = {
-            key: data.keyId,
-            amount: Math.round(calculatedTotals.grandTotal * 100),
+            key: data.razorpayKeyId || data.keyId,
+            amount: Math.round(Number(data.grandTotal || calculatedTotals.grandTotal) * 100),
             currency: data.currency || 'INR',
             name: 'VINSHO',
             description: 'Luxury Home Décor & Furnishings',
@@ -240,10 +240,11 @@ if (!customer) {
             handler: async function (response: any) {
               try {
                 placeOrderBtn.textContent = 'Verifying...';
-                const verifyRes = await fetch('/api/checkout/verify', {
+                const verifyRes = await fetch('/api/checkout/verify-payment', {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({
+                    orderId: data.orderId,
                     orderNumber: data.orderNumber,
                     razorpay_payment_id: response.razorpay_payment_id,
                     razorpay_order_id: response.razorpay_order_id,

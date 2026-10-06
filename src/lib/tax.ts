@@ -44,8 +44,8 @@ export function calculateLineTax(unitPrice: number, qty: number, gstRatePercent:
  * Generate Invoice Document HTML/PDF record with gapless sequence number.
  * Tagged: TODO: CA to review before first live order
  */
-export async function generateInvoiceRecord(order: any, orderItems: any[], shippingAddress: any): Promise<{ invoiceNumber: string; htmlContent: string; issuedAt: string }> {
-  const invoiceNumber = await getNextSequenceNumber('INVOICE', 'INV');
+export async function generateInvoiceRecord(order: any, orderItems: any[], shippingAddress: any, txClient?: any): Promise<{ invoiceNumber: string; htmlContent: string; issuedAt: string }> {
+  const invoiceNumber = await getNextSequenceNumber('INVOICE', 'INV', txClient);
   const issuedAt = new Date().toISOString();
 
   const isInterstate = Boolean(order.is_interstate);
