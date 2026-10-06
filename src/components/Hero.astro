@@ -1,23 +1,19 @@
 ---
 import content from '../../vinsho-content.json';
 import Magnetic from './motion/Magnetic.astro';
-import { Picture } from 'astro:assets';
-import heroImg from '../../public/hero-bg.png';
+import heroImg from '../assets/hero-bg.png';
 ---
 
 <section class="hero" id="hero-section" style="padding:0">
   <div class="hero-bg" id="hero-bg-frame">
     {content.siteImages.hero && (
-      <Picture 
-        src={heroImg} 
+      <img 
+        src={heroImg.src} 
         alt="VINSHO Home Décor"
-        formats={['avif', 'webp']}
-        fallbackFormat="jpg"
         id="hero-img-target"
         loading="eager"
         fetchpriority="high"
-        widths={[400, 800, 1200, 1920]}
-        sizes="(max-width: 767px) 800px, 1920px"
+        style="width: 100%; height: 100%; object-fit: cover;"
       />
     )}
   </div>

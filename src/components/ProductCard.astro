@@ -18,6 +18,7 @@ export interface Props {
     isPurchasable?: boolean;
     price?: number | null;
     sellingPrice?: number | null;
+    variants?: any[];
   };
   class?: string;
 }
@@ -47,32 +48,18 @@ const searchTerms = [
   product.sku_ref || ''
 ].filter(Boolean).join(' ').toLowerCase();
 
-import { prisma } from '../lib/db.js';
 let defaultVariantId: number | null = null;
 let isOutOfStock = false;
+
 if (isPurchasable) {
-  try {
-    const dbProd = await prisma.products.findUnique({ where: { slug: product.slug } });
-    if (dbProd) {
-      const variants = await prisma.productVariants.findMany({
-        where: { product_id: dbProd.id },
-        orderBy: [{ position: 'asc' }, { id: 'asc' }],
-        select: { id: true, stock: true }
-      });
-      if (variants.length > 0) {
-        defaultVariantId = variants[0].id;
-        const totalStock = variants.reduce((sum, v) => sum + (v.stock || 0), 0);
-        if (totalStock <= 0) {
-          isOutOfStock = true;
-        }
-      } else {
-        isOutOfStock = true; // No variants means no stock
-      }
-    } else {
+  if (product.variants && product.variants.length > 0) {
+    defaultVariantId = product.variants[0].id;
+    const totalStock = product.variants.reduce((sum: number, v: any) => sum + (v.stock || 0), 0);
+    if (totalStock <= 0) {
       isOutOfStock = true;
     }
-  } catch(e) {
-    console.warn('Failed to fetch DB variant for ProductCard', product.slug);
+  } else {
+    isOutOfStock = true; // No variants means no stock
   }
 }
 ---
