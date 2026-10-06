@@ -177,45 +177,19 @@ if (!customer) {
       `).join('');
     }
 
-    // Calculate shipping
     let calculatedTotals: any = null;
-    try {
-      const res = await fetch('/api/checkout/calculate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          pincode: addressData.pincode,
-          items: state.items.map(i => ({ 
-            variantId: parseInt(i.variantId as any) || null,
-            slug: i.slug,
-            qty: i.quantity 
-          }))
-        })
-      });
-      const data = await res.json();
-      if (!data.success) {
-        if (errorBanner) {
-          errorBanner.hidden = false;
-          errorBanner.textContent = data.error || 'Failed to calculate shipping.';
-        }
-        if (placeOrderBtn) placeOrderBtn.disabled = true;
-      } else {
-        calculatedTotals = data;
-        const subtotalBox = document.getElementById('v-subtotal-val');
-        if (subtotalBox) subtotalBox.textContent = `₹${(data.subtotal || 0).toLocaleString('en-IN')}`;
-        if (shippingBox) {
-          shippingBox.textContent = data.shippingFee === 0 ? 'FREE' : `₹${data.shippingFee.toLocaleString('en-IN')}`;
-        }
-        if (totalBox) {
-          totalBox.textContent = `₹${data.grandTotal.toLocaleString('en-IN')}`;
-        }
-      }
-    } catch (err) {
-      if (errorBanner) {
-        errorBanner.hidden = false;
-        errorBanner.textContent = 'Network error during shipping calculation.';
-      }
-    }
+    
+    // Calculate locally based on the new rules: shipping is always ₹99
+    const subtotal = state.items.reduce((sum: number, item: any) => sum + (item.price * item.quantity), 0);
+    const shippingFee = 99;
+    const grandTotal = subtotal + shippingFee;
+
+    calculatedTotals = { subtotal, shippingFee, grandTotal };
+
+    const subtotalBox = document.getElementById('v-subtotal-val');
+    if (subtotalBox) subtotalBox.textContent = `₹${subtotal.toLocaleString('en-IN')}`;
+    if (shippingBox) shippingBox.textContent = `₹${shippingFee.toLocaleString('en-IN')}`;
+    if (totalBox) totalBox.textContent = `₹${grandTotal.toLocaleString('en-IN')}`;
 
     placeOrderBtn?.addEventListener('click', async () => {
       if (placeOrderBtn.disabled || placeOrderBtn.textContent === 'Processing...') return;

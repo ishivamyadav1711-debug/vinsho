@@ -75,24 +75,6 @@ const missingFields = [...purchasability.missingProductFields, ...purchasability
         </div>
       </header>
 
-      <!-- Client Homework Audit Notice Box (§5) -->
-      <div class={`purchasability-audit-card ${purchasability.isPurchasable ? 'pass' : 'fail'}`}>
-        <div class="audit-card-header">
-          <strong>Purchasability Gate Evaluation: {purchasability.isPurchasable ? '✓ PASSED (ELIGIBLE FOR SALE)' : '⚠ FAILED (ENQUIRY FALLBACK ACTIVE)'}</strong>
-          <span>COMMERCE_MODE: <b>{COMMERCE_MODE.toUpperCase()}</b></span>
-        </div>
-        
-        {!purchasability.isPurchasable && (
-          <div class="audit-card-body">
-            <p><strong>Client Homework Checklist:</strong> The following {missingFields.length} field(s) must be supplied before this product can be sellable online:</p>
-            <ul class="missing-fields-list">
-              {missingFields.map(field => (
-                <li><code>{field}</code></li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
 
       <!-- Main Data Entry Form -->
       <form id="product-edit-form" class="edit-form-grid">

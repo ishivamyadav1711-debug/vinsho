@@ -64,72 +64,12 @@ export function calculateShipping(items: ShippingItem[], pincode: string, subtot
     };
   }
 
-  const isNcr = isDelhiNcrPincode(cleanPincode);
-  let totalBillableWeightKg = 0;
-  let hasFragile = false;
-  let hasBulky = false;
-
-  for (const item of items) {
-    if (item.shippingClass === 'made-to-order') {
-      return {
-        serviceable: false,
-        totalBillableWeightKg: 0,
-        shippingFee: 0,
-        fragileSurcharge: 0,
-        isDelhiNcr: isNcr,
-        isFreeShipping: false,
-        reason: `Item '${item.productSlug}' is Made-to-Order and cannot be shipped via cart. Site measurement required.`
-      };
-    }
-
-    if (item.shippingClass === 'bulky' && !isNcr) {
-      return {
-        serviceable: false,
-        totalBillableWeightKg: 0,
-        shippingFee: 0,
-        fragileSurcharge: 0,
-        isDelhiNcr: false,
-        isFreeShipping: false,
-        reason: `Bulky item '${item.productSlug}' is currently restricted to Delhi-NCR delivery pincodes.`
-      };
-    }
-
-    if (item.shippingClass === 'fragile') hasFragile = true;
-    if (item.shippingClass === 'bulky') hasBulky = true;
-
-    totalBillableWeightKg += calculateItemBillableWeight(item);
-  }
-
-  // Rate rules
-  const FREE_SHIPPING_THRESHOLD = 3000;
-  let shippingFee = 0;
-  let fragileSurcharge = 0;
-
-  if (hasBulky) {
-    shippingFee = 750 + Math.ceil(totalBillableWeightKg) * 50;
-  } else if (hasFragile) {
-    fragileSurcharge = 250; // Packaging surcharge & transit insurance
-    shippingFee = 150 + fragileSurcharge + Math.ceil(totalBillableWeightKg) * 30;
-  } else {
-    if (subtotal >= FREE_SHIPPING_THRESHOLD) {
-      return {
-        serviceable: true,
-        totalBillableWeightKg,
-        shippingFee: 0,
-        fragileSurcharge: 0,
-        isDelhiNcr: isNcr,
-        isFreeShipping: true
-      };
-    }
-    shippingFee = 150 + Math.ceil(totalBillableWeightKg) * 20;
-  }
-
   return {
     serviceable: true,
-    totalBillableWeightKg,
-    shippingFee,
-    fragileSurcharge,
-    isDelhiNcr: isNcr,
+    totalBillableWeightKg: 0,
+    shippingFee: 99,
+    fragileSurcharge: 0,
+    isDelhiNcr: false,
     isFreeShipping: false
   };
 }
