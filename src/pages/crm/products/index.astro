@@ -24,6 +24,13 @@ const collections = await prisma.collections.findMany({
   orderBy: { name: 'asc' }
 });
 
+// Subcategories for the "Add product" dialog (filtered client-side by chosen collection)
+const subcategoryOptions = (await prisma.subcategories.findMany({
+  where: { deleted_at: null },
+  orderBy: [{ order_index: 'asc' }, { name: 'asc' }],
+  select: { id: true, name: true, collection_id: true }
+}));
+
 const where: any = { deleted_at: null };
 if (search) {
   where.OR = [
@@ -181,6 +188,13 @@ try {
           </svg>
           Export CSV
         </a>
+        <button type="button" class="btn-primary" onclick="openAddProductModal()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Add product
+        </button>
       </div>
     </div>
 
@@ -522,6 +536,104 @@ try {
       </div>
     </div>
 
+    <!-- Add Product Modal -->
+    <div
+      id="add-product-modal"
+      class="modal-overlay"
+      hidden
+      data-subcategories={JSON.stringify(subcategoryOptions)}
+    >
+      <form id="add-product-form" class="modal-card" novalidate role="dialog" aria-modal="true" aria-labelledby="add-product-title">
+        <div class="modal-head">
+          <div>
+            <h2 class="modal-title" id="add-product-title">Add product</h2>
+            <span class="helper-text">You can add highlights, more images, GST and packing details on the next screen.</span>
+          </div>
+          <button type="button" class="modal-close-btn" onclick="closeAddProductModal()" aria-label="Close">&times;</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="ap-grid">
+            <div class="ap-field ap-span-2">
+              <label for="ap-name" class="field-label">Product name *</label>
+              <input id="ap-name" name="name" class="admin-input" required maxlength="160" placeholder="e.g. Lavender Soy Jar Candle" />
+            </div>
+
+            <div class="ap-field ap-span-2">
+              <label for="ap-slug" class="field-label">URL slug *</label>
+              <input id="ap-slug" name="slug" class="admin-input" required maxlength="160" pattern="[a-z0-9]+(-[a-z0-9]+)*" placeholder="lavender-soy-jar-candle" />
+              <small class="helper-text">Page address: /product/<span id="ap-slug-preview">…</span></small>
+            </div>
+
+            <div class="ap-field">
+              <label for="ap-collection" class="field-label">Collection *</label>
+              <select id="ap-collection" name="collection_id" class="admin-select" required>
+                <option value="">Select collection</option>
+                {collections.map((c) => <option value={c.id}>{c.name}</option>)}
+              </select>
+            </div>
+
+            <div class="ap-field">
+              <label for="ap-subcategory" class="field-label">Subcategory *</label>
+              <select id="ap-subcategory" name="subcategory_id" class="admin-select" required disabled>
+                <option value="">Select collection first</option>
+              </select>
+            </div>
+
+            <div class="ap-field ap-span-2">
+              <label for="ap-image" class="field-label">Main image URL</label>
+              <input id="ap-image" name="image_url" class="admin-input" placeholder="/images/vinsho/products/… or https://…" />
+            </div>
+
+            <div class="ap-field ap-span-2">
+              <label for="ap-description" class="field-label">Short description</label>
+              <textarea id="ap-description" name="description" class="admin-input" rows="3" maxlength="2000"></textarea>
+            </div>
+
+            <div class="ap-field ap-span-2">
+              <label for="ap-shipping" class="field-label">Shipping class</label>
+              <select id="ap-shipping" name="shipping_class" class="admin-select">
+                <option value="standard">Standard</option>
+                <option value="fragile">Fragile</option>
+                <option value="bulky">Bulky (Delhi NCR only)</option>
+                <option value="made-to-order">Made to order (enquiry only)</option>
+              </select>
+            </div>
+          </div>
+
+          <fieldset class="ap-variant">
+            <legend class="field-label">First variant</legend>
+            <div class="ap-grid ap-grid-4">
+              <div class="ap-field">
+                <label for="ap-sku" class="field-label">SKU</label>
+                <input id="ap-sku" name="sku" class="admin-input" maxlength="64" />
+              </div>
+              <div class="ap-field">
+                <label for="ap-mrp" class="field-label">MRP (₹)</label>
+                <input id="ap-mrp" name="mrp" type="number" min="0" step="0.01" class="admin-input" />
+              </div>
+              <div class="ap-field">
+                <label for="ap-price" class="field-label">Selling price (₹)</label>
+                <input id="ap-price" name="selling_price" type="number" min="0" step="0.01" class="admin-input" />
+              </div>
+              <div class="ap-field">
+                <label for="ap-stock" class="field-label">Stock</label>
+                <input id="ap-stock" name="stock" type="number" min="0" step="1" class="admin-input" />
+              </div>
+            </div>
+            <small class="helper-text">Leave price blank for "Price on request" items. Only gifting-collection products can be bought online.</small>
+          </fieldset>
+
+          <div id="add-product-error" class="alert-error" role="alert" hidden></div>
+        </div>
+
+        <div class="modal-foot ap-foot">
+          <button type="button" class="btn-modal-done" onclick="closeAddProductModal()">Cancel</button>
+          <button type="submit" id="add-product-submit" class="btn-primary">Create product</button>
+        </div>
+      </form>
+    </div>
+
   </div>
 </AdminLayout>
 
@@ -742,6 +854,166 @@ try {
   }
 </script>
 
+<script>
+  // ── Add Product dialog ──────────────────────────────────────────────────────
+  const apModal = document.getElementById('add-product-modal') as HTMLElement;
+  const apForm = document.getElementById('add-product-form') as HTMLFormElement;
+  const apName = document.getElementById('ap-name') as HTMLInputElement;
+  const apSlug = document.getElementById('ap-slug') as HTMLInputElement;
+  const apSlugPreview = document.getElementById('ap-slug-preview') as HTMLElement;
+  const apCollection = document.getElementById('ap-collection') as HTMLSelectElement;
+  const apSubcategory = document.getElementById('ap-subcategory') as HTMLSelectElement;
+  const apError = document.getElementById('add-product-error') as HTMLElement;
+  const apSubmit = document.getElementById('add-product-submit') as HTMLButtonElement;
+
+  const apSubcategories: Array<{ id: number; name: string; collection_id: number }> =
+    JSON.parse(apModal.dataset.subcategories || '[]');
+
+  // The slug follows the name until the admin types in the slug field themselves.
+  let apSlugEdited = false;
+
+  const slugify = (text: string) =>
+    text
+      .toLowerCase()
+      .normalize('NFKD')
+      .replace(/[̀-ͯ]/g, '')
+      .replace(/&/g, ' and ')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 160);
+
+  const updateSlugPreview = () => {
+    apSlugPreview.textContent = apSlug.value || '…';
+  };
+
+  const showApError = (message: string) => {
+    apError.textContent = message;
+    apError.hidden = false;
+    apError.scrollIntoView({ block: 'nearest' });
+  };
+
+  const fillSubcategories = () => {
+    const collectionId = Number(apCollection.value);
+    const options = apSubcategories.filter((s) => s.collection_id === collectionId);
+    apSubcategory.innerHTML = '';
+
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = !collectionId
+      ? 'Select collection first'
+      : options.length ? 'Select subcategory' : 'No subcategories in this collection';
+    apSubcategory.appendChild(placeholder);
+
+    options.forEach((s) => {
+      const opt = document.createElement('option');
+      opt.value = String(s.id);
+      opt.textContent = s.name;
+      apSubcategory.appendChild(opt);
+    });
+    apSubcategory.disabled = options.length === 0;
+  };
+
+  (window as any).openAddProductModal = () => {
+    apForm.reset();
+    apSlugEdited = false;
+    apError.hidden = true;
+    apSubmit.disabled = false;
+    apSubmit.textContent = 'Create product';
+    fillSubcategories();
+    updateSlugPreview();
+    apModal.hidden = false;
+    apName.focus();
+  };
+
+  (window as any).closeAddProductModal = () => {
+    apModal.hidden = true;
+  };
+
+  apName.addEventListener('input', () => {
+    if (!apSlugEdited) {
+      apSlug.value = slugify(apName.value);
+      updateSlugPreview();
+    }
+  });
+
+  apSlug.addEventListener('input', () => {
+    apSlugEdited = apSlug.value.trim() !== '';
+    updateSlugPreview();
+  });
+
+  apSlug.addEventListener('blur', () => {
+    apSlug.value = slugify(apSlug.value);
+    updateSlugPreview();
+  });
+
+  apCollection.addEventListener('change', fillSubcategories);
+
+  apModal.addEventListener('click', (e) => {
+    if (e.target === apModal) (window as any).closeAddProductModal();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !apModal.hidden) (window as any).closeAddProductModal();
+  });
+
+  apForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    apError.hidden = true;
+
+    const data = new FormData(apForm);
+    const value = (key: string) => String(data.get(key) ?? '').trim();
+
+    if (!value('name') || !value('slug') || !value('collection_id') || !value('subcategory_id')) {
+      showApError('Please fill in the product name, URL slug, collection and subcategory.');
+      return;
+    }
+
+    const mrp = value('mrp');
+    const price = value('selling_price');
+    if (mrp && price && Number(price) > Number(mrp)) {
+      showApError('Selling price cannot be higher than MRP.');
+      return;
+    }
+
+    apSubmit.disabled = true;
+    apSubmit.textContent = 'Creating…';
+
+    try {
+      const res = await fetch('/api/admin/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: value('name'),
+          slug: value('slug'),
+          collection_id: value('collection_id'),
+          subcategory_id: value('subcategory_id'),
+          image_url: value('image_url'),
+          description: value('description'),
+          shipping_class: value('shipping_class') || 'standard',
+          variant: {
+            sku: value('sku'),
+            mrp,
+            selling_price: price,
+            stock: value('stock')
+          }
+        })
+      });
+
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.product?.id) {
+        throw new Error(json.error || 'Could not create the product. Please try again.');
+      }
+
+      // Continue on the full edit page to add highlights, GST, packing details, etc.
+      window.location.href = `/crm/products/${json.product.id}`;
+    } catch (err: any) {
+      showApError(err.message || 'Could not create the product. Please try again.');
+      apSubmit.disabled = false;
+      apSubmit.textContent = 'Create product';
+    }
+  });
+</script>
+
 <style>
   .crm-products-page {
     padding: 1.5rem 2rem 3rem;
@@ -797,6 +1069,87 @@ try {
     background: var(--paper-2, #F9F4F0);
     border-color: var(--maroon);
     color: var(--maroon);
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    background: var(--maroon, #8A174B);
+    border: 1px solid var(--maroon, #8A174B);
+    color: #ffffff;
+    padding: 0.55rem 1rem;
+    border-radius: 6px;
+    font-size: 0.813rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+  }
+
+  .btn-primary:hover {
+    opacity: 0.9;
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  /* Add Product dialog */
+  #add-product-form {
+    max-width: 640px;
+    margin: 0;
+  }
+
+  .ap-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.85rem 1rem;
+  }
+
+  .ap-grid-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .ap-field {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .ap-span-2 {
+    grid-column: span 2;
+  }
+
+  .ap-field .helper-text {
+    margin-top: 0.3rem;
+    word-break: break-all;
+  }
+
+  .ap-field textarea.admin-input {
+    resize: vertical;
+    font-family: inherit;
+  }
+
+  .ap-variant {
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 0.85rem 1rem 1rem;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .ap-variant legend {
+    padding: 0 0.35rem;
+    margin: 0;
+  }
+
+  .ap-foot {
+    gap: 0.75rem;
+    position: sticky;
+    bottom: 0;
   }
 
   /* Metric Cards */
@@ -1544,11 +1897,19 @@ try {
     .page-title {
       font-size: 1.6rem;
     }
-    .head-actions .btn-secondary {
+    .head-actions .btn-secondary,
+    .head-actions .btn-primary {
       width: 100%;
       text-align: center;
       justify-content: center;
       min-height: 40px;
+    }
+    .head-actions {
+      flex-direction: column;
+    }
+    .ap-grid,
+    .ap-grid-4 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
     .summary-metrics-grid {
       grid-template-columns: repeat(2, 1fr);

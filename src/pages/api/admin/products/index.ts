@@ -86,6 +86,95 @@ export const GET: APIRoute = async ({ request, url }) => {
   });
 };
 
+const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const SHIPPING_CLASSES = ['standard', 'fragile', 'bulky', 'made-to-order'];
+
+// Same studio defaults the catalogue seed applies, so new products start with
+// the Legal Metrology fields filled in. Editable later on the product page.
+const DEFAULT_MANUFACTURER = 'VINSHO Studio, Greater Noida, UP';
+const DEFAULT_CONSUMER_CARE = 'vinvks@gmail.com | +91 9625515351';
+
+const badRequest = (error: string, status = 400) =>
+  new Response(JSON.stringify({ error }), { status, headers: { 'Content-Type': 'application/json' } });
+
+/** Parses an optional non-negative number. Returns undefined when blank, NaN when invalid. */
+function optionalNonNegative(value: unknown, integer = false): number | undefined {
+  if (value === undefined || value === null || value === '') return undefined;
+  if (typeof value !== 'number' && typeof value !== 'string') return Number.NaN;
+  const text = String(value).trim();
+  const n = Number(text);
+  if (text === '' || !Number.isFinite(n) || n < 0 || (integer && !Number.isInteger(n))) return Number.NaN;
+  return n;
+}
+
+const asText = (value: unknown): string =>
+  typeof value === 'string' || typeof value === 'number' ? String(value).trim() : '';
+
+interface NewProductInput {
+  name: string;
+  slug: string;
+  collectionId: number;
+  subcategoryId: number;
+  shippingClass: string;
+  imageUrl: string;
+  variant: { sku: string | null; mrp: number | null; selling_price: number | null; stock: number | null };
+}
+
+/** Validates the shape of the request body. Database checks (slug/SKU clashes, subcategory ownership) happen in POST. */
+function parseNewProductInput(body: any): { error: string } | { input: NewProductInput } {
+  const name = asText(body.name);
+  const slug = asText(body.slug).toLowerCase();
+  const collectionId = Number.parseInt(asText(body.collection_id), 10);
+  const subcategoryId = Number.parseInt(asText(body.subcategory_id), 10);
+
+  if (!name || !slug || !collectionId || !subcategoryId) {
+    return { error: 'Name, URL slug, Collection, and Subcategory are required.' };
+  }
+  if (!SLUG_PATTERN.test(slug)) {
+    return { error: 'URL slug may only contain lowercase letters, numbers, and single hyphens (e.g. lavender-soy-candle).' };
+  }
+
+  const shippingClass = asText(body.shipping_class) || 'standard';
+  if (!SHIPPING_CLASSES.includes(shippingClass)) {
+    return { error: `Shipping class must be one of: ${SHIPPING_CLASSES.join(', ')}.` };
+  }
+
+  const imageUrl = asText(body.image_url);
+  if (imageUrl && !imageUrl.startsWith('/') && !/^https?:\/\//i.test(imageUrl)) {
+    return { error: 'Image URL must start with "/" (a file under public/) or "https://".' };
+  }
+
+  // First variant: price and stock are optional (store-only items may be "price on request"),
+  // but whatever is supplied must be a valid non-negative number.
+  const v = body.variant && typeof body.variant === 'object' ? body.variant : {};
+  const mrp = optionalNonNegative(v.mrp);
+  const sellingPrice = optionalNonNegative(v.selling_price);
+  const stock = optionalNonNegative(v.stock, true);
+  if ([mrp, sellingPrice, stock].some((n) => Number.isNaN(n))) {
+    return { error: 'MRP, selling price, and stock must be zero or more (stock must be a whole number).' };
+  }
+  if (mrp !== undefined && sellingPrice !== undefined && sellingPrice > mrp) {
+    return { error: 'Selling price cannot be higher than MRP.' };
+  }
+
+  return {
+    input: {
+      name,
+      slug,
+      collectionId,
+      subcategoryId,
+      shippingClass,
+      imageUrl,
+      variant: {
+        sku: asText(v.sku) || null,
+        mrp: mrp ?? null,
+        selling_price: sellingPrice ?? null,
+        stock: stock ?? null
+      }
+    }
+  };
+}
+
 export const POST: APIRoute = async ({ request }) => {
   const user = await getSessionUser(request);
   if (!user) {
@@ -95,46 +184,86 @@ export const POST: APIRoute = async ({ request }) => {
   try {
     const body = await request.json();
     const {
-      slug, name, collection_id, subcategory_id, description, description_source,
-      material, shipping_class, launch_phase, sellable_online, returnable,
+      description, description_source, material, launch_phase, sellable_online, returnable,
       country_of_origin, manufacturer_or_packer, consumer_care_contact,
-      lead_time_days, care_instructions, image_url
+      lead_time_days, care_instructions
     } = body;
 
-    if (!slug || !name || !collection_id || !subcategory_id) {
-      return new Response(JSON.stringify({ error: 'Slug, Name, Collection, and Subcategory are required.' }), { status: 400 });
+    const parsed = parseNewProductInput(body);
+    if ('error' in parsed) {
+      return badRequest(parsed.error);
     }
+    const { name: cleanName, slug: cleanSlug, collectionId, subcategoryId, shippingClass, imageUrl, variant: variantFields } = parsed.input;
+    const sku = variantFields.sku;
+
+    const subcategory = await prisma.subcategories.findFirst({
+      where: { id: subcategoryId, collection_id: collectionId, deleted_at: null },
+      include: { collection: true }
+    });
+    if (!subcategory || subcategory.collection.deleted_at) {
+      return badRequest('The selected subcategory does not belong to the selected collection.');
+    }
+
+    const existingSlug = await prisma.products.findUnique({ where: { slug: cleanSlug }, select: { id: true } });
+    if (existingSlug) {
+      return badRequest(`The URL slug "${cleanSlug}" is already used by another product (it may be hidden). Choose a different slug.`, 409);
+    }
+    if (sku) {
+      const existingSku = await prisma.productVariants.findFirst({ where: { sku }, select: { id: true } });
+      if (existingSku) {
+        return badRequest(`SKU "${sku}" is already used by another product.`, 409);
+      }
+    }
+
+    const productFields = {
+      country_of_origin: country_of_origin || 'India',
+      manufacturer_or_packer: manufacturer_or_packer || DEFAULT_MANUFACTURER,
+      consumer_care_contact: consumer_care_contact || DEFAULT_CONSUMER_CARE
+    };
+    const purchasability = evaluatePurchasability(
+      { ...productFields, collectionKey: subcategory.collection.key, subcategoryKey: subcategory.key },
+      [variantFields]
+    );
 
     const now = new Date();
 
+    // Product, primary image, and first variant are written in one nested create,
+    // so a product never exists half-made.
     const newProd = await prisma.products.create({
       data: {
-        slug: slug.trim(),
-        name: name.trim(),
-        collection_id: Number(collection_id),
-        subcategory_id: Number(subcategory_id),
+        slug: cleanSlug,
+        name: cleanName,
+        collection_id: collectionId,
+        subcategory_id: subcategoryId,
         description: description || '',
-        description_source: description_source || 'placeholder',
+        description_source: description_source || (description ? 'written' : 'placeholder'),
         material: material || '',
-        shipping_class: shipping_class || 'standard',
+        shipping_class: shippingClass,
         launch_phase: launch_phase !== undefined ? Number(launch_phase) : 1,
-        sellable_online: Boolean(sellable_online),
-        returnable: Boolean(returnable),
-        country_of_origin: country_of_origin || 'India',
-        manufacturer_or_packer: manufacturer_or_packer || null,
-        consumer_care_contact: consumer_care_contact || null,
+        sellable_online: sellable_online !== undefined ? Boolean(sellable_online) : true,
+        returnable: returnable !== undefined ? Boolean(returnable) : true,
+        ...productFields,
         lead_time_days: lead_time_days ? Number(lead_time_days) : null,
         care_instructions: care_instructions || null,
-        is_purchasable: false,
+        is_purchasable: purchasability.isPurchasable,
         created_at: now,
         updated_at: now,
-        ...(image_url ? {
-          product_images: {
+        ProductVariants: {
+          create: {
+            ...variantFields,
+            currency: 'INR',
+            position: 1,
+            created_at: now,
+            updated_at: now
+          }
+        },
+        ...(imageUrl ? {
+          ProductImages: {
             create: {
-              url: image_url,
-              alt: name,
+              url: imageUrl,
+              alt: cleanName,
               position: 1,
-              is_primary: 1,
+              is_primary: true,
               created_at: now,
               updated_at: now
             }
@@ -154,8 +283,16 @@ export const POST: APIRoute = async ({ request }) => {
     });
 
     invalidateTaxonomyCache();
-    return new Response(JSON.stringify({ success: true, product: newProd }), { status: 201 });
+    return new Response(JSON.stringify({ success: true, product: newProd }), {
+      status: 201,
+      headers: { 'Content-Type': 'application/json' }
+    });
   } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message || 'Failed to create product.' }), { status: 500 });
+    // Two admins saving the same slug at once: the unique index catches what the pre-check missed.
+    if (err?.code === 'P2002') {
+      return badRequest('A product with this URL slug already exists. Choose a different slug.', 409);
+    }
+    console.error('[Create Product] Failed:', err);
+    return new Response(JSON.stringify({ error: 'Failed to create product. Please try again.' }), { status: 500 });
   }
 };
