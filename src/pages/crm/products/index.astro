@@ -395,7 +395,7 @@ try {
     </div>
 
     <!-- Manage Stock Modal / Drawer -->
-    <div id="stock-modal" class="modal-overlay" hidden>
+    <div id="stock-modal" class="modal-overlay" hidden data-lenis-prevent>
       <div class="modal-card">
         <div class="modal-head">
           <div>
@@ -541,6 +541,7 @@ try {
       id="add-product-modal"
       class="modal-overlay"
       hidden
+      data-lenis-prevent
       data-subcategories={JSON.stringify(subcategoryOptions)}
     >
       <form id="add-product-form" class="modal-card" novalidate role="dialog" aria-modal="true" aria-labelledby="add-product-title">
@@ -549,7 +550,7 @@ try {
             <h2 class="modal-title" id="add-product-title">Add product</h2>
             <span class="helper-text">You can add highlights, more images, GST and packing details on the next screen.</span>
           </div>
-          <button type="button" class="modal-close-btn" onclick="closeAddProductModal()" aria-label="Close">&times;</button>
+          <button type="button" class="modal-close-btn" onclick="requestCloseAddProductModal()" aria-label="Close">&times;</button>
         </div>
 
         <div class="modal-body">
@@ -628,8 +629,17 @@ try {
         </div>
 
         <div class="modal-foot ap-foot">
-          <button type="button" class="btn-modal-done" onclick="closeAddProductModal()">Cancel</button>
-          <button type="submit" id="add-product-submit" class="btn-primary">Create product</button>
+          <div id="ap-actions" class="ap-actions">
+            <button type="button" class="btn-modal-done" onclick="requestCloseAddProductModal()">Cancel</button>
+            <button type="submit" id="add-product-submit" class="btn-primary">Create product</button>
+          </div>
+          <div id="ap-discard-confirm" class="ap-discard-confirm" role="alertdialog" aria-labelledby="ap-discard-text" hidden>
+            <span id="ap-discard-text" class="ap-discard-text">Discard this product? What you've entered will be lost.</span>
+            <div class="ap-actions">
+              <button type="button" id="ap-keep-editing" class="btn-modal-done" onclick="hideAddProductDiscardConfirm()">Keep editing</button>
+              <button type="button" class="btn-danger" onclick="closeAddProductModal()">Discard</button>
+            </div>
+          </div>
         </div>
       </form>
     </div>
@@ -865,6 +875,9 @@ try {
   const apSubcategory = document.getElementById('ap-subcategory') as HTMLSelectElement;
   const apError = document.getElementById('add-product-error') as HTMLElement;
   const apSubmit = document.getElementById('add-product-submit') as HTMLButtonElement;
+  const apActions = document.getElementById('ap-actions') as HTMLElement;
+  const apDiscardConfirm = document.getElementById('ap-discard-confirm') as HTMLElement;
+  const apKeepEditing = document.getElementById('ap-keep-editing') as HTMLButtonElement;
 
   const apSubcategories: Array<{ id: number; name: string; collection_id: number }> =
     JSON.parse(apModal.dataset.subcategories || '[]');
@@ -876,7 +889,7 @@ try {
     text
       .toLowerCase()
       .normalize('NFKD')
-      .replace(/[̀-ͯ]/g, '')
+      .replace(/[\u0300-\u036f]/g, '')
       .replace(/&/g, ' and ')
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '')
@@ -913,12 +926,23 @@ try {
     apSubcategory.disabled = options.length === 0;
   };
 
+  // True once the admin has typed or picked anything, so closing asks before discarding it.
+  let apDirty = false;
+
+  const showDiscardConfirm = (show: boolean) => {
+    apDiscardConfirm.hidden = !show;
+    apActions.hidden = show;
+    if (show) apKeepEditing.focus();
+  };
+
   (window as any).openAddProductModal = () => {
     apForm.reset();
     apSlugEdited = false;
+    apDirty = false;
     apError.hidden = true;
     apSubmit.disabled = false;
     apSubmit.textContent = 'Create product';
+    showDiscardConfirm(false);
     fillSubcategories();
     updateSlugPreview();
     apModal.hidden = false;
@@ -926,8 +950,26 @@ try {
   };
 
   (window as any).closeAddProductModal = () => {
+    showDiscardConfirm(false);
     apModal.hidden = true;
   };
+
+  // Cancel, ×, backdrop click and Esc all come through here.
+  (window as any).requestCloseAddProductModal = () => {
+    if (apDirty) {
+      showDiscardConfirm(true);
+    } else {
+      (window as any).closeAddProductModal();
+    }
+  };
+
+  (window as any).hideAddProductDiscardConfirm = () => {
+    showDiscardConfirm(false);
+    apName.focus();
+  };
+
+  apForm.addEventListener('input', () => { apDirty = true; });
+  apForm.addEventListener('change', () => { apDirty = true; });
 
   apName.addEventListener('input', () => {
     if (!apSlugEdited) {
@@ -949,11 +991,17 @@ try {
   apCollection.addEventListener('change', fillSubcategories);
 
   apModal.addEventListener('click', (e) => {
-    if (e.target === apModal) (window as any).closeAddProductModal();
+    if (e.target === apModal) (window as any).requestCloseAddProductModal();
   });
 
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !apModal.hidden) (window as any).closeAddProductModal();
+    if (e.key !== 'Escape' || apModal.hidden) return;
+    // Esc on the confirmation means "keep editing"; otherwise it's a close request.
+    if (!apDiscardConfirm.hidden) {
+      (window as any).hideAddProductDiscardConfirm();
+    } else {
+      (window as any).requestCloseAddProductModal();
+    }
   });
 
   apForm.addEventListener('submit', async (e) => {
@@ -1150,6 +1198,42 @@ try {
     gap: 0.75rem;
     position: sticky;
     bottom: 0;
+  }
+
+  .ap-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+  }
+
+  .ap-discard-confirm {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .ap-discard-text {
+    font-size: 0.844rem;
+    font-weight: 600;
+    color: #b91c1c;
+  }
+
+  .btn-danger {
+    background: #b91c1c;
+    border: 1px solid #b91c1c;
+    color: #ffffff;
+    padding: 0.5rem 1.25rem;
+    border-radius: 4px;
+    font-size: 0.813rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .btn-danger:hover {
+    background: #991b1b;
   }
 
   /* Metric Cards */
@@ -1507,6 +1591,12 @@ try {
     z-index: 9999;
   }
 
+  /* Freeze the page behind an open dialog; the dialog itself opts out of
+     Lenis smooth-scroll via data-lenis-prevent so it scrolls natively. */
+  :global(html:has(.modal-overlay:not([hidden]))) {
+    overflow: hidden;
+  }
+
   .modal-card {
     background: #ffffff;
     border-radius: 8px;
@@ -1514,6 +1604,7 @@ try {
     width: 100%;
     max-height: 90vh;
     overflow-y: auto;
+    overscroll-behavior: contain;
     box-shadow: 0 20px 40px rgba(0,0,0,0.2);
     display: flex;
     flex-direction: column;
