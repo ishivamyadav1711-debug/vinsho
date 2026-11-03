@@ -1,0 +1,1049 @@
+---
+/**
+ * B2B landing page (review / showcase build) — layout from "VINSHO B2B Landing Page.pdf".
+ * Copy lives in src/data/b2b-landing.ts. Kept out of search: noindex + excluded from the sitemap.
+ */
+export const prerender = false;
+
+import Base from '../../layouts/Base.astro';
+import content from '../../../vinsho-content.json';
+import { prisma } from '../../lib/db';
+import {
+  announcement, nav, hero, trustPoints, audiences, giftingSection, giftTiers, hospitality,
+  tradePartners, reviews, process, quoteSection, faqs, closingBanner, whatsappMessages
+} from '../../data/b2b-landing';
+
+const brand = content.brand;
+const waNumber = brand.whatsapp;
+const wa = (text: string) => `https://wa.me/${waNumber}?text=${encodeURIComponent(text)}`;
+const telHref = `tel:${brand.phone.replace(/\s+/g, '')}`;
+const phoneDisplay = brand.phone.replace(/^\+91\s?(\d{5})(\d{5})$/, '+91 $1 $2');
+
+const formatInr = (n: number) => `₹${n.toLocaleString('en-IN')}`;
+
+// ── Live catalogue data (falls back to the design's figures if the DB is unavailable) ──
+let productCount = 149;
+let collectionCount = 3;
+const productBySlug = new Map<string, { slug: string; price: number | null }>();
+
+try {
+  const allSlugs = giftTiers.flatMap((t) => t.products.flatMap((p) => p.slugs));
+  const [count, collections, rows] = await Promise.all([
+    prisma.products.count({ where: { deleted_at: null, slug: { not: 'dummy-product' } } }),
+    prisma.collections.count({ where: { deleted_at: null, NOT: { key: 'dummy_collection' } } }),
+    prisma.products.findMany({
+      where: { slug: { in: allSlugs }, deleted_at: null },
+      select: {
+        slug: true,
+        ProductVariants: { orderBy: [{ position: 'asc' }, { id: 'asc' }], take: 1, select: { selling_price: true } }
+      }
+    })
+  ]);
+  if (count > 0) productCount = count;
+  if (collections > 0) collectionCount = collections;
+  for (const r of rows) {
+    const price = r.ProductVariants[0]?.selling_price;
+    productBySlug.set(r.slug, {
+      slug: r.slug,
+      price: price !== null && price !== undefined ? Number(price) : null
+    });
+  }
+} catch (err) {
+  console.error('[B2B landing] Catalogue lookup failed, using design defaults:', err);
+}
+
+const tiers = giftTiers.map((tier) => ({
+  ...tier,
+  products: tier.products.map((p) => {
+    const found = p.slugs.map((s) => productBySlug.get(s)).find(Boolean);
+    return {
+      label: p.label,
+      price: formatInr(found?.price ?? p.fallbackPrice),
+      image: p.image,
+      href: found ? `/product/${found.slug}` : null
+    };
+  })
+}));
+
+const icons: Record<string, string> = {
+  truck: '<path d="M3 6h11v9H3z"/><path d="M14 9h4l3 3v3h-7"/><circle cx="7" cy="17" r="1.8"/><circle cx="17" cy="17" r="1.8"/>',
+  shield: '<path d="M12 3l7 3v5c0 4.5-3 8.2-7 10-4-1.8-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/>',
+  store: '<path d="M4 10v10h16V10"/><path d="M3 10l2-6h14l2 6"/><path d="M3 10h18"/><path d="M10 20v-5h4v5"/>',
+  chat: '<path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/>',
+  pen: '<path d="M4 20l4-1 10-10-3-3L5 16z"/><path d="M13 7l3 3"/>',
+  star: '<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',
+  check: '<path d="M5 12.5l4.2 4.2L19 7"/>',
+  image: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 8"/>',
+  whatsapp: '<path d="M20 11.9A8 8 0 0 1 8.3 19L4 20l1.1-4.1A8 8 0 1 1 20 11.9z"/><path d="M9 9.5c0 2.8 2.7 5.5 5.5 5.5l1-1.2-1.8-.9-.9.8a4 4 0 0 1-2.5-2.5l.8-.9-.9-1.8z"/>'
+};
+---
+
+<Base
+  title="VINSHO for Business — Corporate Gifts, Hotel Linen & Trade Décor"
+  description="Curated corporate gifts, hotel furnishings and trade-priced décor from VINSHO, supplied in bulk and shipped across India."
+  noindex
+>
+  <div class="b2b">
+    <!-- Announcement -->
+    <div class="b2b-announce">{announcement}</div>
+
+    <!-- Header -->
+    <header class="b2b-header">
+      <div class="b2b-container b2b-header-row">
+        <a href="/" class="b2b-logo" aria-label="VINSHO home">
+          <span class="b2b-logo-word">VINSHO</span>
+          <span class="b2b-logo-sub">For Business</span>
+        </a>
+        <nav class="b2b-nav" aria-label="Business sections">
+          {nav.map((item) => <a href={item.href}>{item.label}</a>)}
+        </nav>
+        <div class="b2b-header-actions">
+          <a href="#quote" class="b2b-btn b2b-btn-outline-dark b2b-btn-sm">Get a Quote</a>
+          <a href={wa(whatsappMessages.bulkPrice)} target="_blank" rel="noopener" class="b2b-btn b2b-btn-dark b2b-btn-sm">
+            <svg class="b2b-icon" viewBox="0 0 24 24" aria-hidden="true" set:html={icons.chat} />
+            WhatsApp
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <!-- Hero -->
+      <section class="b2b-hero">
+        <div class="b2b-container b2b-hero-grid">
+          <div class="b2b-hero-copy">
+            <span class="b2b-pill"><span class="b2b-dot"></span>{hero.eyebrow}</span>
+            <h1 class="b2b-hero-title">
+              {hero.titleBefore} <em>{hero.titleEmphasis}</em> {hero.titleAfter}
+            </h1>
+            <p class="b2b-hero-lead">{hero.lead}</p>
+            <div class="b2b-hero-ctas">
+              <a href={wa(whatsappMessages.bulkPrice)} target="_blank" rel="noopener" class="b2b-btn b2b-btn-light">
+                <svg class="b2b-icon" viewBox="0 0 24 24" aria-hidden="true" set:html={icons.chat} />
+                {hero.primaryCta}
+              </a>
+              <a href={wa(whatsappMessages.catalogue)} target="_blank" rel="noopener" class="b2b-btn b2b-btn-outline-light">{hero.secondaryCta}</a>
+            </div>
+            <dl class="b2b-stats">
+              <div><dt>{productCount}</dt><dd>curated products</dd></div>
+              <div><dt>{collectionCount}</dt><dd>collections under one roof</dd></div>
+              <div><dt>{hero.quoteTurnaround}</dt><dd>quote turnaround on WhatsApp</dd></div>
+            </dl>
+          </div>
+          <div class="b2b-hero-media">
+            <figure class="b2b-hero-main">
+              <img src={hero.images.main.src} alt={hero.images.main.alt} loading="eager" fetchpriority="high" />
+            </figure>
+            <figure class="b2b-hero-tile b2b-tile-tint1">
+              <img src={hero.images.topRight.src} alt={hero.images.topRight.alt} loading="eager" />
+              <figcaption>{hero.images.topRight.caption}</figcaption>
+            </figure>
+            <figure class="b2b-hero-tile b2b-tile-paper">
+              <img src={hero.images.bottomRight.src} alt={hero.images.bottomRight.alt} loading="eager" />
+              <figcaption>{hero.images.bottomRight.caption}</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <!-- Trust strip -->
+      <div class="b2b-trust">
+        <ul class="b2b-container b2b-trust-row">
+          {trustPoints.map((t) => (
+            <li>
+              <svg class="b2b-icon" viewBox="0 0 24 24" aria-hidden="true" set:html={icons[t.icon]} />
+              {t.label}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <!-- Who we supply -->
+      <section class="b2b-section">
+        <div class="b2b-container">
+          <div class="b2b-head b2b-head-center">
+            <span class="b2b-eyebrow">{audiences.eyebrow}</span>
+            <h2 class="b2b-title">{audiences.title}</h2>
+            <p class="b2b-lead">{audiences.lead}</p>
+          </div>
+          <div class="b2b-audience-grid">
+            {audiences.cards.map((c) => (
+              <a href={c.href} class="b2b-audience-card">
+                <div class={`b2b-audience-media b2b-tone-${c.tone}`}>
+                  <img src={c.image} alt={c.alt} loading="lazy" />
+                </div>
+                <div class="b2b-audience-body">
+                  <h3>{c.title}</h3>
+                  <p>{c.text}</p>
+                  <span class="b2b-link">{c.link} <span aria-hidden="true">→</span></span>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <!-- Corporate gifting tiers -->
+      <section class="b2b-section" id="corporate-gifting">
+        <div class="b2b-container">
+          <div class="b2b-head b2b-head-split">
+            <div>
+              <span class="b2b-eyebrow">{giftingSection.eyebrow}</span>
+              <h2 class="b2b-title">{giftingSection.title}</h2>
+              <p class="b2b-lead">{giftingSection.lead}</p>
+            </div>
+            <a href={wa(whatsappMessages.giftCatalogue)} target="_blank" rel="noopener" class="b2b-btn b2b-btn-dark">{giftingSection.cta}</a>
+          </div>
+          <div class="b2b-tier-grid">
+            {tiers.map((tier) => (
+              <article class:list={['b2b-tier', { 'b2b-tier-featured': tier.featured }]}>
+                <div class="b2b-tier-media">
+                  {tier.products.map((p) => <img src={p.image} alt={p.label} loading="lazy" />)}
+                </div>
+                <div class="b2b-tier-body">
+                  <div class="b2b-tier-badges">
+                    <span class="b2b-badge">{tier.badge}</span>
+                    {tier.featured && <span class="b2b-badge b2b-badge-ghost">Most chosen</span>}
+                  </div>
+                  <h3>{tier.title}</h3>
+                  <ul class="b2b-tier-list">
+                    {tier.products.map((p) => (
+                      <li>
+                        {p.href ? <a href={p.href}>{p.label}</a> : <span>{p.label}</span>}
+                        <strong>{p.price}</strong>
+                      </li>
+                    ))}
+                  </ul>
+                  <p class="b2b-tier-note">{tier.note}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+          <p class="b2b-footnote">{giftingSection.footnote}</p>
+        </div>
+      </section>
+
+      <!-- Hospitality -->
+      <section class="b2b-section b2b-bg-paper" id="hospitality">
+        <div class="b2b-container b2b-split">
+          <div class="b2b-before-after">
+            <div class="b2b-placeholder b2b-ph-tint1">
+              <span class="b2b-ph-label">{hospitality.before.label}</span>
+              <span>{hospitality.before.caption}</span>
+            </div>
+            <div class="b2b-placeholder b2b-ph-tint2">
+              <span class="b2b-ph-label b2b-ph-label-soft">{hospitality.after.label}</span>
+              <span>{hospitality.after.caption}</span>
+            </div>
+          </div>
+          <div>
+            <span class="b2b-eyebrow b2b-eyebrow-brand">{hospitality.eyebrow}</span>
+            <h2 class="b2b-title">{hospitality.title}</h2>
+            <p class="b2b-lead">{hospitality.lead}</p>
+            <ul class="b2b-checklist">
+              {hospitality.items.map((item) => (
+                <li>
+                  <svg class="b2b-icon" viewBox="0 0 24 24" aria-hidden="true" set:html={icons.check} />
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <a href={wa(whatsappMessages.roomCount)} target="_blank" rel="noopener" class="b2b-btn b2b-btn-dark">{hospitality.cta}</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- Trade partners -->
+      <section class="b2b-section" id="trade-partners">
+        <div class="b2b-container b2b-split">
+          <div>
+            <span class="b2b-eyebrow b2b-eyebrow-brand">{tradePartners.eyebrow}</span>
+            <h2 class="b2b-title">{tradePartners.title}</h2>
+            <p class="b2b-lead">{tradePartners.lead}</p>
+            <ul class="b2b-groups">
+              {tradePartners.groups.map((g) => (
+                <li>
+                  <span class="b2b-group-icon">
+                    <svg class="b2b-icon" viewBox="0 0 24 24" aria-hidden="true" set:html={icons[g.icon]} />
+                  </span>
+                  <div>
+                    <strong>{g.title}</strong>
+                    <p>{g.text}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <a href={wa(whatsappMessages.tradePricing)} target="_blank" rel="noopener" class="b2b-btn b2b-btn-dark">{tradePartners.cta}</a>
+          </div>
+          <figure class="b2b-trade-media">
+            <img src={tradePartners.image.src} alt={tradePartners.image.alt} loading="lazy" />
+          </figure>
+        </div>
+      </section>
+
+      <!-- Reviews -->
+      <section class="b2b-section b2b-bg-brand" id="reviews">
+        <div class="b2b-container">
+          <div class="b2b-head b2b-head-split">
+            <div>
+              <span class="b2b-eyebrow b2b-eyebrow-light">{reviews.eyebrow}</span>
+              <h2 class="b2b-title b2b-title-light">{reviews.title}</h2>
+            </div>
+            <span class="b2b-sample-note">{reviews.sampleNote}</span>
+          </div>
+          <div class="b2b-review-grid">
+            {reviews.items.map((r) => (
+              <figure class="b2b-review">
+                <div class="b2b-stars" aria-label="5 out of 5 stars">★★★★★</div>
+                <blockquote>“{r.quote}”</blockquote>
+                <figcaption>
+                  <span class={`b2b-avatar b2b-tone-${r.tone}`}>{r.initials}</span>
+                  <span>
+                    <strong>{r.name}</strong>
+                    <small>{r.role}</small>
+                  </span>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+          <div class="b2b-review-photos">
+            {reviews.photos.map((p) => <div class="b2b-placeholder b2b-ph-dark">{p}</div>)}
+          </div>
+        </div>
+      </section>
+
+      <!-- How it works -->
+      <section class="b2b-section">
+        <div class="b2b-container">
+          <div class="b2b-head b2b-head-center">
+            <span class="b2b-eyebrow">{process.eyebrow}</span>
+            <h2 class="b2b-title">{process.title}</h2>
+          </div>
+          <ol class="b2b-steps">
+            {process.steps.map((s, i) => (
+              <li>
+                <span class="b2b-step-num">{String(i + 1).padStart(2, '0')}</span>
+                <strong>{s.title}</strong>
+                <p>{s.text}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      <!-- Quote form -->
+      <section class="b2b-section b2b-bg-paper" id="quote">
+        <div class="b2b-container b2b-split b2b-split-quote">
+          <div>
+            <span class="b2b-eyebrow">{quoteSection.eyebrow}</span>
+            <h2 class="b2b-title">{quoteSection.title}</h2>
+            <p class="b2b-lead">{quoteSection.lead}</p>
+            <a href={wa(whatsappMessages.bulkPrice)} target="_blank" rel="noopener" class="b2b-btn b2b-btn-whatsapp">
+              <svg class="b2b-icon" viewBox="0 0 24 24" aria-hidden="true" set:html={icons.chat} />
+              {phoneDisplay}
+            </a>
+            <p class="b2b-small">Or email <a href={`mailto:${brand.email}`}>{brand.email}</a></p>
+          </div>
+
+          <div class="b2b-form-card">
+            <form id="b2b-quote-form" class="b2b-form" novalidate data-wa-number={waNumber}>
+              <div class="b2b-field">
+                <label for="q-name">Your name</label>
+                <input id="q-name" name="name" required maxlength="100" autocomplete="name" />
+              </div>
+              <div class="b2b-field">
+                <label for="q-company">Company</label>
+                <input id="q-company" name="company" maxlength="120" autocomplete="organization" />
+              </div>
+              <div class="b2b-field">
+                <label for="q-phone">WhatsApp number</label>
+                <input id="q-phone" name="phone" type="tel" inputmode="tel" required placeholder="+91" autocomplete="tel" />
+              </div>
+              <div class="b2b-field">
+                <label for="q-city">City</label>
+                <input id="q-city" name="city" maxlength="80" autocomplete="address-level2" />
+              </div>
+              <div class="b2b-field">
+                <label for="q-type">Business type</label>
+                <select id="q-type" name="businessType">
+                  {quoteSection.businessTypes.map((t) => <option>{t}</option>)}
+                </select>
+              </div>
+              <div class="b2b-field">
+                <label for="q-qty">Quantity</label>
+                <input id="q-qty" name="quantity" type="number" min="1" step="1" placeholder="e.g. 50" />
+              </div>
+              <div class="b2b-field b2b-field-full">
+                <label for="q-budget">Budget per piece</label>
+                <select id="q-budget" name="budget">
+                  {quoteSection.budgets.map((b) => <option>{b}</option>)}
+                </select>
+              </div>
+              <!-- Honeypot: hidden from people, filled in by bots -->
+              <div class="b2b-hp" aria-hidden="true">
+                <label for="q-website">Website</label>
+                <input id="q-website" name="website_url" tabindex="-1" autocomplete="off" />
+              </div>
+              <div id="b2b-form-error" class="b2b-form-error b2b-field-full" role="alert" hidden></div>
+              <button type="submit" id="b2b-form-submit" class="b2b-btn b2b-btn-dark b2b-btn-block b2b-field-full">{quoteSection.submit}</button>
+            </form>
+
+            <div id="b2b-form-success" class="b2b-form-success" hidden>
+              <svg class="b2b-icon b2b-success-icon" viewBox="0 0 24 24" aria-hidden="true" set:html={icons.check} />
+              <h3>Thank you, we’ve got your request</h3>
+              <p>We’ll reply on WhatsApp with options and pricing. Want it faster? Send the same details on WhatsApp now.</p>
+              <a id="b2b-form-wa" href={wa(whatsappMessages.bulkPrice)} target="_blank" rel="noopener" class="b2b-btn b2b-btn-whatsapp">
+                <svg class="b2b-icon" viewBox="0 0 24 24" aria-hidden="true" set:html={icons.chat} />
+                Continue on WhatsApp
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FAQs -->
+      <section class="b2b-section">
+        <div class="b2b-container b2b-narrow">
+          <h2 class="b2b-title b2b-title-center">Business FAQs</h2>
+          <div class="b2b-faqs">
+            {faqs.map((f) => (
+              <details class="b2b-faq">
+                <summary>{f.q}</summary>
+                <p>{f.a}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <!-- Closing banner -->
+      <section class="b2b-section b2b-section-tight">
+        <div class="b2b-container">
+          <div class="b2b-banner">
+            <div>
+              <h2>{closingBanner.title}</h2>
+              <p>{closingBanner.text}</p>
+            </div>
+            <a href={wa(whatsappMessages.bulkPrice)} target="_blank" rel="noopener" class="b2b-btn b2b-btn-light">{closingBanner.cta}</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="b2b-footer">
+      <div class="b2b-container b2b-footer-grid">
+        <div>
+          <span class="b2b-logo-word b2b-logo-light">VINSHO</span>
+          <p>Where every corner tells a story. One stop solution for home furnishing, décor &amp; gifts.</p>
+        </div>
+        <div>
+          <h3>Visit</h3>
+          <p>India Expo Plaza, First Floor, Plot C-03 &amp; 04<br />Knowledge Park-II, Greater Noida (U.P.) 201310</p>
+        </div>
+        <div>
+          <h3>Contact</h3>
+          <p><a href={telHref}>{phoneDisplay}</a><br /><a href={`mailto:${brand.email}`}>{brand.email}</a></p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Mobile: WhatsApp always within reach -->
+    <a href={wa(whatsappMessages.bulkPrice)} target="_blank" rel="noopener" class="b2b-fab" aria-label="WhatsApp for bulk price">
+      <svg class="b2b-icon" viewBox="0 0 24 24" aria-hidden="true" set:html={icons.chat} />
+      WhatsApp for Bulk Price
+    </a>
+  </div>
+</Base>
+
+<script>
+  const form = document.getElementById('b2b-quote-form') as HTMLFormElement | null;
+
+  if (form) {
+    const errorBox = document.getElementById('b2b-form-error') as HTMLElement;
+    const submitBtn = document.getElementById('b2b-form-submit') as HTMLButtonElement;
+    const successBox = document.getElementById('b2b-form-success') as HTMLElement;
+    const successWa = document.getElementById('b2b-form-wa') as HTMLAnchorElement;
+    const waNumber = form.dataset.waNumber || '';
+
+    const showError = (msg: string) => {
+      errorBox.textContent = msg;
+      errorBox.hidden = false;
+    };
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorBox.hidden = true;
+
+      const data = new FormData(form);
+      const val = (k: string) => String(data.get(k) ?? '').trim();
+
+      const name = val('name');
+      // Accept "+91 98765 43210", "098765 43210", etc. — keep the last 10 digits.
+      const digits = val('phone').replace(/\D/g, '');
+      const phone = digits.length >= 10 ? digits.slice(-10) : '';
+
+      if (!name) return showError('Please enter your name.');
+      if (!/^[6-9]\d{9}$/.test(phone)) return showError('Please enter a valid 10-digit WhatsApp number.');
+
+      const details = [
+        ['Company', val('company')],
+        ['City', val('city')],
+        ['Business type', val('businessType')],
+        ['Quantity', val('quantity')],
+        ['Budget per piece', val('budget')]
+      ].filter(([, v]) => v);
+      const detailText = details.map(([k, v]) => `${k}: ${v}`).join('\n');
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending…';
+
+      try {
+        const res = await fetch('/api/enquiries', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name,
+            phone,
+            company: val('company'),
+            subject: `Bulk quote — ${val('businessType')}`,
+            message: detailText,
+            source: 'B2B Landing Page',
+            website_url: val('website_url')
+          })
+        });
+        const json = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(json.error || 'Could not send your request. Please try WhatsApp instead.');
+
+        const waText = `Hi VINSHO, I'd like a bulk quote.\nName: ${name}\n${detailText}`;
+        successWa.href = `https://wa.me/${waNumber}?text=${encodeURIComponent(waText)}`;
+        form.hidden = true;
+        successBox.hidden = false;
+      } catch (err: any) {
+        showError(err.message || 'Could not send your request. Please try WhatsApp instead.');
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Request my quote';
+      }
+    });
+  }
+</script>
+
+<style>
+  .b2b {
+    /* Site theme (src/styles/tokens.css): maroon + pink on blush paper */
+    --brand-deep: #720e3b;
+    --brand: #8a174b;
+    --brand-soft: #9c3a64;
+    --accent: #cd788f;        /* pink — on light backgrounds */
+    --accent-light: #f2d6dc;  /* soft pink — on maroon backgrounds */
+    --accent-bright: #f5b3c5; /* stronger pink for emphasis on maroon */
+    --paper: #fbf3f0;
+    --paper-2: #f9f4f0;
+    --tint-1: #f5ebe8;
+    --tint-2: #f2d6dc;
+    --tint-3: #f8e3e8;
+    --ink: #3e3336;
+    --muted: #7c6b6e;
+    --line: #eedfe2;
+    --serif: 'Cormorant Garamond', Georgia, serif;
+    --sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+    background: #ffffff;
+    color: var(--ink);
+    font-family: var(--sans);
+  }
+
+  .b2b-container {
+    width: min(1140px, 100% - 2.5rem);
+    margin-inline: auto;
+  }
+
+  .b2b-icon {
+    width: 18px;
+    height: 18px;
+    flex: none;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* ── Buttons ── */
+  .b2b-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 999px;
+    padding: 0.85rem 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: transform 0.15s ease, background-color 0.15s ease, opacity 0.15s ease;
+    cursor: pointer;
+  }
+  .b2b-btn:hover { transform: translateY(-1px); }
+  .b2b-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+  .b2b-btn-sm { padding: 0.6rem 1.15rem; font-size: 0.875rem; }
+  .b2b-btn-block { width: 100%; }
+  .b2b-btn-light { background: var(--accent-light); color: var(--brand-deep); }
+  .b2b-btn-light:hover { background: #f8e4e9; }
+  .b2b-btn-dark { background: var(--brand); color: #fff; }
+  .b2b-btn-dark:hover { background: var(--brand-deep); }
+  .b2b-btn-outline-light { border-color: rgba(255, 255, 255, 0.45); color: #fff; }
+  .b2b-btn-outline-light:hover { background: rgba(255, 255, 255, 0.08); }
+  .b2b-btn-outline-dark { border-color: var(--brand); color: var(--brand); background: #fff; }
+  .b2b-btn-whatsapp { background: var(--brand); color: #fff; }
+  .b2b-btn-whatsapp:hover { background: var(--brand-deep); }
+
+  /* ── Announcement & header ── */
+  .b2b-announce {
+    background: var(--brand);
+    color: var(--accent-light);
+    text-align: center;
+    font-size: 0.8rem;
+    padding: 0.55rem 1rem;
+  }
+
+  .b2b-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  .b2b-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    min-height: 68px;
+  }
+  .b2b-logo { display: flex; flex-direction: column; line-height: 1; }
+  .b2b-logo-word {
+    font-family: var(--serif);
+    font-size: 1.55rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    color: var(--brand);
+  }
+  .b2b-logo-sub {
+    font-size: 0.62rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--brand-soft);
+    font-weight: 600;
+    margin-top: 0.3rem;
+  }
+  .b2b-nav { display: flex; gap: 1.75rem; font-size: 0.9rem; font-weight: 500; }
+  .b2b-nav a:hover { color: var(--brand-soft); text-decoration: underline; text-underline-offset: 4px; }
+  .b2b-header-actions { display: flex; gap: 0.6rem; }
+
+  /* ── Sections ── */
+  .b2b section { padding-block: 0; }
+  .b2b-section { padding-block: clamp(3.5rem, 7vw, 6rem) !important; scroll-margin-top: 80px; }
+  .b2b-section-tight { padding-block: 1rem clamp(3rem, 6vw, 5rem) !important; }
+  .b2b-bg-paper { background: var(--paper); }
+  .b2b-bg-brand { background: var(--brand); }
+
+  .b2b-head { margin-bottom: clamp(2rem, 4vw, 3rem); }
+  .b2b-head-center { text-align: center; max-width: 640px; margin-inline: auto; }
+  .b2b-head-split { display: flex; align-items: flex-end; justify-content: space-between; gap: 2rem; flex-wrap: wrap; }
+  .b2b-head-split > div { max-width: 560px; }
+
+  .b2b-eyebrow {
+    display: block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--brand);
+    margin-bottom: 0.8rem;
+  }
+  .b2b-eyebrow-brand { color: var(--brand); }
+  .b2b-eyebrow-light { color: var(--accent-light); }
+
+  .b2b-title {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(2rem, 4vw, 2.75rem);
+    line-height: 1.12;
+    color: var(--brand);
+    margin: 0 0 0.75rem;
+  }
+  .b2b-title-light { color: #fff; }
+  .b2b-title-center { text-align: center; margin-bottom: 2rem; }
+  .b2b-lead { color: var(--muted); font-size: 1.02rem; margin: 0 0 1.5rem; max-width: 560px; }
+  .b2b-head-center .b2b-lead { margin-inline: auto; }
+  .b2b-small { color: var(--muted); font-size: 0.9rem; margin-top: 1.25rem; }
+  .b2b-small a { text-decoration: underline; color: var(--brand-soft); }
+
+  /* ── Hero ── */
+  .b2b-hero { background: var(--brand); color: #fff; padding-block: clamp(3rem, 7vw, 5.5rem) !important; }
+  .b2b-hero-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: clamp(2rem, 5vw, 4.5rem); align-items: center; }
+  .b2b-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 999px;
+    padding: 0.4rem 0.9rem;
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.85);
+  }
+  .b2b-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent-light); }
+  .b2b-hero-title {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: clamp(2.6rem, 5.4vw, 4rem);
+    line-height: 1.05;
+    margin: 1.4rem 0 1.2rem;
+    color: #fff;
+  }
+  .b2b-hero-title em { color: var(--accent-bright); font-style: italic; }
+  .b2b-hero-lead { color: rgba(255, 255, 255, 0.82); font-size: 1.08rem; max-width: 480px; margin: 0 0 2rem; }
+  .b2b-hero-ctas { display: flex; flex-wrap: wrap; gap: 0.8rem; }
+  .b2b-stats { display: flex; gap: clamp(1.25rem, 3vw, 2.5rem); margin: 2.5rem 0 0; }
+  .b2b-stats div { display: flex; flex-direction: column; }
+  /* The site sets tabular-nums globally; Cormorant's figures need proportional spacing. */
+  .b2b-stats dt { font-family: var(--serif); font-size: 2.2rem; color: var(--accent-bright); line-height: 1; font-variant-numeric: proportional-nums lining-nums; }
+  .b2b-stats dd { margin: 0.4rem 0 0; font-size: 0.8rem; color: rgba(255, 255, 255, 0.7); }
+
+  .b2b-hero-media {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 0.9rem;
+    height: clamp(340px, 34vw, 440px);
+  }
+  .b2b-hero-media figure { margin: 0; border-radius: 18px; overflow: hidden; position: relative; }
+  .b2b-hero-media img { width: 100%; height: 100%; object-fit: cover; }
+  .b2b-hero-main { grid-row: span 2; background: var(--brand-soft); }
+  .b2b-tile-tint1 { background: var(--tint-1); }
+  .b2b-tile-paper { background: var(--paper); }
+  .b2b-hero-tile figcaption {
+    position: absolute;
+    left: 0.6rem;
+    bottom: 0.6rem;
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--brand);
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 999px;
+    padding: 0.3rem 0.7rem;
+  }
+
+  /* ── Trust strip ── */
+  .b2b-trust { border-bottom: 1px solid var(--line); }
+  .b2b-trust-row {
+    list-style: none;
+    padding: 1.15rem 0;
+    margin-block: 0;
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem 2rem;
+    flex-wrap: wrap;
+  }
+  .b2b-trust-row li { display: flex; align-items: center; gap: 0.55rem; font-size: 0.9rem; color: var(--ink); }
+  .b2b-trust-row .b2b-icon { color: var(--brand-soft); }
+
+  /* ── Audience cards ── */
+  .b2b-audience-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+  .b2b-audience-card {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 0 12px 30px -18px rgba(114, 14, 59, 0.25);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .b2b-audience-card:hover { transform: translateY(-3px); box-shadow: 0 18px 36px -18px rgba(114, 14, 59, 0.35); }
+  .b2b-audience-media { aspect-ratio: 3 / 2; overflow: hidden; }
+  .b2b-audience-media img { width: 100%; height: 100%; object-fit: cover; }
+  .b2b-tone-tint1 { background: var(--tint-1); color: var(--brand); }
+  .b2b-tone-tint2 { background: var(--tint-2); color: var(--brand); }
+  .b2b-tone-tint3 { background: var(--tint-3); color: var(--brand-soft); }
+  .b2b-audience-body { padding: 1.5rem 1.4rem 1.6rem; }
+  .b2b-audience-body h3 { font-family: var(--serif); font-weight: 500; font-size: 1.6rem; color: var(--brand); margin: 0 0 0.5rem; }
+  .b2b-audience-body p { color: var(--muted); font-size: 0.95rem; margin: 0 0 1rem; }
+  .b2b-link { color: var(--brand-soft); font-weight: 600; font-size: 0.92rem; }
+
+  /* ── Gift tiers ── */
+  .b2b-tier-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; align-items: stretch; }
+  .b2b-tier { border-radius: 18px; overflow: hidden; background: var(--paper-2); display: flex; flex-direction: column; }
+  .b2b-tier-featured { background: var(--brand); color: #fff; box-shadow: 0 24px 48px -24px rgba(114, 14, 59, 0.6); transform: translateY(-6px); }
+  .b2b-tier-media { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; aspect-ratio: 16 / 11; background: var(--line); }
+  .b2b-tier-media img { width: 100%; height: 100%; object-fit: cover; }
+  .b2b-tier-body { padding: 1.4rem 1.4rem 1.5rem; display: flex; flex-direction: column; flex: 1; }
+  .b2b-tier-badges { display: flex; gap: 0.5rem; margin-bottom: 0.9rem; flex-wrap: wrap; }
+  .b2b-badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 999px;
+    padding: 0.3rem 0.75rem;
+    background: #fff;
+    border: 1px solid var(--tint-2);
+    color: var(--brand);
+  }
+  .b2b-tier-featured .b2b-badge { background: var(--accent-light); border-color: var(--accent-light); color: var(--brand-deep); }
+  .b2b-tier-featured .b2b-badge-ghost { background: transparent; border-color: rgba(255, 255, 255, 0.4); color: #fff; }
+  .b2b-tier h3 { font-family: var(--serif); font-weight: 500; font-size: 1.7rem; margin: 0 0 0.8rem; color: inherit; }
+  .b2b-tier:not(.b2b-tier-featured) h3 { color: var(--brand); }
+  .b2b-tier-list { list-style: none; padding: 0; margin: 0 0 0.9rem; }
+  .b2b-tier-list li {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.65rem 0;
+    font-size: 0.93rem;
+    border-bottom: 1px dashed var(--line);
+  }
+  .b2b-tier-featured .b2b-tier-list li { border-bottom-color: rgba(255, 255, 255, 0.18); }
+  .b2b-tier-list li:last-child { border-bottom: 0; }
+  .b2b-tier-list a:hover { text-decoration: underline; text-underline-offset: 3px; }
+  .b2b-tier-list strong { white-space: nowrap; }
+  .b2b-tier-note { margin: auto 0 0; font-size: 0.82rem; color: var(--muted); }
+  .b2b-tier-featured .b2b-tier-note { color: rgba(255, 255, 255, 0.7); }
+  .b2b-footnote { margin: 1.5rem 0 0; font-size: 0.82rem; color: var(--muted); }
+
+  /* ── Split layouts ── */
+  .b2b-split { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(2rem, 5vw, 4rem); align-items: center; }
+  .b2b-split-quote { align-items: start; }
+
+  .b2b-placeholder {
+    border-radius: 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    text-align: center;
+    padding: 1.5rem;
+    font-size: 0.88rem;
+    color: var(--muted);
+  }
+  .b2b-before-after { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; }
+  .b2b-before-after .b2b-placeholder { aspect-ratio: 4 / 4.3; }
+  .b2b-ph-tint1 { background: #efe0dc; }
+  .b2b-ph-tint2 { background: var(--tint-2); }
+  .b2b-ph-dark { background: var(--brand-soft); color: rgba(255, 255, 255, 0.75); aspect-ratio: 16 / 7; }
+  .b2b-ph-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: var(--brand); }
+  .b2b-ph-label-soft { color: var(--brand-soft); }
+
+  .b2b-checklist { list-style: none; padding: 0; margin: 0 0 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem 1.5rem; }
+  .b2b-checklist li { display: flex; align-items: center; gap: 0.55rem; font-size: 0.95rem; }
+  .b2b-checklist .b2b-icon { color: var(--brand-soft); }
+
+  .b2b-groups { list-style: none; padding: 0; margin: 0 0 2rem; display: flex; flex-direction: column; gap: 1.1rem; }
+  .b2b-groups li { display: flex; gap: 0.9rem; align-items: flex-start; }
+  .b2b-group-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: var(--tint-3);
+    color: var(--brand);
+    display: grid;
+    place-items: center;
+    flex: none;
+  }
+  .b2b-groups strong { display: block; font-size: 0.95rem; }
+  .b2b-groups p { margin: 0.2rem 0 0; color: var(--muted); font-size: 0.9rem; }
+  .b2b-trade-media { margin: 0 auto; border-radius: 18px; overflow: hidden; background: var(--tint-3); aspect-ratio: 4 / 5; width: min(100%, 420px); }
+  .b2b-trade-media img { width: 100%; height: 100%; object-fit: cover; }
+
+  /* ── Reviews ── */
+  .b2b-sample-note {
+    font-size: 0.78rem;
+    color: var(--accent-light);
+    border: 1px dashed rgba(242, 214, 220, 0.5);
+    border-radius: 999px;
+    padding: 0.4rem 0.9rem;
+  }
+  .b2b-review-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; }
+  .b2b-review { margin: 0; background: #fff; border-radius: 18px; padding: 1.6rem; display: flex; flex-direction: column; gap: 1rem; }
+  .b2b-stars { color: var(--accent); letter-spacing: 0.15em; font-size: 0.95rem; }
+  .b2b-review blockquote { margin: 0; font-family: var(--serif); font-size: 1.3rem; line-height: 1.35; color: var(--ink); flex: 1; }
+  .b2b-review figcaption { display: flex; align-items: center; gap: 0.75rem; }
+  .b2b-review figcaption span:last-child { display: flex; flex-direction: column; }
+  .b2b-review strong { font-size: 0.92rem; }
+  .b2b-review small { color: var(--muted); font-size: 0.8rem; }
+  .b2b-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    flex: none;
+  }
+  .b2b-review-photos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; margin-top: 1.25rem; }
+
+  /* ── Steps ── */
+  .b2b-steps { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem; }
+  .b2b-steps li { display: flex; flex-direction: column; }
+  .b2b-step-num { font-family: var(--serif); font-size: 2.4rem; color: var(--accent); line-height: 1; margin-bottom: 0.9rem; font-variant-numeric: proportional-nums; }
+  .b2b-steps strong { font-size: 1rem; margin-bottom: 0.4rem; }
+  .b2b-steps p { margin: 0; color: var(--muted); font-size: 0.92rem; }
+
+  /* ── Quote form ── */
+  .b2b-form-card { background: #fff; border-radius: 20px; padding: clamp(1.4rem, 3vw, 2rem); box-shadow: 0 24px 48px -28px rgba(114, 14, 59, 0.35); }
+  .b2b-form { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem 1.1rem; }
+  .b2b-field { display: flex; flex-direction: column; gap: 0.35rem; min-width: 0; }
+  .b2b-field-full { grid-column: 1 / -1; }
+  .b2b-field label { font-size: 0.82rem; font-weight: 600; color: var(--ink); }
+  .b2b-field input,
+  .b2b-field select {
+    width: 100%;
+    font: inherit;
+    font-size: 0.95rem;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid #e5d3d7;
+    border-radius: 10px;
+    background: #fff;
+    color: var(--ink);
+  }
+  .b2b-field input:focus,
+  .b2b-field select:focus { outline: 2px solid var(--brand-soft); outline-offset: 1px; border-color: transparent; }
+  .b2b-hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+  .b2b-form-error { background: #fee2e2; color: #b91c1c; padding: 0.7rem 0.9rem; border-radius: 10px; font-size: 0.88rem; }
+  .b2b-form-success { text-align: center; padding: 1.5rem 0.5rem; }
+  .b2b-success-icon { width: 44px; height: 44px; color: var(--brand); margin: 0 auto 0.75rem; }
+  .b2b-form-success h3 { font-family: var(--serif); font-weight: 500; font-size: 1.7rem; color: var(--brand); margin: 0 0 0.5rem; }
+  .b2b-form-success p { color: var(--muted); margin: 0 0 1.25rem; }
+
+  /* ── FAQs ── */
+  .b2b-narrow { width: min(760px, 100% - 2.5rem); }
+  .b2b-faq { border-bottom: 1px solid var(--line); }
+  .b2b-faq summary {
+    list-style: none;
+    cursor: pointer;
+    padding: 1.15rem 2rem 1.15rem 0;
+    font-weight: 600;
+    position: relative;
+  }
+  .b2b-faq summary::-webkit-details-marker { display: none; }
+  .b2b-faq summary::after {
+    content: '+';
+    position: absolute;
+    right: 0.25rem;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.3rem;
+    font-weight: 400;
+    color: var(--brand-soft);
+  }
+  .b2b-faq[open] summary::after { content: '–'; }
+  .b2b-faq p { margin: 0 0 1.15rem; color: var(--muted); }
+
+  /* ── Closing banner ── */
+  .b2b-banner {
+    background: var(--brand-deep);
+    color: #fff;
+    border-radius: 22px;
+    padding: clamp(1.75rem, 4vw, 2.5rem) clamp(1.5rem, 4vw, 2.5rem);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .b2b-banner h2 { font-family: var(--serif); font-weight: 500; font-size: clamp(1.7rem, 3vw, 2.2rem); margin: 0 0 0.35rem; color: #fff; }
+  .b2b-banner p { margin: 0; color: rgba(255, 255, 255, 0.75); }
+
+  /* ── Footer ── */
+  .b2b-footer { background: var(--brand); color: rgba(255, 255, 255, 0.78); padding: 2.5rem 0; font-size: 0.88rem; }
+  .b2b-footer-grid { display: grid; grid-template-columns: 1.2fr 1.4fr 1fr; gap: 2rem; }
+  .b2b-footer h3 { color: var(--accent-light); font-size: 0.9rem; font-weight: 600; margin: 0 0 0.6rem; }
+  .b2b-footer p { margin: 0.6rem 0 0; line-height: 1.7; }
+  .b2b-footer h3 + p { margin-top: 0; }
+  .b2b-footer a:hover { color: #fff; }
+  .b2b-logo-light { color: #fff; font-size: 1.3rem; }
+
+  /* ── Mobile floating WhatsApp ── */
+  .b2b-fab { display: none; }
+
+  /* ── Responsive ── */
+  @media (max-width: 1000px) {
+    .b2b-nav { display: none; }
+    .b2b-hero-grid { grid-template-columns: 1fr; }
+    .b2b-audience-grid,
+    .b2b-tier-grid,
+    .b2b-review-grid { grid-template-columns: 1fr 1fr; }
+    .b2b-tier-featured { transform: none; }
+    .b2b-steps { grid-template-columns: 1fr 1fr; }
+    .b2b-split { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 640px) {
+    .b2b-container { width: calc(100% - 2rem); }
+    .b2b-header-actions .b2b-btn-outline-dark { display: none; }
+    .b2b-hero-media { height: 360px; }
+    .b2b-stats { gap: 1.25rem; }
+    .b2b-stats dt { font-size: 1.8rem; }
+    .b2b-hero-ctas .b2b-btn { width: 100%; }
+    .b2b-trust-row { display: grid; grid-template-columns: 1fr 1fr; }
+    .b2b-trust-row li { font-size: 0.82rem; align-items: flex-start; }
+    .b2b-steps { grid-template-columns: 1fr 1fr; gap: 1.5rem 1.25rem; }
+
+    /* Card rows become side-swipe rows on phones so the page doesn't turn into one long column. */
+    .b2b-audience-grid,
+    .b2b-tier-grid,
+    .b2b-review-grid,
+    .b2b-review-photos {
+      grid-template-columns: none;
+      grid-auto-flow: column;
+      grid-auto-columns: 84%;
+      gap: 0.85rem;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+      margin-inline: -1rem;
+      padding: 0.5rem 1rem 1rem;
+      scroll-padding-inline: 1rem;
+    }
+    .b2b-audience-grid::-webkit-scrollbar,
+    .b2b-tier-grid::-webkit-scrollbar,
+    .b2b-review-grid::-webkit-scrollbar,
+    .b2b-review-photos::-webkit-scrollbar { display: none; }
+    .b2b-audience-grid > *,
+    .b2b-tier-grid > *,
+    .b2b-review-grid > *,
+    .b2b-review-photos > * { scroll-snap-align: start; }
+    .b2b-checklist { grid-template-columns: 1fr; }
+    .b2b-form { grid-template-columns: 1fr; }
+    .b2b-footer-grid { grid-template-columns: 1fr; }
+    .b2b-banner .b2b-btn { width: 100%; }
+    .b2b-footer { padding-bottom: 6rem; }
+    .b2b-fab {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      position: fixed;
+      left: 1rem;
+      right: 1rem;
+      bottom: 1rem;
+      z-index: 60;
+      background: var(--brand);
+      color: #fff;
+      font-weight: 600;
+      border-radius: 999px;
+      padding: 0.9rem 1rem;
+      box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.35);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .b2b-btn,
+    .b2b-audience-card { transition: none; }
+    .b2b-btn:hover,
+    .b2b-audience-card:hover { transform: none; }
+  }
+</style>

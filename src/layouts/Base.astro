@@ -7,13 +7,16 @@ interface Props {
   description?: string;
   canonicalUrl?: string;
   ogImage?: string;
+  /** Keep the page out of search results (review / preview pages). */
+  noindex?: boolean;
 }
 
-const { 
+const {
   title = "VINSHO — Luxury Home Décor & Furnishings",
   description = "VINSHO — luxury home décor, furnishings and gifting. Curated pieces that blend elegance, comfort and functionality. Greater Noida.",
   canonicalUrl,
-  ogImage
+  ogImage,
+  noindex = false
 } = Astro.props;
 
 const siteOrigin = Astro.site ? Astro.site.origin : "https://www.vinsho.in";
@@ -70,6 +73,7 @@ const itemList = {
     <meta charset="UTF-8" />
     <meta name="description" content={description} />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="canonical" href={resolvedCanonical} />
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=4" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=4" />

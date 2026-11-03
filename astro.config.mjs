@@ -21,6 +21,7 @@ export default defineConfig({
         !page.includes('/login') &&
         !page.includes('/signup') &&
         !page.includes('/forgot-password') &&
+        !page.includes('/landing-page') &&
         !page.includes('/reset-password')
     })
   ],
