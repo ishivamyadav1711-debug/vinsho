@@ -664,14 +664,6 @@ header.bar.main-navbar {
   object-position: 35% center;
 }
 
-.hero-bg::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(138, 23, 75,.30), rgba(205,120,143,.42) 45%, rgba(138, 23, 75,.55)),
-              radial-gradient(90% 70% at 50% 30%, rgba(251,243,240,.10), transparent 70%);
-}
-
 .hero-in {
   position: relative;
   height: 100%;
@@ -691,7 +683,8 @@ header.bar.main-navbar {
   line-height: 1.16;
   letter-spacing: -.025em;
   margin: 0 0 1.6rem;
-  text-shadow: 0 2px 30px rgba(138, 23, 75,.35);
+  /* No overlay on the hero photo, so a soft shadow keeps the white headline readable. */
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .35), 0 2px 24px rgba(0, 0, 0, .45);
   max-width: 90vw;
 }
 
