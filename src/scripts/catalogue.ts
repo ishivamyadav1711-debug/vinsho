@@ -152,6 +152,16 @@ document.addEventListener('DOMContentLoaded', () => {
     return tokens.every(token => matchesToken(searchableText, token));
   }
 
+  // Highlight the Available Online / At Store Only tab that matches availMode
+  function syncAvailTabs() {
+    document.querySelectorAll<HTMLElement>('.avail-tab-btn').forEach((tab) => {
+      const isActive = tab.dataset.availMode === availMode;
+      tab.classList.toggle('active', isActive);
+      if (isActive) tab.setAttribute('aria-current', 'page');
+      else tab.removeAttribute('aria-current');
+    });
+  }
+
   // Read URL query parameters
   function readParamsFromURL() {
     const params = new URLSearchParams(window.location.search);
@@ -165,6 +175,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const avail = params.get('avail');
     selectedAvails = avail ? avail.split(',') : [];
+
+    // ?availability=online | store selects the Available Online / At Store Only tab
+    const availability = params.get('availability');
+    availMode = availability === 'online' || availability === 'store' ? availability : 'all';
+    syncAvailTabs();
 
     query = params.get('q') || '';
     if (qInput) {
@@ -187,6 +202,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (selectedAvails.length > 0) url.searchParams.set('avail', selectedAvails.join(','));
     else url.searchParams.delete('avail');
+
+    if (availMode !== 'all') url.searchParams.set('availability', availMode);
+    else url.searchParams.delete('availability');
 
     if (query) url.searchParams.set('q', query);
     else url.searchParams.delete('q');
@@ -391,12 +409,15 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Availability mode tab button listeners
-  const availTabBtns = document.querySelectorAll<HTMLButtonElement>('.avail-tab-btn');
+  const availTabBtns = document.querySelectorAll<HTMLAnchorElement>('.avail-tab-btn');
   availTabBtns.forEach((btn) => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', (e) => {
+      // Tabs are real links (shareable URLs); a plain click filters in place instead of reloading.
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+      e.preventDefault();
       const mode = (btn.dataset.availMode || 'all') as 'all' | 'online' | 'store';
       availMode = mode;
-      availTabBtns.forEach((b) => b.classList.toggle('active', b === btn));
+      syncAvailTabs();
       if (mode !== 'online' && (selectedSubs.includes('candles') || selectedSubs.includes('corporate-gifting'))) {
         selectedSubs = [];
         syncCheckboxesWithState();
@@ -798,9 +819,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const mode = (btn.dataset.mAvail || 'all') as 'all' | 'online' | 'store';
       availMode = mode;
       
-      document.querySelectorAll('.avail-tab-btn').forEach((tab) => {
-        tab.classList.toggle('active', (tab as HTMLElement).dataset.availMode === mode);
-      });
+      syncAvailTabs();
 
       if (mode === 'store') {
         selectedCols = selectedCols.filter(c => c !== 'gifting-collection');

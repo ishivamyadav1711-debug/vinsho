@@ -1179,15 +1179,6 @@ header.bar.main-navbar {
 }
 .mt img { width: 100%; height: 100%; object-fit: cover; transition: transform .9s var(--ease); }
 .mt:hover img { transform: scale(1.06); }
-.mt::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(transparent 45%, rgba(138, 23, 75,.55));
-  opacity: .85;
-  transition: opacity .35s;
-}
-.mt:hover::after { opacity: 1; }
 .mt .tg {
   position: absolute;
   top: .7rem; left: .7rem;
@@ -1200,14 +1191,20 @@ header.bar.main-navbar {
   padding: .24rem .6rem;
   border-radius: 2px;
 }
+/* No overlay on the photo, so the title sits on its own label to stay readable on light images. */
 .mt .nm {
   position: absolute;
-  left: .85rem; bottom: .75rem;
+  left: .7rem; bottom: .7rem;
   z-index: 2;
-  color: #fff;
+  background: var(--paper);
+  color: var(--maroon-2);
   font-family: var(--display);
-  font-size: clamp(.9rem, 1.6vw, 1.15rem);
+  font-size: clamp(.85rem, 1.4vw, 1rem);
+  line-height: 1.25;
   text-align: left;
+  padding: .3rem .7rem;
+  border-radius: 4px;
+  max-width: calc(100% - 1.4rem);
 }
 
 @media (min-width: 768px) {

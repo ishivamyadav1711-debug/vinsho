@@ -93,15 +93,16 @@ const totalCount = activeProducts.length;
 
   <!-- Availability Filter Tabs (Available Online | Available at Store Only) -->
   <div class="availability-filter-tabs" aria-label="Product Availability Filter">
-    <button class="avail-tab-btn active" data-avail-mode="all" id="tab-avail-all">
+    <!-- Real links so each view has a shareable URL (e.g. /products?availability=online for campaigns) -->
+    <a href="/products" class="avail-tab-btn active" data-avail-mode="all" id="tab-avail-all">
       ALL PRODUCTS
-    </button>
-    <button class="avail-tab-btn" data-avail-mode="online" id="tab-avail-online">
+    </a>
+    <a href="/products?availability=online" class="avail-tab-btn" data-avail-mode="online" id="tab-avail-online">
       <span class="online-dot"></span> AVAILABLE ONLINE
-    </button>
-    <button class="avail-tab-btn" data-avail-mode="store" id="tab-avail-store">
+    </a>
+    <a href="/products?availability=store" class="avail-tab-btn" data-avail-mode="store" id="tab-avail-store">
       <span class="store-dot"></span> AVAILABLE AT STORE ONLY
-    </button>
+    </a>
   </div>
 
   <!-- Online Subcategory Filter Bar (Visible when Available Online is active) -->
