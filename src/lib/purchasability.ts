@@ -43,15 +43,17 @@ export function isProductPurchasable(product: any): boolean {
   // DYNAMIC SINGLE SOURCE OF TRUTH:
   // IF product belongs to "Gifting Collection" -> AVAILABLE ONLINE (true)
   // ELSE -> AVAILABLE AT STORE ONLY (false)
-  if (
-    colKey.includes('gifting') || 
+  const inGiftingCollection =
+    colKey.includes('gifting') ||
     colKey.includes('gift') ||
-    subcat.includes('gifting')
-  ) {
-    return true;
-  }
+    subcat.includes('gifting');
+  if (!inGiftingCollection) return false;
 
-  return false;
+  // Storefront products carry a resolved `price`. A gifting product without one can't be
+  // sold online, so it shows "Price on request" instead of an invented price.
+  if ('price' in product && !product.price) return false;
+
+  return true;
 }
 
 /**

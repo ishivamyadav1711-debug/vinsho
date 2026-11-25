@@ -245,9 +245,10 @@ export async function getAllProducts(forceFresh = false): Promise<ProductItem[]>
           collection: p.collection?.name || '',
           subcategoryKey: p.subcategory?.key || '',
           subcategory: p.subcategory?.name || '',
-          isPurchasable: Boolean(p.is_purchasable)
+          isPurchasable: Boolean(p.is_purchasable),
+          price: firstPrice
         });
-        const finalPrice = isPurchasable ? (firstPrice || 499) : null;
+        const finalPrice = isPurchasable ? firstPrice : null;
 
         return {
           id: p.id,
@@ -289,6 +290,7 @@ export async function getAllProducts(forceFresh = false): Promise<ProductItem[]>
   const seedProducts = (taxonomyData as any).products || [];
   const fallback = (seedProducts as any[]).map(p => {
     const colKey = normalizeCollectionKey(p.collectionKey || p.collection || '');
+    const seedPrice = p.sellingPrice || p.price || null;
     const isPurchasable = isProductPurchasable({
       slug: p.slug,
       name: p.name,
@@ -296,9 +298,10 @@ export async function getAllProducts(forceFresh = false): Promise<ProductItem[]>
       collection: p.collection || p.mainCategory,
       subcategoryKey: p.subcategoryKey,
       subcategory: p.subcategory || p.subCategory,
-      isPurchasable: Boolean(p.isPurchasable)
+      isPurchasable: Boolean(p.isPurchasable),
+      price: seedPrice
     });
-    const activePrice = isPurchasable ? (p.sellingPrice || p.price || 499) : null;
+    const activePrice = isPurchasable ? seedPrice : null;
 
     const seedImgs = p.images && p.images.length > 0 ? p.images : (p.image ? [p.image] : []);
     return {
