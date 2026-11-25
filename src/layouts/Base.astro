@@ -21,6 +21,26 @@ const resolvedCanonical = canonicalUrl || new URL(Astro.url.pathname, siteOrigin
 
 const shareImage = ogImage || content.siteImages.hero || content.siteImages.exploreLarge;
 
+// Meta (Facebook) Pixel for marketing. Loaded on production only, so local and preview
+// traffic doesn't pollute the data, and never on staff or account pages: the URL is sent
+// to Meta, and password-reset links carry a secret token in /account?...&token=...
+const META_PIXEL_ID = '1451496613812655';
+const PIXEL_EXCLUDED_PATHS = ['/crm', '/admin', '/account', '/reset-password'];
+const pixelPath = Astro.url.pathname;
+const loadMetaPixel =
+  import.meta.env.PROD &&
+  !PIXEL_EXCLUDED_PATHS.some((p) => pixelPath === p || pixelPath.startsWith(p + '/'));
+const metaPixelScript = `!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '${META_PIXEL_ID}');
+fbq('track', 'PageView');`;
+
 // Prepare JSON-LD
 const organization = {
   "@context": "https://schema.org",
@@ -101,8 +121,15 @@ const itemList = {
     <script type="application/ld+json" set:html={JSON.stringify(organization)} />
     <script type="application/ld+json" set:html={JSON.stringify(localBusiness)} />
     <script type="application/ld+json" set:html={JSON.stringify(itemList)} />
+
+    {loadMetaPixel && <script is:inline set:html={metaPixelScript} />}
   </head>
   <body>
+    {loadMetaPixel && (
+      <noscript>
+        <img height="1" width="1" style="display:none" alt="" src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`} />
+      </noscript>
+    )}
     <div id="prog"></div>
     <slot />
     <div class="toast" id="toast"></div>
