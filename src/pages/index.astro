@@ -2,6 +2,7 @@
 export const prerender = false;
 
 import Base from '../layouts/Base.astro';
+import { cachePublicPage } from '../lib/http-cache';
 import Nav from '../components/Nav.astro';
 import Hero from '../components/Hero.astro';
 import Ticker from '../components/Ticker.astro';
@@ -14,6 +15,9 @@ import NewsSection from '../components/NewsSection.astro';
 import Footer from '../components/Footer.astro';
 import Modal from '../components/Modal.astro';
 import CustomCursor from '../components/motion/CustomCursor.astro';
+
+// Public, nothing per-visitor on the server: let Vercel's edge cache it briefly.
+cachePublicPage(Astro.response);
 ---
 
 <Base>

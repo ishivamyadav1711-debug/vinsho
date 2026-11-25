@@ -1,5 +1,6 @@
 ---
 import { isProductPurchasable } from '../lib/purchasability';
+import { thumb } from '../lib/thumbs';
 
 export interface Props {
   product: {
@@ -76,7 +77,7 @@ if (isPurchasable) {
 >
   <div class="pc-img">
     <a href={`/product/${product.slug}`} class="pc-img-link" aria-label={`View ${product.name}`}>
-      <img src={product.image} alt={product.name} width="400" height="400" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='/images/candles/placeholder.svg';" />
+      <img src={thumb(product.image)} alt={product.name} width="400" height="400" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='/images/candles/placeholder.svg';" />
     </a>
   </div>
 

@@ -48,3 +48,7 @@ skills-lock.json
 .claude/
 .cursor/
 .devin/
+
+# build-time product thumbnails (scripts/generate-thumbnails.mjs)
+public/thumbs/
+src/data/thumbs.generated.json

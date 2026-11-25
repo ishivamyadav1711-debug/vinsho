@@ -2,6 +2,7 @@
 export const prerender = false;
 
 import Base from '../../layouts/Base.astro';
+import { cachePublicPage } from '../../lib/http-cache';
 import Nav from '../../components/Nav.astro';
 import Footer from '../../components/Footer.astro';
 import Modal from '../../components/Modal.astro';
@@ -13,6 +14,9 @@ const breadcrumbItems = [
   { label: 'Home', url: '/' },
   { label: 'All Products' }
 ];
+
+// Public, nothing per-visitor on the server: let Vercel's edge cache it briefly.
+cachePublicPage(Astro.response);
 ---
 
 <Base title="All Products — VINSHO" description="Explore all handcrafted home furnishings, home décor, and gifting products by VINSHO.">

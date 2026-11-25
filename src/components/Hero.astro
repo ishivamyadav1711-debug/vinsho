@@ -1,20 +1,32 @@
 ---
 import content from '../../vinsho-content.json';
 import Magnetic from './motion/Magnetic.astro';
-import heroImg from '../assets/hero-bg.png';
+// Compressed versions of hero-bg.png (942 KB PNG), generated with sharp:
+// AVIF 41/89 KB for current browsers, WebP 66/143 KB as the fallback.
+import hero640Avif from '../assets/hero/hero-bg-640.avif';
+import hero1024Avif from '../assets/hero/hero-bg-1024.avif';
+import hero640 from '../assets/hero/hero-bg-640.webp';
+import hero1024 from '../assets/hero/hero-bg-1024.webp';
 ---
 
 <section class="hero" id="hero-section" style="padding:0">
   <div class="hero-bg" id="hero-bg-frame">
     {content.siteImages.hero && (
-      <img 
-        src={heroImg.src} 
+      <picture>
+      <source type="image/avif" srcset={`${hero640Avif.src} 640w, ${hero1024Avif.src} 1024w`} sizes="100vw" />
+      <img
+        src={hero1024.src}
+        srcset={`${hero640.src} 640w, ${hero1024.src} 1024w`}
+        sizes="100vw"
+        width="1024"
+        height="1024"
         alt="VINSHO Home Décor"
         id="hero-img-target"
         loading="eager"
         fetchpriority="high"
         style="width: 100%; height: 100%; object-fit: cover;"
       />
+      </picture>
     )}
   </div>
   <div class="hero-in" id="hero-content">

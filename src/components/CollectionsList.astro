@@ -1,5 +1,6 @@
 ---
 import TextReveal from './motion/TextReveal.astro';
+import { thumb } from '../lib/thumbs';
 import { getCollections, getBasicActiveProducts } from '../utils/taxonomy';
 
 const collections = await getCollections();
@@ -72,7 +73,7 @@ const collectionItems = collections.map((col: any, idx: any) => {
             <div class="showcase-grid-preview">
               {item.productImages.slice(0, 4).map((prod: any, pIdx: any) => (
                 <div class={`showcase-img-box img-box-${pIdx + 1}`}>
-                  <img src={prod.url} alt={prod.title} loading="lazy" />
+                  <img src={thumb(prod.url)} alt={prod.title} loading="lazy" decoding="async" />
                   <div class="img-box-overlay">
                     <span class="box-prod-title">{prod.title}</span>
                   </div>

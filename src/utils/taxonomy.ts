@@ -30,6 +30,9 @@ export interface ProductVariant {
   sellingPrice: number;
   stock: number;
   label: string;
+  /** Raw database values (the fields above fill in display defaults). */
+  dbSku?: string | null;
+  dbStock?: number | null;
 }
 
 export interface ProductItem {
@@ -231,7 +234,9 @@ export async function getAllProducts(forceFresh = false): Promise<ProductItem[]>
             mrp: v.mrp !== null ? Number(v.mrp) : null,
             sellingPrice: v.selling_price !== null ? Number(v.selling_price) : 0,
             stock: v.stock !== null && v.stock !== undefined ? v.stock : 100,
-            label
+            label,
+            dbSku: v.sku ?? null,
+            dbStock: v.stock ?? null
           };
         });
 

@@ -2,6 +2,7 @@
 export const prerender = false;
 
 import Base from '../../../layouts/Base.astro';
+import { cachePublicPage } from '../../../lib/http-cache';
 import Nav from '../../../components/Nav.astro';
 import Footer from '../../../components/Footer.astro';
 import TextReveal from '../../../components/motion/TextReveal.astro';
@@ -25,6 +26,9 @@ const breadcrumbItems = [
   { label: 'Collections', url: '/collections' },
   { label: collection.name }
 ];
+
+// Public, nothing per-visitor on the server: let Vercel's edge cache it briefly.
+cachePublicPage(Astro.response);
 ---
 
 <Base title={`${collection.name} — VINSHO`} description={collection.blurb}>

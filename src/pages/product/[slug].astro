@@ -2,6 +2,7 @@
 export const prerender = false;
 
 import Base from '../../layouts/Base.astro';
+import { cachePublicPage } from '../../lib/http-cache';
 import Nav from '../../components/Nav.astro';
 import Footer from '../../components/Footer.astro';
 import Modal from '../../components/Modal.astro';
@@ -12,7 +13,7 @@ import content from '../../../vinsho-content.json';
 import { getAllProducts, getProductBySlug, getCollectionByKey, getSubcategoryByKey } from '../../utils/taxonomy';
 import { getCommerceProductBySlug, evaluateProductPurchasability } from '../../lib/commerce';
 import { isProductPurchasable } from '../../lib/purchasability';
-import { prisma } from '../../lib/db';
+import { thumb } from '../../lib/thumbs';
 
 const { slug } = Astro.params;
 const baseProduct = slug ? await getProductBySlug(slug) : null;
@@ -52,26 +53,19 @@ let dbVariants: any[] = [];
 let totalStock = 0;
 let isOutOfStock = false;
 
-try {
-  const dbProd = await prisma.products.findUnique({ where: { slug } });
-  if (dbProd) {
-    dbVariants = await prisma.productVariants.findMany({
-      where: { product_id: dbProd.id },
-      orderBy: [{ position: 'asc' }, { id: 'asc' }],
-      select: { id: true, sku: true, stock: true }
-    });
-    if (dbVariants.length > 0) {
-      defaultVariantId = dbVariants[0].id;
-      totalStock = dbVariants.reduce((sum, v) => sum + (v.stock || 0), 0);
-      if (totalStock <= 0) isOutOfStock = true;
-    } else {
-      isOutOfStock = true;
-    }
+// Variants come from the cached catalogue (getAllProducts, 60s in-memory cache) rather than
+// two extra database round trips on every product view. Orders re-check live stock anyway.
+// If the catalogue came from the JSON fallback (database unreachable), variants are absent and
+// we behave as before when the variant lookup failed.
+if (Array.isArray(baseProduct.variants)) {
+  dbVariants = baseProduct.variants.map((v) => ({ id: v.id, sku: v.dbSku ?? null, stock: v.dbStock ?? null }));
+  if (dbVariants.length > 0) {
+    defaultVariantId = dbVariants[0].id;
+    totalStock = dbVariants.reduce((sum, v) => sum + (v.stock || 0), 0);
+    if (totalStock <= 0) isOutOfStock = true;
   } else {
     isOutOfStock = true;
   }
-} catch(e) {
-  console.warn('Failed to fetch DB variants for', slug);
 }
 
 if (commerceProduct.variants && commerceProduct.variants.length > 0) {
@@ -143,6 +137,9 @@ const showShippingDelivery = !isHomeDecorOrFurnishing;
 const productImages = (baseProduct.images && baseProduct.images.length > 0)
   ? baseProduct.images
   : [baseProduct.image];
+
+// Public, nothing per-visitor on the server: let Vercel's edge cache it briefly.
+cachePublicPage(Astro.response);
 ---
 
 <Base title={`${baseProduct.name} — VINSHO Editorial`} description={baseProduct.description}>
@@ -382,7 +379,7 @@ const productImages = (baseProduct.images && baseProduct.images.length > 0)
             {relatedProducts.map((rel: any) => (
               <a href={`/product/${rel.slug}`} class="rel-card">
                 <div class="rel-img-frame">
-                  <img src={rel.image} alt={rel.name} class="rel-img" onerror="this.onerror=null; this.src='/images/candles/placeholder.svg';" />
+                  <img src={thumb(rel.image)} alt={rel.name} class="rel-img" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='/images/candles/placeholder.svg';" />
                 </div>
                 <div class="rel-info">
                   <span class="rel-cat">{rel.subcategory || rel.subCategory || rel.collection}</span>
